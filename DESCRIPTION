@@ -11,9 +11,26 @@ Description: This package reads and processes quantification results from
     for further analysis.
 License: MIT + file LICENSE
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 URL: https://glycoverse.github.io/glyread/
+Imports: 
+    checkmate,
+    cli,
+    dplyr,
+    glyexp,
+    glymotif,
+    glyparse,
+    janitor,
+    magrittr,
+    purrr,
+    readr,
+    rlang,
+    stringr,
+    tibble,
+    tidyr,
+    tidyselect
