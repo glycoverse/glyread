@@ -100,5 +100,8 @@ additional columns will be added to the variable information tibble:
 \item \code{n_gal}: integer, number of Gal
 \item \code{n_terminal_gal}: integer, number of terminal Gal
 }
+
+Besides, glycan compositions are reformatted into condensed format,
+e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
 }
 

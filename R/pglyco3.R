@@ -63,6 +63,9 @@
 #' - `n_gal`: integer, number of Gal
 #' - `n_terminal_gal`: integer, number of terminal Gal
 #'
+#' Besides, glycan compositions are reformatted into condensed format,
+#' e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
+#'
 #' @param fp File path of the pGlyco3 result file
 #' @param sample_info_fp File path of the sample information file
 #' @param name Name of the experiment. If not provided, a default name with
@@ -116,7 +119,6 @@ read_pglyco3 <- function(
     Proteins = readr::col_character(),
     Genes = readr::col_character(),
     `Glycan(H,N,A,F)` = readr::col_character(),
-    GlycanComposition = readr::col_character(),
     PlausibleStruct = readr::col_character(),
     GlySite = readr::col_integer(),
     ProSites = readr::col_character(),
@@ -192,7 +194,13 @@ read_pglyco3 <- function(
     ) %>%
     dplyr::mutate(dplyr::across(
       all_of(c("n_hex", "n_hexnac", "n_neuac", "n_fuc")), as.integer
-    ))
+    )) %>%
+    dplyr::mutate(glycan_composition = stringr::str_c(
+      dplyr::if_else(.data$n_hex > 0, stringr::str_c("H", .data$n_hex), ""),
+      dplyr::if_else(.data$n_hexnac > 0, stringr::str_c("N", .data$n_hexnac), ""),
+      dplyr::if_else(.data$n_fuc > 0, stringr::str_c("F", .data$n_fuc), ""),
+      dplyr::if_else(.data$n_neuac > 0, stringr::str_c("A", .data$n_neuac), "")
+    ), .before = dplyr::all_of("glycan_structure"))
 
   if (parse_structure) {
     cli::cli_progress_step("Parsing glycan structures.")

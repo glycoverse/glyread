@@ -139,3 +139,16 @@ test_that("glycan compositions are correct", {
   )
   expect_equal(res$var_info[c("n_hex", "n_hexnac", "n_neuac", "n_fuc")], expected)
 })
+
+
+test_that("glycan composition strings are correctly transformed", {
+  suppressMessages(
+    res <- read_pglyco3(
+      test_path("pglyco3-result.txt"),
+      name = "my_exp"
+    )
+  )
+
+  expected <- c("H4N4F1", "H5N2", "H3N2", "H5N4F1", "H5N4F1A1", "H3N2")
+  expect_equal(res$var_info$glycan_composition, expected)
+})
