@@ -10,6 +10,7 @@ read_pglyco3(
   name = NULL,
   quantify_on = c("mono", "sum"),
   differ_a_g = FALSE,
+  correct_a_f = FALSE,
   parse_structure = TRUE,
   describe_glycans = TRUE
 )
@@ -29,6 +30,9 @@ will be used for quantification. Default is "mono".}
 \item{differ_a_g}{Whether to differentiate "A" (Neu5Ac) and "G" (Neu5Gc).
 If \code{FALSE}, "A" and "G" will be replaced by "S" in compositions and structures.
 Default is \code{FALSE}.}
+
+\item{correct_a_f}{Whether to correct glycan compositions by replacing two
+F with one A. Default is \code{FALSE}.}
 
 \item{parse_structure}{Whether to parse glycan structures. Default is \code{TRUE}.}
 
@@ -110,5 +114,15 @@ Besides, glycan compositions are reformatted into condensed format,
 e.g. "H5N4F1S1" for "H(5)N(4)A(1)F(1)".
 Note that "A" and "G" in glycan structures are replaced by "S"
 if \code{differ_a_g} is \code{FALSE}.
+
+The total mass of two F is very similar with one A.
+Therefore, it is common to have multiple F in the glycan composition,
+while the glycan is probably not so.
+For example, "H5N4F2" is more likely to be "H5N4A1".
+pGlyco3 provides a suite of columns for corrected compositions and areas.
+If \code{correct_a_f} is \code{TRUE}, the original compositions and areas will be
+replaced by the corrected ones, as long as the following conditions are met:
+\code{A <= H - 3} and \code{A <= N - 2}.
+This is to ensure there are enough Gal to be capping by sialic acids.
 }
 

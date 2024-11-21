@@ -68,6 +68,16 @@
 #' Note that "A" and "G" in glycan structures are replaced by "S"
 #' if `differ_a_g` is `FALSE`.
 #'
+#' The total mass of two F is very similar with one A.
+#' Therefore, it is common to have multiple F in the glycan composition,
+#' while the glycan is probably not so.
+#' For example, "H5N4F2" is more likely to be "H5N4A1".
+#' pGlyco3 provides a suite of columns for corrected compositions and areas.
+#' If `correct_a_f` is `TRUE`, the original compositions and areas will be
+#' replaced by the corrected ones, as long as the following conditions are met:
+#' `A <= H - 3` and `A <= N - 2`.
+#' This is to ensure there are enough Gal to be capping by sialic acids.
+#'
 #' @param fp File path of the pGlyco3 result file.
 #' @param sample_info_fp File path of the sample information file.
 #' @param name Name of the experiment. If not provided, a default name with
@@ -78,6 +88,9 @@
 #' @param differ_a_g Whether to differentiate "A" (Neu5Ac) and "G" (Neu5Gc).
 #'  If `FALSE`, "A" and "G" will be replaced by "S" in compositions and structures.
 #'  Default is `FALSE`.
+#' @param correct_a_f Whether to correct glycan compositions by replacing two
+#'  F with one A. Default is `FALSE`.
+#'  This argument cannot be `TRUE` if `parse_structure` is `TRUE`.
 #' @param parse_structure Whether to parse glycan structures. Default is `TRUE`.
 #' @param describe_glycans Whether to describe glycan properties. Default is `TRUE`.
 #'  If `parse_structure` is `FALSE`, this argument will be forced to `FALSE`.
@@ -95,6 +108,7 @@ read_pglyco3 <- function(
   name = NULL,
   quantify_on = c("mono", "sum"),
   differ_a_g = FALSE,
+  correct_a_f = FALSE,
   parse_structure = TRUE,
   describe_glycans = TRUE
 ) {
@@ -114,6 +128,12 @@ read_pglyco3 <- function(
   if (!parse_structure) {
     describe_glycans <- FALSE
   }
+  if (correct_a_f & parse_structure) {
+    rlang::abort(c(
+      "Parsing glycan structures and correcting A and F at the same time is not supported.",
+      i = "This is because pGlyco3 doesn't have a column for corrected glycan structures."
+    ))
+  }
   if (is.null(name)) {
     name <- paste("exp", Sys.time())
   }
@@ -132,7 +152,10 @@ read_pglyco3 <- function(
     Charge = readr::col_integer(),
     Mod = readr::col_character(),
     MonoArea = readr::col_double(),
-    IsotopeArea = readr::col_double()
+    IsotopeArea = readr::col_double(),
+    `CorrectedGlycan(H,N,A,F)` = readr::col_character(),
+    CorrectedMonoArea = readr::col_double(),
+    CorrectedIsotopeArea = readr::col_double()
   )
   new_names <- c(
     sample = "raw_name",
@@ -165,16 +188,19 @@ read_pglyco3 <- function(
     glyexp::experiment(name, fake_expr_mat, sample_info, fake_var_info)
   })
 
-  # ----- Deal with A and G -----
-  if (!differ_a_g) {
-    df <- dplyr::mutate(
-      df, glycan_structure = stringr::str_replace_all(.data$glycan_structure, "A", "S")
-    )
-    # `sia_sym` will be used in the "Parse glycan composition" section
-    sia_sym <- "S"
-  } else {
-    sia_sym <- "A"
+  # ----- Correct glycan composition -----
+  # pGlyco3 has a suite of "Corrected" columns for correcting two Fuc with one NeuAc.
+  # We will use the corrected columns if they are available.
+  if (correct_a_f) {
+    good_correction <- is_good_correction(df$corrected_glycan_h_n_a_f)
+    df$glycan_h_n_a_f[good_correction] <- df$corrected_glycan_h_n_a_f[good_correction]
+    df$glycan_structure[good_correction] <- NA_character_
+    df$mono_area[good_correction] <- df$corrected_mono_area[good_correction]
+    df$isotope_area[good_correction] <- df$corrected_isotope_area[good_correction]
   }
+  df <- dplyr::select(df, -all_of(c(
+    "corrected_glycan_h_n_a_f", "corrected_mono_area", "corrected_isotope_area"
+  )))
 
   # ----- Decide Quantification Column -----
   if (quantify_on == "mono") {
@@ -185,6 +211,17 @@ read_pglyco3 <- function(
     df <- df %>%
       dplyr::rename(all_of(c(area = "isotope_area"))) %>%
       dplyr::select(-all_of("mono_area"))
+  }
+
+  # ----- Deal with A and G -----
+  if (!differ_a_g) {
+    df <- dplyr::mutate(
+      df, glycan_structure = stringr::str_replace_all(.data$glycan_structure, "A", "S")
+    )
+    # `sia_sym` will be used in the "Parse glycan composition" section
+    sia_sym <- "S"
+  } else {
+    sia_sym <- "A"
   }
 
   # ----- Clean some columns -----
@@ -266,4 +303,20 @@ read_pglyco3 <- function(
 
   print(exp)
   invisible(exp)
+}
+
+
+is_good_correction <- function(comp) {
+  # This function accepts a character vector of glycan compositions,
+  # in the format like "4 3 1 0", and returns a logical vector
+  # indicating whether the composition is a good correction to the original.
+  # It following two rules:
+  # 1. If NA, FALSE.
+  # 2. If A <= H - 3 and A <= N - 2, TRUE, otherwise FALSE.
+  mat <- stringr::str_split_fixed(comp, " ", 4)
+  mat <- matrix(as.integer(mat), nrow = nrow(mat), ncol = ncol(mat))
+  #             A           H                A           N
+  res <- (mat[, 3] <= mat[, 1] - 3) & (mat[, 3] <= mat[, 2] - 2)
+  res[is.na(res)] <- FALSE
+  res
 }
