@@ -250,7 +250,7 @@ read_pglyco3 <- function(
       variable = stringr::str_c(
         .data$peptide,
         .data$peptide_site,
-        .data$glycan_structure,
+        .data$glycan_composition,
         sep = "_"
       ),
       variable = make.unique(.data$variable, sep = "_")
