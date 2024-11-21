@@ -64,18 +64,23 @@
 #' - `n_terminal_gal`: integer, number of terminal Gal
 #'
 #' Besides, glycan compositions are reformatted into condensed format,
-#' e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
+#' e.g. "H5N4F1S1" for "H(5)N(4)A(1)F(1)".
+#' Note that "A" and "G" in glycan structures are replaced by "S"
+#' if `differ_a_g` is `FALSE`.
 #'
-#' @param fp File path of the pGlyco3 result file
-#' @param sample_info_fp File path of the sample information file
+#' @param fp File path of the pGlyco3 result file.
+#' @param sample_info_fp File path of the sample information file.
 #' @param name Name of the experiment. If not provided, a default name with
 #'  current time will be used.
 #' @param quantify_on Quantify on "mono" or "sum". If "mono", the "MonoArea"
 #'  column will be used for quantification. If "sum", the "IsotopeArea" column
 #'  will be used for quantification. Default is "mono".
+#' @param differ_a_g Whether to differentiate "A" (Neu5Ac) and "G" (Neu5Gc).
+#'  If `FALSE`, "A" and "G" will be replaced by "S" in compositions and structures.
+#'  Default is `FALSE`.
 #' @param parse_structure Whether to parse glycan structures. Default is `TRUE`.
 #' @param describe_glycans Whether to describe glycan properties. Default is `TRUE`.
-#' If `parse_structure` is `FALSE`, this argument will be forced to `FALSE`.
+#'  If `parse_structure` is `FALSE`, this argument will be forced to `FALSE`.
 #'
 #' @returns An [glyexp::experiment()] object.
 #'
@@ -89,9 +94,11 @@ read_pglyco3 <- function(
   sample_info_fp = NULL,
   name = NULL,
   quantify_on = c("mono", "sum"),
+  differ_a_g = FALSE,
   parse_structure = TRUE,
   describe_glycans = TRUE
 ) {
+  # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".txt")
   checkmate::assert(
     checkmate::check_null(sample_info_fp),
@@ -107,11 +114,11 @@ read_pglyco3 <- function(
   if (!parse_structure) {
     describe_glycans <- FALSE
   }
-
   if (is.null(name)) {
     name <- paste("exp", Sys.time())
   }
 
+  # ----- Read data -----
   cli::cli_progress_step("Reading data.")
   col_types <- readr::cols_only(
     RawName = readr::col_character(),
@@ -138,6 +145,17 @@ read_pglyco3 <- function(
     janitor::clean_names() %>%
     dplyr::rename(all_of(new_names))
 
+  # ----- Deal with A and G -----
+  if (!differ_a_g) {
+    df <- dplyr::mutate(
+      df, glycan_structure = stringr::str_replace_all(.data$glycan_structure, "A", "S")
+    )
+    sia_sym <- "S"
+  } else {
+    sia_sym <- "A"
+  }
+
+  # ----- Decide Quantification Column -----
   if (quantify_on == "mono") {
     df <- df %>%
       dplyr::rename(all_of(c(area = "mono_area"))) %>%
@@ -148,6 +166,7 @@ read_pglyco3 <- function(
       dplyr::select(-all_of("mono_area"))
   }
 
+  # ----- Packing Experiment -----
   df_wide <- df %>%
     tidyr::pivot_wider(
       names_from = all_of("sample"),
@@ -164,12 +183,7 @@ read_pglyco3 <- function(
       variable = make.unique(.data$variable, sep = "_")
     )
   var_info <- df_wide %>%
-    dplyr::select(all_of(c("variable", setdiff(colnames(df), c("sample", "area"))))) %>%
-    dplyr::mutate(
-      modifications = stringr::str_remove(.data$modifications, ";$"),
-      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
-      genes = stringr::str_remove(.data$genes, ";$")
-    )
+    dplyr::select(all_of(c("variable", setdiff(colnames(df), c("sample", "area")))))
   expr_mat <- df_wide %>%
     dplyr::select(all_of(c("variable", unique(df$sample)))) %>%
     tibble::column_to_rownames("variable") %>%
@@ -186,6 +200,15 @@ read_pglyco3 <- function(
   # to make sure sample_info is in correct format.
   exp <- glyexp::experiment(name, expr_mat, sample_info, var_info)
 
+  # ----- Clean var info -----
+  exp$var_info <- exp$var_info %>%
+    dplyr::mutate(
+      modifications = stringr::str_remove(.data$modifications, ";$"),
+      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
+      genes = stringr::str_remove(.data$genes, ";$")
+    )
+
+  # ----- Parse glycan composition -----
   exp$var_info <- exp$var_info %>%
     tidyr::separate_wider_delim(
       cols = all_of("glycan_h_n_a_f"),
@@ -199,9 +222,10 @@ read_pglyco3 <- function(
       dplyr::if_else(.data$n_hex > 0, stringr::str_c("H", .data$n_hex), ""),
       dplyr::if_else(.data$n_hexnac > 0, stringr::str_c("N", .data$n_hexnac), ""),
       dplyr::if_else(.data$n_fuc > 0, stringr::str_c("F", .data$n_fuc), ""),
-      dplyr::if_else(.data$n_neuac > 0, stringr::str_c("A", .data$n_neuac), "")
+      dplyr::if_else(.data$n_neuac > 0, stringr::str_c(sia_sym, .data$n_neuac), "")
     ), .before = dplyr::all_of("glycan_structure"))
 
+  # ----- Parse glycan structure -----
   if (parse_structure) {
     cli::cli_progress_step("Parsing glycan structures.")
     glycan_structures <- unique(var_info$glycan_structure)
@@ -210,6 +234,7 @@ read_pglyco3 <- function(
     exp$glycan_graphs <- glycan_graphs
   }
 
+  # ----- Describe glycans -----
   if (describe_glycans) {
     cli::cli_progress_step("Extracting glycan properties (this can take long).")
     property_df <- glymotif::describe_n_glycans(glycan_graphs)

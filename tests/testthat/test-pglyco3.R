@@ -141,14 +141,16 @@ test_that("glycan compositions are correct", {
 })
 
 
-test_that("glycan composition strings are correctly transformed", {
+test_that("differ_a_g setting to FALSE changes A to S", {
   suppressMessages(
     res <- read_pglyco3(
       test_path("pglyco3-result.txt"),
-      name = "my_exp"
+      name = "my_exp",
+      differ_a_g = FALSE
     )
   )
 
-  expected <- c("H4N4F1", "H5N2", "H3N2", "H5N4F1", "H5N4F1A1", "H3N2")
+  expected <- c("H4N4F1", "H5N2", "H3N2", "H5N4F1", "H5N4F1S1", "H3N2")
   expect_equal(res$var_info$glycan_composition, expected)
+  expect_snapshot(res$glycan_graphs[[5]])
 })

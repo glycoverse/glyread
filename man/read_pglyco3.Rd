@@ -9,14 +9,15 @@ read_pglyco3(
   sample_info_fp = NULL,
   name = NULL,
   quantify_on = c("mono", "sum"),
+  differ_a_g = FALSE,
   parse_structure = TRUE,
   describe_glycans = TRUE
 )
 }
 \arguments{
-\item{fp}{File path of the pGlyco3 result file}
+\item{fp}{File path of the pGlyco3 result file.}
 
-\item{sample_info_fp}{File path of the sample information file}
+\item{sample_info_fp}{File path of the sample information file.}
 
 \item{name}{Name of the experiment. If not provided, a default name with
 current time will be used.}
@@ -24,6 +25,10 @@ current time will be used.}
 \item{quantify_on}{Quantify on "mono" or "sum". If "mono", the "MonoArea"
 column will be used for quantification. If "sum", the "IsotopeArea" column
 will be used for quantification. Default is "mono".}
+
+\item{differ_a_g}{Whether to differentiate "A" (Neu5Ac) and "G" (Neu5Gc).
+If \code{FALSE}, "A" and "G" will be replaced by "S" in compositions and structures.
+Default is \code{FALSE}.}
 
 \item{parse_structure}{Whether to parse glycan structures. Default is \code{TRUE}.}
 
@@ -102,6 +107,8 @@ additional columns will be added to the variable information tibble:
 }
 
 Besides, glycan compositions are reformatted into condensed format,
-e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
+e.g. "H5N4F1S1" for "H(5)N(4)A(1)F(1)".
+Note that "A" and "G" in glycan structures are replaced by "S"
+if \code{differ_a_g} is \code{FALSE}.
 }
 
