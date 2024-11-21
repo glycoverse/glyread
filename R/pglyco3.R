@@ -145,11 +145,32 @@ read_pglyco3 <- function(
     janitor::clean_names() %>%
     dplyr::rename(all_of(new_names))
 
+  if (is.null(sample_info_fp)) {
+    sample_info <- tibble::tibble(sample = unique(df$sample))
+    cli::cli_alert_info("No sample information file passed in. An empty tibble will be used.")
+  } else {
+    sample_info <- readr::read_csv(sample_info_fp)
+  }
+
+  # ----- Check sample info -----
+  # Here we create an empty var_info tibble and an empty expr_mat matrix,
+  # and check if the sample info is in correct format by creating an experiment.
+  # This passes the checking responsibility to `experiment()`.
+  local({
+    fake_var_info <- tibble::tibble(variable = character(0))
+    samples <- unique(df$sample)
+    fake_expr_mat <- matrix(nrow = 0, ncol = length(samples), dimnames = list(NULL, samples))
+
+    # This line will throw an error if sample_info is not in correct format.
+    glyexp::experiment(name, fake_expr_mat, sample_info, fake_var_info)
+  })
+
   # ----- Deal with A and G -----
   if (!differ_a_g) {
     df <- dplyr::mutate(
       df, glycan_structure = stringr::str_replace_all(.data$glycan_structure, "A", "S")
     )
+    # `sia_sym` will be used in the "Parse glycan composition" section
     sia_sym <- "S"
   } else {
     sia_sym <- "A"
@@ -166,42 +187,8 @@ read_pglyco3 <- function(
       dplyr::select(-all_of("mono_area"))
   }
 
-  # ----- Packing Experiment -----
-  df_wide <- df %>%
-    tidyr::pivot_wider(
-      names_from = all_of("sample"),
-      values_from = all_of("area"),
-      values_fn = sum
-    ) %>%
-    dplyr::mutate(
-      variable = stringr::str_c(
-        .data$peptide,
-        .data$peptide_site,
-        .data$glycan_structure,
-        sep = "_"
-      ),
-      variable = make.unique(.data$variable, sep = "_")
-    )
-  var_info <- df_wide %>%
-    dplyr::select(all_of(c("variable", setdiff(colnames(df), c("sample", "area")))))
-  expr_mat <- df_wide %>%
-    dplyr::select(all_of(c("variable", unique(df$sample)))) %>%
-    tibble::column_to_rownames("variable") %>%
-    as.matrix()
-
-  if (is.null(sample_info_fp)) {
-    sample_info <- tibble::tibble(sample = colnames(expr_mat))
-    cli::cli_alert_info("No sample information file passed in. An empty tibble will be used.")
-  } else {
-    sample_info <- readr::read_csv(sample_info_fp)
-  }
-
-  # Here we assemble an experiment as early as possible
-  # to make sure sample_info is in correct format.
-  exp <- glyexp::experiment(name, expr_mat, sample_info, var_info)
-
-  # ----- Clean var info -----
-  exp$var_info <- exp$var_info %>%
+  # ----- Clean some columns -----
+  df <- df %>%
     dplyr::mutate(
       modifications = stringr::str_remove(.data$modifications, ";$"),
       modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
@@ -209,7 +196,7 @@ read_pglyco3 <- function(
     )
 
   # ----- Parse glycan composition -----
-  exp$var_info <- exp$var_info %>%
+  df <- df %>%
     tidyr::separate_wider_delim(
       cols = all_of("glycan_h_n_a_f"),
       delim = " ",
@@ -232,17 +219,18 @@ read_pglyco3 <- function(
   # ----- Parse glycan structure -----
   if (parse_structure) {
     cli::cli_progress_step("Parsing glycan structures.")
-    glycan_structures <- unique(var_info$glycan_structure)
+    glycan_structures <- unique(df$glycan_structure)
     glycan_graphs <- purrr::map(glycan_structures, glyparse::parse_pglyco_struc)
     names(glycan_graphs) <- glycan_structures
-    exp$glycan_graphs <- glycan_graphs
+  } else {
+    glycan_graphs <- NULL
   }
 
   # ----- Describe glycans -----
   if (describe_glycans) {
     cli::cli_progress_step("Extracting glycan properties (this can take long).")
     property_df <- glymotif::describe_n_glycans(glycan_graphs)
-    exp$var_info <- exp$var_info %>%
+    df <- df %>%
       dplyr::left_join(property_df, by = c(glycan_structure = "glycan")) %>%
       dplyr::relocate(
         all_of(setdiff(colnames(property_df), "glycan")),
@@ -250,7 +238,32 @@ read_pglyco3 <- function(
       )
   }
 
-  cli::cli_progress_step("You are ready to go :)")
+  # ----- Pack Experiment -----
+  cli::cli_progress_step("Packing experiment.")
+  df_wide <- df %>%
+    tidyr::pivot_wider(
+      names_from = all_of("sample"),
+      values_from = all_of("area"),
+      values_fn = sum
+    ) %>%
+    dplyr::mutate(
+      variable = stringr::str_c(
+        .data$peptide,
+        .data$peptide_site,
+        .data$glycan_structure,
+        sep = "_"
+      ),
+      variable = make.unique(.data$variable, sep = "_")
+    )
+  var_info <- df_wide %>%
+    dplyr::select(all_of(c("variable", setdiff(colnames(df), c("sample", "area")))))
+  expr_mat <- df_wide %>%
+    dplyr::select(all_of(c("variable", unique(df$sample)))) %>%
+    tibble::column_to_rownames("variable") %>%
+    as.matrix()
+  exp <- glyexp::experiment(name, expr_mat, sample_info, var_info)
+  exp$glycan_graphs <- glycan_graphs
+
   print(exp)
   invisible(exp)
 }

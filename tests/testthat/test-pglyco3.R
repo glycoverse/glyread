@@ -154,3 +154,18 @@ test_that("differ_a_g setting to FALSE changes A to S", {
   expect_equal(res$var_info$glycan_composition, expected)
   expect_snapshot(res$glycan_graphs[[5]])
 })
+
+
+test_that("error when samples in sample information is inconsistent with pGlyco3 result", {
+  sample_info <- tibble::tibble(sample = c("S1", "S2", "S3"))
+  withr::with_tempdir({
+    readr::write_csv(sample_info, "sample_info.csv")
+    expect_error(
+      read_pglyco3(
+        test_path("sample_info.csv"),
+        name = "my_exp",
+        differ_a_g = FALSE
+      )
+    )
+  })
+})
