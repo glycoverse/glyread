@@ -218,6 +218,10 @@ read_pglyco3 <- function(
     dplyr::mutate(dplyr::across(
       all_of(c("n_hex", "n_hexnac", "n_neuac", "n_fuc")), as.integer
     )) %>%
+    dplyr::relocate(
+      all_of(c("n_hex", "n_hexnac", "n_neuac", "n_fuc")),
+      .after = all_of("glycan_structure")
+    ) %>%
     dplyr::mutate(glycan_composition = stringr::str_c(
       dplyr::if_else(.data$n_hex > 0, stringr::str_c("H", .data$n_hex), ""),
       dplyr::if_else(.data$n_hexnac > 0, stringr::str_c("N", .data$n_hexnac), ""),
@@ -241,11 +245,8 @@ read_pglyco3 <- function(
     exp$var_info <- exp$var_info %>%
       dplyr::left_join(property_df, by = c(glycan_structure = "glycan")) %>%
       dplyr::relocate(
-        all_of(c(
-          c("n_hex", "n_hexnac", "n_neuac", "n_fuc"),
-          setdiff(colnames(property_df), "glycan")
-        )),
-        .after = all_of("glycan_structure")
+        all_of(setdiff(colnames(property_df), "glycan")),
+        .after = all_of("n_fuc")
       )
   }
 
