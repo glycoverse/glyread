@@ -38,8 +38,8 @@
     Output
                              S1    S2
       RRJMTQGR_3_H4N4A1   2e+07    NA
-      NLEKJSTK_5_H5N2     1e+07    NA
-      NLEKJSTK_5_H3N2     1e+07    NA
+      NLEKJSTK_5_H3N4A1   2e+07    NA
+      NLEKJSTK_5_H5N2A1   2e+07    NA
       RRJMTQGR_3_H5N4F1      NA 1e+07
       RRJMTQGR_3_H5N4F1A1    NA 1e+07
       JITQKR_1_H3N2          NA 1e+07

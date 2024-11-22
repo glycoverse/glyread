@@ -185,9 +185,6 @@ test_that("error when samples in sample information is inconsistent with pGlyco3
 
 test_that("read_pglyco3 uses 'corrected' columns", {
   suppressMessages(df <- readr::read_delim(test_path("pglyco3-result.txt")))
-  # "4 4 1 0" is a reasonable correction
-  # "3 4 1 0" is not (A > H - 3)
-  # "5 2 1 0" is not (A > N - 2)
   df$`CorrectedGlycan(H,N,A,F)` <- c("4 4 1 0", "3 4 1 0", "5 2 1 0", NA, NA, NA)
   df$`CorrectedMonoArea` <- c(2e7, 2e7, 2e7, NA, NA, NA)
   df$`CorrectedIsotopeArea` <- c(2.5e7, 2.5e7, 2.5e7, NA, NA, NA)
@@ -207,14 +204,14 @@ test_that("read_pglyco3 uses 'corrected' columns", {
   })
   expect_equal(
     res_mono$var_info$glycan_composition,
-    c("H4N4A1", "H5N2", "H3N2", "H5N4F1", "H5N4F1A1", "H3N2")
+    c("H4N4A1", "H3N4A1", "H5N2A1", "H5N4F1", "H5N4F1A1", "H3N2")
   )
 
   # It should be:
   #                     S1    S2
   # RRJMTQGR_3_H4N4S1   2e+07    NA  <- corrected
-  # NLEKJSTK_5_H5N2     1e+07    NA
-  # NLEKJSTK_5_H3N2     1e+07    NA
+  # NLEKJSTK_5_H3N4A1   2e+07    NA  <- corrected
+  # NLEKJSTK_5_H5N2A1   2e+07    NA  <- corrected
   # RRJMTQGR_3_H5N4F1      NA 1e+07
   # RRJMTQGR_3_H5N4F1S1    NA 1e+07
   # JITQKR_1_H3N2          NA 1e+07

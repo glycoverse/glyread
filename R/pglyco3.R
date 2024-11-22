@@ -75,9 +75,7 @@
 #' For example, "H5N4F2" is more likely to be "H5N4A1".
 #' pGlyco3 provides a suite of columns for corrected compositions and areas.
 #' If `correct_a_f` is `TRUE`, the original compositions and areas will be
-#' replaced by the corrected ones, as long as the following conditions are met:
-#' `A <= H - 3` and `A <= N - 2`.
-#' This is to ensure there are enough Gal to be capping by sialic acids.
+#' replaced by the corrected ones.
 #'
 #' @param fp File path of the pGlyco3 result file.
 #' @param sample_info_fp File path of the sample information file.
@@ -214,11 +212,11 @@ read_pglyco3 <- function(
   # pGlyco3 has a suite of "Corrected" columns for correcting two Fuc with one NeuAc.
   # We will use the corrected columns if they are available.
   if (correct_a_f) {
-    good_correction <- is_good_correction(df$corrected_comp_int, has_neu5gc)
-    df$glycan_comp_int[good_correction] <- df$corrected_comp_int[good_correction]
-    df$glycan_structure[good_correction] <- NA_character_
-    df$mono_area[good_correction] <- df$corrected_mono_area[good_correction]
-    df$isotope_area[good_correction] <- df$corrected_isotope_area[good_correction]
+    has_correction <- !is.na(df$corrected_comp_int)
+    df$glycan_comp_int[has_correction] <- df$corrected_comp_int[has_correction]
+    df$glycan_structure[has_correction] <- NA_character_
+    df$mono_area[has_correction] <- df$corrected_mono_area[has_correction]
+    df$isotope_area[has_correction] <- df$corrected_isotope_area[has_correction]
   }
   df <- dplyr::select(df, -all_of(c(
     "corrected_comp_int", "corrected_mono_area", "corrected_isotope_area"
@@ -340,25 +338,4 @@ read_pglyco3 <- function(
 
   print(exp)
   invisible(exp)
-}
-
-
-is_good_correction <- function(comp, has_neu5gc) {
-  # This function accepts a character vector of glycan compositions,
-  # in the format like "4 3 1 0", and returns a logical vector
-  # indicating whether the composition is a good correction to the original.
-  # It following two rules:
-  # 1. If NA, FALSE.
-  # 2. If A <= H - 3 and A <= N - 2, TRUE, otherwise FALSE.
-  mat <- stringr::str_split_fixed(comp, " ", if (has_neu5gc) 5 else 4)
-  mat <- matrix(as.integer(mat), nrow = nrow(mat), ncol = ncol(mat))
-  if (has_neu5gc) {
-    #             A           H                A           N
-    res <- (mat[, 3] <= mat[, 1] - 3) & (mat[, 3] <= mat[, 2] - 2)
-  } else {
-    #             A          G           H                A          G           N
-    res <- (mat[, 3] + mat[, 4] <= mat[, 1] - 3) & (mat[, 3] + mat[, 4] <= mat[, 2] - 2)
-  }
-  res[is.na(res)] <- FALSE
-  res
 }

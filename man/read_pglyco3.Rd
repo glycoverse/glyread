@@ -123,8 +123,6 @@ while the glycan is probably not so.
 For example, "H5N4F2" is more likely to be "H5N4A1".
 pGlyco3 provides a suite of columns for corrected compositions and areas.
 If \code{correct_a_f} is \code{TRUE}, the original compositions and areas will be
-replaced by the corrected ones, as long as the following conditions are met:
-\code{A <= H - 3} and \code{A <= N - 2}.
-This is to ensure there are enough Gal to be capping by sialic acids.
+replaced by the corrected ones.
 }
 
