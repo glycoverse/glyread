@@ -9,7 +9,7 @@ read_pglyco3(
   sample_info_fp = NULL,
   name = NULL,
   quantify_on = c("mono", "sum"),
-  differ_a_g = FALSE,
+  differ_a_g = TRUE,
   correct_a_f = FALSE,
   parse_structure = TRUE,
   describe_glycans = TRUE
@@ -27,12 +27,13 @@ current time will be used.}
 column will be used for quantification. If "sum", the "IsotopeArea" column
 will be used for quantification. Default is "mono".}
 
-\item{differ_a_g}{Whether to differentiate "A" (Neu5Ac) and "G" (Neu5Gc).
-If \code{FALSE}, "A" and "G" will be replaced by "S" in compositions and structures.
-Default is \code{FALSE}.}
+\item{differ_a_g}{If \code{FALSE}, "A" will be replaced by "S" in compositions and structures.
+You should only use this argument if you are sure Neu5Gc is not in your result.
+Default is \code{TRUE}.}
 
 \item{correct_a_f}{Whether to correct glycan compositions by replacing two
-F with one A. Default is \code{FALSE}.}
+F with one A. Default is \code{FALSE}.
+This argument cannot be \code{TRUE} if \code{parse_structure} is \code{TRUE}.}
 
 \item{parse_structure}{Whether to parse glycan structures. Default is \code{TRUE}.}
 
@@ -83,12 +84,13 @@ The following columns are in the variable information tibble:
 \item \code{peptide}: character, peptide sequence
 \item \code{modifications}: character, modifications other than glycosylation,
 separated by semicolon, e.g. \verb{5,Carbamidomethyl[C];10,Carbamidomethyl[C]}
-\item \code{glycan_composition}: character, glycan composition, e.g. "H(5)N(4)A(1)F(1)"
+\item \code{glycan_composition}: character, glycan composition, e.g. "H5N4F1A1"
 \item \code{glycan_structure}: character, pGlyco-style structure strings, renamed from
 \code{PlausibleStruct} in the original file
 \item \code{n_hex}: integer, number of Hex
 \item \code{n_hexnac}: integer, number of HexNAc
-\item \code{n_neuac}: integer, number of NeuAc
+\item \code{n_neuac}: integer, number of Neu5Ac
+\item \code{n_neugc}: integer, number of Neu5Gc
 \item \code{n_fuc}: integer, number of Fuc (dHex)
 \item \code{peptide_site}: integer, site of glycosylation on peptide
 \item \code{proteins}: character, protein names, separated by semicolon
@@ -111,7 +113,7 @@ additional columns will be added to the variable information tibble:
 }
 
 Besides, glycan compositions are reformatted into condensed format,
-e.g. "H5N4F1S1" for "H(5)N(4)A(1)F(1)".
+e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
 Note that "A" and "G" in glycan structures are replaced by "S"
 if \code{differ_a_g} is \code{FALSE}.
 

@@ -18,6 +18,7 @@ test_that("read_pglyco3 returns an experiment with correct information", {
       "n_hex",
       "n_hexnac",
       "n_neuac",
+      "n_neugc",
       "n_fuc",
       "glycan_type",
       "bisecting",
@@ -137,15 +138,18 @@ test_that("glycan compositions are correct", {
   )
 
   expected <- tibble::tribble(
-    ~n_hex, ~n_hexnac, ~n_neuac, ~n_fuc,
-    4, 4, 0, 1,
-    5, 2, 0, 0,
-    3, 2, 0, 0,
-    5, 4, 0, 1,
-    5, 4, 1, 1,
-    3, 2, 0, 0
+    ~n_hex, ~n_hexnac, ~n_neuac, ~n_neugc, ~n_fuc,
+    4, 4, 0, 0, 1,
+    5, 2, 0, 0, 0,
+    3, 2, 0, 0, 0,
+    5, 4, 0, 0, 1,
+    5, 4, 1, 0, 1,
+    3, 2, 0, 0, 0
   )
-  expect_equal(res$var_info[c("n_hex", "n_hexnac", "n_neuac", "n_fuc")], expected)
+  expect_equal(
+    res$var_info[c("n_hex", "n_hexnac", "n_neuac", "n_neugc", "n_fuc")],
+    expected
+  )
 })
 
 
@@ -203,7 +207,7 @@ test_that("read_pglyco3 uses 'corrected' columns", {
   })
   expect_equal(
     res_mono$var_info$glycan_composition,
-    c("H4N4S1", "H5N2", "H3N2", "H5N4F1", "H5N4F1S1", "H3N2")
+    c("H4N4A1", "H5N2", "H3N2", "H5N4F1", "H5N4F1A1", "H3N2")
   )
 
   # It should be:
@@ -215,4 +219,35 @@ test_that("read_pglyco3 uses 'corrected' columns", {
   # RRJMTQGR_3_H5N4F1S1    NA 1e+07
   # JITQKR_1_H3N2          NA 1e+07
   expect_snapshot(res_mono$expr_mat)
+})
+
+
+test_that("read_pglyco3 recognizes results with Neu5Gc", {
+  # When "mouse large N-glycan" database is used in pGlyco3,
+  # the "Glycan(H,N,A,F)" column will be "Glycan(H,N,A,G,F)",
+  # and "CorrectedGlycan(H,N,A,F)" will be "CorrectedGlycan(H,N,A,G,F)".
+  suppressMessages(
+    res <- read_pglyco3(
+      test_path("pglyco3-result-neu5gc.txt"),
+      name = "my_exp"
+    )
+  )
+
+  expected_comp <- c("H10N2", "H5N4A1", "H5N4A2", "H5N4G1", "H5N4A1G1", "H5N4F1A1")
+  expect_equal(res$var_info$glycan_composition, expected_comp)
+})
+
+
+test_that("differ_a_g is forced to TRUE when Neu5Gc is present", {
+  expect_warning(
+    suppressMessages(
+      read_pglyco3(
+        test_path("pglyco3-result-neu5gc.txt"),
+        name = "my_exp",
+        differ_a_g = FALSE,
+        parse_structure = FALSE
+      )
+    ),
+    regexp = "`differ_a_g` is forced to `TRUE`"
+  )
 })

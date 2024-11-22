@@ -39,12 +39,13 @@
 #' - `peptide`: character, peptide sequence
 #' - `modifications`: character, modifications other than glycosylation,
 #'   separated by semicolon, e.g. `5,Carbamidomethyl[C];10,Carbamidomethyl[C]`
-#' - `glycan_composition`: character, glycan composition, e.g. "H(5)N(4)A(1)F(1)"
+#' - `glycan_composition`: character, glycan composition, e.g. "H5N4F1A1"
 #' - `glycan_structure`: character, pGlyco-style structure strings, renamed from
 #'   `PlausibleStruct` in the original file
 #' - `n_hex`: integer, number of Hex
 #' - `n_hexnac`: integer, number of HexNAc
-#' - `n_neuac`: integer, number of NeuAc
+#' - `n_neuac`: integer, number of Neu5Ac
+#' - `n_neugc`: integer, number of Neu5Gc
 #' - `n_fuc`: integer, number of Fuc (dHex)
 #' - `peptide_site`: integer, site of glycosylation on peptide
 #' - `proteins`: character, protein names, separated by semicolon
@@ -64,7 +65,7 @@
 #' - `n_terminal_gal`: integer, number of terminal Gal
 #'
 #' Besides, glycan compositions are reformatted into condensed format,
-#' e.g. "H5N4F1S1" for "H(5)N(4)A(1)F(1)".
+#' e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
 #' Note that "A" and "G" in glycan structures are replaced by "S"
 #' if `differ_a_g` is `FALSE`.
 #'
@@ -85,9 +86,9 @@
 #' @param quantify_on Quantify on "mono" or "sum". If "mono", the "MonoArea"
 #'  column will be used for quantification. If "sum", the "IsotopeArea" column
 #'  will be used for quantification. Default is "mono".
-#' @param differ_a_g Whether to differentiate "A" (Neu5Ac) and "G" (Neu5Gc).
-#'  If `FALSE`, "A" and "G" will be replaced by "S" in compositions and structures.
-#'  Default is `FALSE`.
+#' @param differ_a_g If `FALSE`, "A" will be replaced by "S" in compositions and structures.
+#'  You should only use this argument if you are sure Neu5Gc is not in your result.
+#'  Default is `TRUE`.
 #' @param correct_a_f Whether to correct glycan compositions by replacing two
 #'  F with one A. Default is `FALSE`.
 #'  This argument cannot be `TRUE` if `parse_structure` is `TRUE`.
@@ -107,7 +108,7 @@ read_pglyco3 <- function(
   sample_info_fp = NULL,
   name = NULL,
   quantify_on = c("mono", "sum"),
-  differ_a_g = FALSE,
+  differ_a_g = TRUE,
   correct_a_f = FALSE,
   parse_structure = TRUE,
   describe_glycans = TRUE
@@ -146,6 +147,7 @@ read_pglyco3 <- function(
     Proteins = readr::col_character(),
     Genes = readr::col_character(),
     `Glycan(H,N,A,F)` = readr::col_character(),
+    `Glycan(H,N,A,G,F)` = readr::col_character(),
     PlausibleStruct = readr::col_character(),
     GlySite = readr::col_integer(),
     ProSites = readr::col_character(),
@@ -154,6 +156,7 @@ read_pglyco3 <- function(
     MonoArea = readr::col_double(),
     IsotopeArea = readr::col_double(),
     `CorrectedGlycan(H,N,A,F)` = readr::col_character(),
+    `CorrectedGlycan(H,N,A,G,F)` = readr::col_character(),
     CorrectedMonoArea = readr::col_double(),
     CorrectedIsotopeArea = readr::col_double()
   )
@@ -164,9 +167,28 @@ read_pglyco3 <- function(
     protein_sites = "pro_sites",
     modifications = "mod"
   )
-  df <- readr::read_delim(fp, delim = "\t", col_types = col_types) %>%
+
+  # TODO: check column existence
+  df <- suppressWarnings(
+    readr::read_delim(fp, delim = "\t", col_types = col_types),
+    classes = "vroom_mismatched_column_name"
+  ) %>%
     janitor::clean_names() %>%
     dplyr::rename(all_of(new_names))
+
+  if ("glycan_h_n_a_f" %in% colnames(df)) {
+    df <- dplyr::rename(df, all_of(c(
+      glycan_comp_int = "glycan_h_n_a_f",
+      corrected_comp_int = "corrected_glycan_h_n_a_f"
+    )))
+    has_neu5gc <- FALSE  # will be used in "Parse glycan composition" section
+  } else {  # "glycan_h_n_a_f" must be in the data
+    df <- dplyr::rename(df, all_of(c(
+      glycan_comp_int = "glycan_h_n_a_g_f",
+      corrected_comp_int = "corrected_glycan_h_n_a_g_f"
+    )))
+    has_neu5gc <- TRUE
+  }
 
   if (is.null(sample_info_fp)) {
     sample_info <- tibble::tibble(sample = unique(df$sample))
@@ -192,14 +214,14 @@ read_pglyco3 <- function(
   # pGlyco3 has a suite of "Corrected" columns for correcting two Fuc with one NeuAc.
   # We will use the corrected columns if they are available.
   if (correct_a_f) {
-    good_correction <- is_good_correction(df$corrected_glycan_h_n_a_f)
-    df$glycan_h_n_a_f[good_correction] <- df$corrected_glycan_h_n_a_f[good_correction]
+    good_correction <- is_good_correction(df$corrected_comp_int, has_neu5gc)
+    df$glycan_comp_int[good_correction] <- df$corrected_comp_int[good_correction]
     df$glycan_structure[good_correction] <- NA_character_
     df$mono_area[good_correction] <- df$corrected_mono_area[good_correction]
     df$isotope_area[good_correction] <- df$corrected_isotope_area[good_correction]
   }
   df <- dplyr::select(df, -all_of(c(
-    "corrected_glycan_h_n_a_f", "corrected_mono_area", "corrected_isotope_area"
+    "corrected_comp_int", "corrected_mono_area", "corrected_isotope_area"
   )))
 
   # ----- Decide Quantification Column -----
@@ -214,14 +236,17 @@ read_pglyco3 <- function(
   }
 
   # ----- Deal with A and G -----
+  if (!differ_a_g & has_neu5gc) {
+    rlang::warn(paste(
+      "Neu5Gc is detected in the glycan compositions.",
+      "`differ_a_g` is forced to `TRUE`."
+    ))
+    differ_a_g <- TRUE
+  }
   if (!differ_a_g) {
     df <- dplyr::mutate(
       df, glycan_structure = stringr::str_replace_all(.data$glycan_structure, "A", "S")
     )
-    # `sia_sym` will be used in the "Parse glycan composition" section
-    sia_sym <- "S"
-  } else {
-    sia_sym <- "A"
   }
 
   # ----- Clean some columns -----
@@ -233,24 +258,36 @@ read_pglyco3 <- function(
     )
 
   # ----- Parse glycan composition -----
+  if (has_neu5gc) {
+    comp_cols <- c("n_hex", "n_hexnac", "n_neuac", "n_neugc", "n_fuc")
+  } else {
+    comp_cols <- c("n_hex", "n_hexnac", "n_neuac", "n_fuc")
+  }
   df <- df %>%
     tidyr::separate_wider_delim(
-      cols = all_of("glycan_h_n_a_f"),
+      cols = all_of("glycan_comp_int"),
       delim = " ",
-      names = c("n_hex", "n_hexnac", "n_neuac", "n_fuc")
+      names = comp_cols
     ) %>%
     dplyr::mutate(dplyr::across(
-      all_of(c("n_hex", "n_hexnac", "n_neuac", "n_fuc")), as.integer
+      all_of(comp_cols), as.integer
     )) %>%
     dplyr::relocate(
-      all_of(c("n_hex", "n_hexnac", "n_neuac", "n_fuc")),
+      all_of(comp_cols),
       .after = all_of("glycan_structure")
-    ) %>%
+    )
+  if (!has_neu5gc) {
+    df <- dplyr::mutate(df, n_neugc = 0, .after = all_of("n_neuac"))
+  }
+
+  sia_sym <- if (differ_a_g) "A" else "S"
+  df <- df %>%
     dplyr::mutate(glycan_composition = stringr::str_c(
       dplyr::if_else(.data$n_hex > 0, stringr::str_c("H", .data$n_hex), ""),
       dplyr::if_else(.data$n_hexnac > 0, stringr::str_c("N", .data$n_hexnac), ""),
       dplyr::if_else(.data$n_fuc > 0, stringr::str_c("F", .data$n_fuc), ""),
-      dplyr::if_else(.data$n_neuac > 0, stringr::str_c(sia_sym, .data$n_neuac), "")
+      dplyr::if_else(.data$n_neuac > 0, stringr::str_c(sia_sym, .data$n_neuac), ""),
+      dplyr::if_else(.data$n_neugc > 0, stringr::str_c("G", .data$n_neugc), "")
     ), .before = dplyr::all_of("glycan_structure"))
 
   # ----- Parse glycan structure -----
@@ -306,17 +343,22 @@ read_pglyco3 <- function(
 }
 
 
-is_good_correction <- function(comp) {
+is_good_correction <- function(comp, has_neu5gc) {
   # This function accepts a character vector of glycan compositions,
   # in the format like "4 3 1 0", and returns a logical vector
   # indicating whether the composition is a good correction to the original.
   # It following two rules:
   # 1. If NA, FALSE.
   # 2. If A <= H - 3 and A <= N - 2, TRUE, otherwise FALSE.
-  mat <- stringr::str_split_fixed(comp, " ", 4)
+  mat <- stringr::str_split_fixed(comp, " ", if (has_neu5gc) 5 else 4)
   mat <- matrix(as.integer(mat), nrow = nrow(mat), ncol = ncol(mat))
-  #             A           H                A           N
-  res <- (mat[, 3] <= mat[, 1] - 3) & (mat[, 3] <= mat[, 2] - 2)
+  if (has_neu5gc) {
+    #             A           H                A           N
+    res <- (mat[, 3] <= mat[, 1] - 3) & (mat[, 3] <= mat[, 2] - 2)
+  } else {
+    #             A          G           H                A          G           N
+    res <- (mat[, 3] + mat[, 4] <= mat[, 1] - 3) & (mat[, 3] + mat[, 4] <= mat[, 2] - 2)
+  }
   res[is.na(res)] <- FALSE
   res
 }
