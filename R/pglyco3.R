@@ -88,9 +88,15 @@
 #'  You should only use this argument if you are sure Neu5Gc is not in your result.
 #'  Default is `TRUE`.
 #' @param correct_a_f Whether to correct glycan compositions by replacing two
-#'  F with one A. Default is `FALSE`.
+#'  F with one A. Default is `TRUE`.
 #'  This argument cannot be `TRUE` if `parse_structure` is `TRUE`.
-#' @param parse_structure Whether to parse glycan structures. Default is `TRUE`.
+#' @param parse_structure Whether to parse glycan structures. Default is `FALSE`.
+#'  Although the results from pGlyco3 provide structural information,
+#'  many of these structures are speculative, and pGlyco3 doesn’t include
+#'  any quality control for the structural speculation process.
+#'  If you choose to enable this option,
+#'  please interpret the analysis results with caution.
+#'  For more rigorous structural information, we recommend using StrucGP.
 #' @param describe_glycans Whether to describe glycan properties. Default is `TRUE`.
 #'  If `parse_structure` is `FALSE`, this argument will be forced to `FALSE`.
 #'
@@ -107,8 +113,8 @@ read_pglyco3 <- function(
   name = NULL,
   quantify_on = c("mono", "sum"),
   differ_a_g = TRUE,
-  correct_a_f = FALSE,
-  parse_structure = TRUE,
+  correct_a_f = TRUE,
+  parse_structure = FALSE,
   describe_glycans = TRUE
 ) {
   # ----- Check arguments -----
@@ -128,8 +134,9 @@ read_pglyco3 <- function(
     describe_glycans <- FALSE
   }
   if (correct_a_f & parse_structure) {
-    rlang::abort(c(
-      "Parsing glycan structures and correcting A and F at the same time is not supported.",
+    correct_a_f <- FALSE
+    rlang::warn(c(
+      "Correcting A and F is turned off when `parsing_structure` is `TRUE`",
       i = "This is because pGlyco3 doesn't have a column for corrected glycan structures."
     ))
   }

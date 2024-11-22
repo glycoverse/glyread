@@ -20,6 +20,43 @@ test_that("read_pglyco3 returns an experiment with correct information", {
       "n_neuac",
       "n_neugc",
       "n_fuc",
+      "peptide_site",
+      "proteins",
+      "genes",
+      "protein_sites")
+  )
+  expect_equal(colnames(res$sample_info), c("sample", "group"))
+  expect_equal(colnames(res$expr_mat), c("S1", "S2"))
+  expect_equal(rownames(res$expr_mat), res$var_info$variable)
+  expect_equal(res$name, "my_exp")
+  expect_true(is.null(res$glycan_graphs))
+})
+
+
+test_that("read_pglyco3 returns an experiment with correct information with structures parsed", {
+  suppressMessages(
+    res <- read_pglyco3(
+      test_path("pglyco3-result.txt"),
+      test_path("pglyco3-sample-info.csv"),
+      name = "my_exp",
+      parse_structure = TRUE,
+      correct_a_f = FALSE
+    )
+  )
+
+  expect_equal(
+    colnames(res$var_info),
+    c("variable",
+      "charge",
+      "peptide",
+      "modifications",
+      "glycan_composition",
+      "glycan_structure",
+      "n_hex",
+      "n_hexnac",
+      "n_neuac",
+      "n_neugc",
+      "n_fuc",
       "glycan_type",
       "bisecting",
       "n_antennae",
@@ -158,7 +195,9 @@ test_that("differ_a_g setting to FALSE changes A to S", {
     res <- read_pglyco3(
       test_path("pglyco3-result.txt"),
       name = "my_exp",
-      differ_a_g = FALSE
+      differ_a_g = FALSE,
+      parse_structure = TRUE,
+      correct_a_f = FALSE
     )
   )
 
