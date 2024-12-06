@@ -259,7 +259,12 @@ read_pglyco3_pglycoquant <- function(
   colnames(expr_mat) <- stringr::str_extract(colnames(expr_mat), "Intensity\\((.*)\\)", group = 1)
   rownames(expr_mat) <- var_info$variable
 
-  exp <- glyexp::experiment(name, expr_mat, sample_info, var_info)
+  meta_data <- list(
+    experiment_type = "glycoproteomics",
+    glycan_type = "N-glycan",
+    quantification_method = "label-free"
+  )
+  exp <- glyexp::experiment(name, expr_mat, sample_info, var_info, meta_data)
   exp$glycan_graphs <- glycan_graphs
 
   print(exp)
