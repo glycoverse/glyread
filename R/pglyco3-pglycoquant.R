@@ -1,13 +1,16 @@
-#' Read pGlyco3 Result
+#' Read pGlyco3-pGlycoQuant result
 #'
-#' This function reads pGlyco3 quantification result,
-#' and returns an [glyexp::experiment()] object.
+#' If you used pGlyco3 for intact glycopeptide identification,
+#' and used pGlycoQuant for quantification, this is the function for you.
+#' It reads the pGlycoQuant result file and returns an [glyexp::experiment()] object.
 #'
 #' @details
 #' # Input
 #'
-#' You should use the `txt` file in pGlyco3 result folder with "Quant" in the
-#' file name. It is something like `pGlycoDB-GP-FDR-Pro-Quant.txt`.
+#' You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
+#' Files from pGlyco3 result folder are not needed.
+#' For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
+#' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
 #' The sample information file should be a `csv` file with the first column
 #' named `sample`, and the rest of the columns are sample information.
@@ -64,18 +67,8 @@
 #' - `n_gal`: integer, number of Gal
 #' - `n_terminal_gal`: integer, number of terminal Gal
 #'
-#' Besides, glycan compositions are reformatted into condensed format,
-#' e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
-#' Note that "A" and "G" in glycan structures are replaced by "S"
-#' if `differ_a_g` is `FALSE`.
-#'
-#' The total mass of two F is very similar with one A.
-#' Therefore, it is common to have multiple F in the glycan composition,
-#' while the glycan is probably not so.
-#' For example, "H5N4F2" is more likely to be "H5N4A1".
-#' pGlyco3 provides a suite of columns for corrected compositions and areas.
-#' If `correct_a_f` is `TRUE`, the original compositions and areas will be
-#' replaced by the corrected ones.
+#' Glycan compositions are reformatted into condensed format,
+#' e.g. "H5N4A1F1" for "H(5)N(4)A(1)F(1)".
 #'
 #' @param fp File path of the pGlyco3 result file.
 #' @param sample_info_fp File path of the sample information file.
@@ -84,12 +77,6 @@
 #' @param quantify_on Quantify on "mono" or "sum". If "mono", the "MonoArea"
 #'  column will be used for quantification. If "sum", the "IsotopeArea" column
 #'  will be used for quantification. Default is "mono".
-#' @param differ_a_g If `FALSE`, "A" will be replaced by "S" in compositions and structures.
-#'  You should only use this argument if you are sure Neu5Gc is not in your result.
-#'  Default is `TRUE`.
-#' @param correct_a_f Whether to correct glycan compositions by replacing two
-#'  F with one A. Default is `TRUE`.
-#'  This argument cannot be `TRUE` if `parse_structure` is `TRUE`.
 #' @param parse_structure Whether to parse glycan structures. Default is `FALSE`.
 #'  Although the results from pGlyco3 provide structural information,
 #'  many of these structures are speculative, and pGlyco3 doesn’t include
@@ -107,18 +94,16 @@
 #' @importFrom rlang .data
 #'
 #' @export
-read_pglyco3 <- function(
+read_pglyco3_pglycoquant <- function(
   fp,
   sample_info_fp = NULL,
   name = NULL,
   quantify_on = c("mono", "sum"),
-  differ_a_g = TRUE,
-  correct_a_f = TRUE,
   parse_structure = FALSE,
   describe_glycans = TRUE
 ) {
   # ----- Check arguments -----
-  checkmate::assert_file_exists(fp, access = "r", extension = ".txt")
+  checkmate::assert_file_exists(fp, access = "r", extension = ".list")
   checkmate::assert(
     checkmate::check_null(sample_info_fp),
     checkmate::check_file_exists(sample_info_fp, access = "r", extension = ".csv")
@@ -133,125 +118,59 @@ read_pglyco3 <- function(
   if (!parse_structure) {
     describe_glycans <- FALSE
   }
-  if (correct_a_f & parse_structure) {
-    correct_a_f <- FALSE
-    rlang::warn(c(
-      "Correcting A and F is turned off when `parsing_structure` is `TRUE`",
-      i = "This is because pGlyco3 doesn't have a column for corrected glycan structures."
-    ))
-  }
   if (is.null(name)) {
     name <- paste("exp", Sys.time())
   }
 
   # ----- Read data -----
   cli::cli_progress_step("Reading data.")
-  col_types <- readr::cols_only(
-    RawName = readr::col_character(),
+  col_types <- readr::cols(
     Peptide = readr::col_character(),
     Proteins = readr::col_character(),
     Genes = readr::col_character(),
-    `Glycan(H,N,A,F)` = readr::col_character(),
-    `Glycan(H,N,A,G,F)` = readr::col_character(),
+    GlycanComposition = readr::col_character(),
     PlausibleStruct = readr::col_character(),
     GlySite = readr::col_integer(),
     ProSites = readr::col_character(),
     Charge = readr::col_integer(),
-    Mod = readr::col_character(),
-    MonoArea = readr::col_double(),
-    IsotopeArea = readr::col_double(),
-    `CorrectedGlycan(H,N,A,F)` = readr::col_character(),
-    `CorrectedGlycan(H,N,A,G,F)` = readr::col_character(),
-    CorrectedMonoArea = readr::col_double(),
-    CorrectedIsotopeArea = readr::col_double()
+    Mod = readr::col_character()
   )
   new_names <- c(
-    sample = "raw_name",
-    glycan_structure = "plausible_struct",
-    peptide_site = "gly_site",
-    protein_sites = "pro_sites",
-    modifications = "mod"
+    peptide = "Peptide",
+    proteins = "Proteins",
+    genes = "Genes",
+    glycan_composition = "GlycanComposition",
+    glycan_structure = "PlausibleStruct",
+    peptide_site = "GlySite",
+    protein_sites = "ProSites",
+    charge = "Charge",
+    modifications = "Mod"
   )
 
   # TODO: check column existence
   df <- suppressWarnings(
-    readr::read_delim(fp, delim = "\t", col_types = col_types),
+    readr::read_tsv(fp, col_types = col_types),
     classes = "vroom_mismatched_column_name"
   ) %>%
-    janitor::clean_names() %>%
     dplyr::rename(all_of(new_names))
 
-  if ("glycan_h_n_a_f" %in% colnames(df)) {
-    df <- dplyr::rename(df, all_of(c(
-      glycan_comp_int = "glycan_h_n_a_f",
-      corrected_comp_int = "corrected_glycan_h_n_a_f"
-    )))
-    has_neu5gc <- FALSE  # will be used in "Parse glycan composition" section
-  } else {  # "glycan_h_n_a_f" must be in the data
-    df <- dplyr::rename(df, all_of(c(
-      glycan_comp_int = "glycan_h_n_a_g_f",
-      corrected_comp_int = "corrected_glycan_h_n_a_g_f"
-    )))
-    has_neu5gc <- TRUE
-  }
+  samples <- unique(df$RawName)
 
   if (is.null(sample_info_fp)) {
-    sample_info <- tibble::tibble(sample = unique(df$sample))
+    sample_info <- tibble::tibble(sample = samples)
     cli::cli_alert_info("No sample information file passed in. An empty tibble will be used.")
   } else {
     sample_info <- readr::read_csv(sample_info_fp)
-  }
+    # Here we create an empty var_info tibble and an empty expr_mat matrix,
+    # and check if the sample info is in correct format by creating an experiment.
+    # This passes the checking responsibility to `experiment()`.
+    local({
+      fake_var_info <- tibble::tibble(variable = character(0))
+      fake_expr_mat <- matrix(nrow = 0, ncol = length(samples), dimnames = list(NULL, samples))
 
-  # ----- Check sample info -----
-  # Here we create an empty var_info tibble and an empty expr_mat matrix,
-  # and check if the sample info is in correct format by creating an experiment.
-  # This passes the checking responsibility to `experiment()`.
-  local({
-    fake_var_info <- tibble::tibble(variable = character(0))
-    samples <- unique(df$sample)
-    fake_expr_mat <- matrix(nrow = 0, ncol = length(samples), dimnames = list(NULL, samples))
-
-    # This line will throw an error if sample_info is not in correct format.
-    glyexp::experiment(name, fake_expr_mat, sample_info, fake_var_info)
-  })
-
-  # ----- Correct glycan composition -----
-  # pGlyco3 has a suite of "Corrected" columns for correcting two Fuc with one NeuAc.
-  # We will use the corrected columns if they are available.
-  if (correct_a_f) {
-    has_correction <- !is.na(df$corrected_comp_int)
-    df$glycan_comp_int[has_correction] <- df$corrected_comp_int[has_correction]
-    df$glycan_structure[has_correction] <- NA_character_
-    df$mono_area[has_correction] <- df$corrected_mono_area[has_correction]
-    df$isotope_area[has_correction] <- df$corrected_isotope_area[has_correction]
-  }
-  df <- dplyr::select(df, -all_of(c(
-    "corrected_comp_int", "corrected_mono_area", "corrected_isotope_area"
-  )))
-
-  # ----- Decide Quantification Column -----
-  if (quantify_on == "mono") {
-    df <- df %>%
-      dplyr::rename(all_of(c(area = "mono_area"))) %>%
-      dplyr::select(-all_of("isotope_area"))
-  } else {
-    df <- df %>%
-      dplyr::rename(all_of(c(area = "isotope_area"))) %>%
-      dplyr::select(-all_of("mono_area"))
-  }
-
-  # ----- Deal with A and G -----
-  if (!differ_a_g & has_neu5gc) {
-    rlang::warn(paste(
-      "Neu5Gc is detected in the glycan compositions.",
-      "`differ_a_g` is forced to `TRUE`."
-    ))
-    differ_a_g <- TRUE
-  }
-  if (!differ_a_g) {
-    df <- dplyr::mutate(
-      df, glycan_structure = stringr::str_replace_all(.data$glycan_structure, "A", "S")
-    )
+      # This line will throw an error if sample_info is not in correct format.
+      glyexp::experiment(name, fake_expr_mat, sample_info, fake_var_info)
+    })
   }
 
   # ----- Clean some columns -----
@@ -262,43 +181,42 @@ read_pglyco3 <- function(
       genes = stringr::str_remove(.data$genes, ";$")
     )
 
-  # ----- Parse glycan composition -----
-  if (has_neu5gc) {
-    comp_cols <- c("n_hex", "n_hexnac", "n_neuac", "n_neugc", "n_fuc")
-  } else {
-    comp_cols <- c("n_hex", "n_hexnac", "n_neuac", "n_fuc")
-  }
+  # ----- Aggregate quantification -----
+  # For label-free quantification, we sum the intensities of all
+  # spectra quantified for the same variable.
+  # A variable is defined as a unique combination of `names(new_names)`.
   df <- df %>%
-    tidyr::separate_wider_delim(
-      cols = all_of("glycan_comp_int"),
-      delim = " ",
-      names = comp_cols
-    ) %>%
-    dplyr::mutate(dplyr::across(
-      all_of(comp_cols), as.integer
-    )) %>%
-    dplyr::relocate(
-      all_of(comp_cols),
-      .after = all_of("glycan_structure")
+    dplyr::summarize(
+      across(starts_with("Intensity"), sum),
+      .by = all_of(names(new_names))
     )
-  if (!has_neu5gc) {
-    df <- dplyr::mutate(df, n_neugc = 0, .after = all_of("n_neuac"))
+
+  var_info_cols <- names(new_names)
+  var_info <- dplyr::select(df, all_of(var_info_cols))
+
+  # ----- Parse glycan composition -----
+  extract_n_mono <- function(comp, mono) {
+    n <- stringr::str_extract(comp, paste0(mono, "\\((\\d+)\\)"), group = 1)
+    dplyr::if_else(is.na(n), 0, as.integer(n))
   }
 
-  sia_sym <- if (differ_a_g) "A" else "S"
-  df <- df %>%
-    dplyr::mutate(glycan_composition = stringr::str_c(
-      dplyr::if_else(.data$n_hex > 0, stringr::str_c("H", .data$n_hex), ""),
-      dplyr::if_else(.data$n_hexnac > 0, stringr::str_c("N", .data$n_hexnac), ""),
-      dplyr::if_else(.data$n_fuc > 0, stringr::str_c("F", .data$n_fuc), ""),
-      dplyr::if_else(.data$n_neuac > 0, stringr::str_c(sia_sym, .data$n_neuac), ""),
-      dplyr::if_else(.data$n_neugc > 0, stringr::str_c("G", .data$n_neugc), "")
-    ), .before = dplyr::all_of("glycan_structure"))
+  var_info <- var_info %>%
+    dplyr::mutate(
+      n_hex = extract_n_mono(.data$glycan_composition, "H"),
+      n_hexnac = extract_n_mono(.data$glycan_composition, "N"),
+      n_neuac = extract_n_mono(.data$glycan_composition, "A"),
+      n_neugc = extract_n_mono(.data$glycan_composition, "G"),
+      n_fuc = extract_n_mono(.data$glycan_composition, "F"),
+      .after = all_of("glycan_structure")
+    ) %>%
+    dplyr::mutate(glycan_composition = stringr::str_replace_all(
+      .data$glycan_composition, "[\\(\\)]", "")
+    )
 
   # ----- Parse glycan structure -----
   if (parse_structure) {
     cli::cli_progress_step("Parsing glycan structures.")
-    glycan_structures <- unique(df$glycan_structure)
+    glycan_structures <- unique(var_info$glycan_structure)
     glycan_graphs <- purrr::map(glycan_structures, glyparse::parse_pglyco_struc)
     names(glycan_graphs) <- glycan_structures
   } else {
@@ -309,7 +227,7 @@ read_pglyco3 <- function(
   if (describe_glycans) {
     cli::cli_progress_step("Extracting glycan properties (this can take long).")
     property_df <- glymotif::describe_n_glycans(glycan_graphs)
-    df <- df %>%
+    var_info <- var_info %>%
       dplyr::left_join(property_df, by = c(glycan_structure = "glycan")) %>%
       dplyr::relocate(
         all_of(setdiff(colnames(property_df), "glycan")),
@@ -319,27 +237,28 @@ read_pglyco3 <- function(
 
   # ----- Pack Experiment -----
   cli::cli_progress_step("Packing experiment.")
-  df_wide <- df %>%
-    tidyr::pivot_wider(
-      names_from = all_of("sample"),
-      values_from = all_of("area"),
-      values_fn = sum
-    ) %>%
+
+  # Add a unique "variable" column
+  var_info <- var_info %>%
     dplyr::mutate(
       variable = stringr::str_c(
         .data$peptide,
         .data$peptide_site,
         .data$glycan_composition,
+        .data$glycan_structure,
         sep = "_"
       ),
-      variable = make.unique(.data$variable, sep = "_")
+      variable = make.unique(.data$variable, sep = "_"),
+      .before = 1
     )
-  var_info <- df_wide %>%
-    dplyr::select(all_of(c("variable", setdiff(colnames(df), c("sample", "area")))))
-  expr_mat <- df_wide %>%
-    dplyr::select(all_of(c("variable", unique(df$sample)))) %>%
-    tibble::column_to_rownames("variable") %>%
+
+  # Extract the expression matrix
+  expr_mat <- df %>%
+    dplyr::select(tidyselect::starts_with("Intensity")) %>%
     as.matrix()
+  colnames(expr_mat) <- stringr::str_extract(colnames(expr_mat), "Intensity\\((.*)\\)", group = 1)
+  rownames(expr_mat) <- var_info$variable
+
   exp <- glyexp::experiment(name, expr_mat, sample_info, var_info)
   exp$glycan_graphs <- glycan_graphs
 
