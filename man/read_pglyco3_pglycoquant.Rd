@@ -8,9 +8,8 @@ read_pglyco3_pglycoquant(
   fp,
   sample_info_fp = NULL,
   name = NULL,
-  quantify_on = c("mono", "sum"),
-  parse_structure = FALSE,
-  describe_glycans = TRUE
+  quant_method = c("label-free", "TMT"),
+  parse_structure = FALSE
 )
 }
 \arguments{
@@ -21,9 +20,8 @@ read_pglyco3_pglycoquant(
 \item{name}{Name of the experiment. If not provided, a default name with
 current time will be used.}
 
-\item{quantify_on}{Quantify on "mono" or "sum". If "mono", the "MonoArea"
-column will be used for quantification. If "sum", the "IsotopeArea" column
-will be used for quantification. Default is "mono".}
+\item{quant_method}{Quantification method. Either "label-free" or "TMT".
+Default is "label-free".}
 
 \item{parse_structure}{Whether to parse glycan structures. Default is \code{FALSE}.
 Although the results from pGlyco3 provide structural information,
@@ -32,9 +30,6 @@ any quality control for the structural speculation process.
 If you choose to enable this option,
 please interpret the analysis results with caution.
 For more rigorous structural information, we recommend using StrucGP.}
-
-\item{describe_glycans}{Whether to describe glycan properties. Default is \code{TRUE}.
-If \code{parse_structure} is \code{FALSE}, this argument will be forced to \code{FALSE}.}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -86,29 +81,11 @@ separated by semicolon, e.g. \verb{5,Carbamidomethyl[C];10,Carbamidomethyl[C]}
 \item \code{glycan_composition}: character, glycan composition, e.g. "H5N4F1A1"
 \item \code{glycan_structure}: character, pGlyco-style structure strings, renamed from
 \code{PlausibleStruct} in the original file
-\item \code{n_hex}: integer, number of Hex
-\item \code{n_hexnac}: integer, number of HexNAc
-\item \code{n_neuac}: integer, number of Neu5Ac
-\item \code{n_neugc}: integer, number of Neu5Gc
-\item \code{n_fuc}: integer, number of Fuc (dHex)
 \item \code{peptide_site}: integer, site of glycosylation on peptide
 \item \code{proteins}: character, protein names, separated by semicolon
 \item \code{genes}: character, gene names, separated by semicolon
 \item \code{protein_sites}: character, site of glycosylation on protein,
 separated by semicolon
-}
-
-If \code{describe_glycans} is \code{TRUE} (by default),
-additional columns will be added to the variable information tibble:
-\itemize{
-\item \code{glycan_type}: character, N-glycan type, either "complex", "highmannose",
-"hybrid", or "paucimannose"
-\item \code{bisecting}: logical, whether the glycan has a bisecting GlcNAc
-\item \code{n_antennae}: integer, number of antennae
-\item \code{n_core_fuc}: integer, number of core fucose
-\item \code{n_arm_fuc}: integer, number of arm fucose
-\item \code{n_gal}: integer, number of Gal
-\item \code{n_terminal_gal}: integer, number of terminal Gal
 }
 
 Glycan compositions are reformatted into condensed format,

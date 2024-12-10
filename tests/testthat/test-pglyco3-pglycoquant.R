@@ -15,11 +15,6 @@ test_that("read_pglyco3_pglycoquant returns an experiment with correct informati
       "genes",
       "glycan_composition",
       "glycan_structure",
-      "n_hex",
-      "n_hexnac",
-      "n_neuac",
-      "n_neugc",
-      "n_fuc",
       "peptide_site",
       "protein_sites",
       "charge",
@@ -43,7 +38,6 @@ test_that("read_pglyco3_pglycoquant returns an experiment with correct informati
     )
   )
 
-  expect_true("glycan_type" %in% colnames(res$var_info))
   expect_true(!is.null(res$glycan_graphs))
 })
 

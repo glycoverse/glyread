@@ -45,27 +45,11 @@
 #' - `glycan_composition`: character, glycan composition, e.g. "H5N4F1A1"
 #' - `glycan_structure`: character, pGlyco-style structure strings, renamed from
 #'   `PlausibleStruct` in the original file
-#' - `n_hex`: integer, number of Hex
-#' - `n_hexnac`: integer, number of HexNAc
-#' - `n_neuac`: integer, number of Neu5Ac
-#' - `n_neugc`: integer, number of Neu5Gc
-#' - `n_fuc`: integer, number of Fuc (dHex)
 #' - `peptide_site`: integer, site of glycosylation on peptide
 #' - `proteins`: character, protein names, separated by semicolon
 #' - `genes`: character, gene names, separated by semicolon
 #' - `protein_sites`: character, site of glycosylation on protein,
 #'    separated by semicolon
-#'
-#' If `describe_glycans` is `TRUE` (by default),
-#' additional columns will be added to the variable information tibble:
-#' - `glycan_type`: character, N-glycan type, either "complex", "highmannose",
-#'   "hybrid", or "paucimannose"
-#' - `bisecting`: logical, whether the glycan has a bisecting GlcNAc
-#' - `n_antennae`: integer, number of antennae
-#' - `n_core_fuc`: integer, number of core fucose
-#' - `n_arm_fuc`: integer, number of arm fucose
-#' - `n_gal`: integer, number of Gal
-#' - `n_terminal_gal`: integer, number of terminal Gal
 #'
 #' Glycan compositions are reformatted into condensed format,
 #' e.g. "H5N4A1F1" for "H(5)N(4)A(1)F(1)".
@@ -74,6 +58,8 @@
 #' @param sample_info_fp File path of the sample information file.
 #' @param name Name of the experiment. If not provided, a default name with
 #'  current time will be used.
+#' @param quant_method Quantification method. Either "label-free" or "TMT".
+#'  Default is "label-free".
 #' @param parse_structure Whether to parse glycan structures. Default is `FALSE`.
 #'  Although the results from pGlyco3 provide structural information,
 #'  many of these structures are speculative, and pGlyco3 doesn’t include
@@ -81,8 +67,6 @@
 #'  If you choose to enable this option,
 #'  please interpret the analysis results with caution.
 #'  For more rigorous structural information, we recommend using StrucGP.
-#' @param describe_glycans Whether to describe glycan properties. Default is `TRUE`.
-#'  If `parse_structure` is `FALSE`, this argument will be forced to `FALSE`.
 #'
 #' @returns An [glyexp::experiment()] object.
 #'
@@ -96,8 +80,7 @@ read_pglyco3_pglycoquant <- function(
   sample_info_fp = NULL,
   name = NULL,
   quant_method = c("label-free", "TMT"),
-  parse_structure = FALSE,
-  describe_glycans = TRUE
+  parse_structure = FALSE
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
@@ -111,10 +94,6 @@ read_pglyco3_pglycoquant <- function(
   )
   quant_method <- rlang::arg_match(quant_method)
   checkmate::assert_flag(parse_structure)
-  checkmate::assert_flag(describe_glycans)
-  if (!parse_structure) {
-    describe_glycans <- FALSE
-  }
   if (is.null(name)) {
     name <- paste("exp", Sys.time())
   }
@@ -122,7 +101,7 @@ read_pglyco3_pglycoquant <- function(
   # ----- Read data -----
   if (quant_method == "label-free") {
     .read_pglyco3_pglycoquant_label_free(
-      fp, sample_info_fp, name, parse_structure, describe_glycans
+      fp, sample_info_fp, name, parse_structure
     )
   } else {
     rlang::abort("TMT quantification is not supported yet.")
@@ -134,11 +113,9 @@ read_pglyco3_pglycoquant <- function(
   fp,
   sample_info_fp = NULL,
   name = NULL,
-  parse_structure = FALSE,
-  describe_glycans = TRUE
+  parse_structure = FALSE
 ) {
   # ----- Read data -----
-  cli::cli_progress_step("Reading data.")
   col_types <- readr::cols(
     Peptide = readr::col_character(),
     Proteins = readr::col_character(),
@@ -200,7 +177,7 @@ read_pglyco3_pglycoquant <- function(
   var_info_cols <- names(new_names)
   var_info <- dplyr::select(df, all_of(var_info_cols))
 
-  # ----- Parse glycan composition -----
+  # ----- Convert glycan composition -----
   extract_n_mono <- function(comp, mono) {
     n <- stringr::str_extract(comp, paste0(mono, "\\((\\d+)\\)"), group = 1)
     dplyr::if_else(is.na(n), 0, as.integer(n))
@@ -208,20 +185,22 @@ read_pglyco3_pglycoquant <- function(
 
   var_info <- var_info %>%
     dplyr::mutate(
-      n_hex = extract_n_mono(.data$glycan_composition, "H"),
-      n_hexnac = extract_n_mono(.data$glycan_composition, "N"),
-      n_neuac = extract_n_mono(.data$glycan_composition, "A"),
-      n_neugc = extract_n_mono(.data$glycan_composition, "G"),
-      n_fuc = extract_n_mono(.data$glycan_composition, "F"),
-      .after = all_of("glycan_structure")
+      nH = extract_n_mono(.data$glycan_composition, "H"),
+      nN = extract_n_mono(.data$glycan_composition, "N"),
+      nA = extract_n_mono(.data$glycan_composition, "A"),
+      nG = extract_n_mono(.data$glycan_composition, "G"),
+      nF = extract_n_mono(.data$glycan_composition, "F")
     ) %>%
-    dplyr::mutate(glycan_composition = stringr::str_replace_all(
-      .data$glycan_composition, "[\\(\\)]", "")
-    )
+    dplyr::mutate(glycan_composition = paste0(
+      dplyr::if_else(.data$nH == 0, "", paste0("H", .data$nH)),
+      dplyr::if_else(.data$nN == 0, "", paste0("N", .data$nN)),
+      dplyr::if_else(.data$nF == 0, "", paste0("F", .data$nF)),
+      dplyr::if_else(.data$nA == 0, "", paste0("A", .data$nA)),
+      dplyr::if_else(.data$nG == 0, "", paste0("G", .data$nG))
+    ), .keep = "unused")
 
   # ----- Parse glycan structure -----
   if (parse_structure) {
-    cli::cli_progress_step("Parsing glycan structures.")
     glycan_structures <- unique(var_info$glycan_structure)
     glycan_graphs <- purrr::map(glycan_structures, glyparse::parse_pglyco_struc)
     names(glycan_graphs) <- glycan_structures
@@ -229,21 +208,7 @@ read_pglyco3_pglycoquant <- function(
     glycan_graphs <- NULL
   }
 
-  # ----- Describe glycans -----
-  if (describe_glycans) {
-    cli::cli_progress_step("Extracting glycan properties (this can take long).")
-    property_df <- glymotif::describe_n_glycans(glycan_graphs)
-    var_info <- var_info %>%
-      dplyr::left_join(property_df, by = c(glycan_structure = "glycan")) %>%
-      dplyr::relocate(
-        all_of(setdiff(colnames(property_df), "glycan")),
-        .after = all_of("n_fuc")
-      )
-  }
-
   # ----- Pack Experiment -----
-  cli::cli_progress_step("Packing experiment.")
-
   # Add a unique "variable" column
   var_info <- var_info %>%
     dplyr::mutate(
@@ -251,7 +216,6 @@ read_pglyco3_pglycoquant <- function(
         .data$peptide,
         .data$peptide_site,
         .data$glycan_composition,
-        .data$glycan_structure,
         sep = "_"
       ),
       variable = make.unique(.data$variable, sep = "_"),
