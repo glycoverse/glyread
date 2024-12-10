@@ -74,9 +74,6 @@
 #' @param sample_info_fp File path of the sample information file.
 #' @param name Name of the experiment. If not provided, a default name with
 #'  current time will be used.
-#' @param quantify_on Quantify on "mono" or "sum". If "mono", the "MonoArea"
-#'  column will be used for quantification. If "sum", the "IsotopeArea" column
-#'  will be used for quantification. Default is "mono".
 #' @param parse_structure Whether to parse glycan structures. Default is `FALSE`.
 #'  Although the results from pGlyco3 provide structural information,
 #'  many of these structures are speculative, and pGlyco3 doesn’t include
@@ -98,7 +95,7 @@ read_pglyco3_pglycoquant <- function(
   fp,
   sample_info_fp = NULL,
   name = NULL,
-  quantify_on = c("mono", "sum"),
+  quant_method = c("label-free", "TMT"),
   parse_structure = FALSE,
   describe_glycans = TRUE
 ) {
@@ -112,7 +109,7 @@ read_pglyco3_pglycoquant <- function(
     checkmate::check_null(name),
     checkmate::check_character(name, len = 1, min.chars = 1)
   )
-  quantify_on <- rlang::arg_match(quantify_on)
+  quant_method <- rlang::arg_match(quant_method)
   checkmate::assert_flag(parse_structure)
   checkmate::assert_flag(describe_glycans)
   if (!parse_structure) {
@@ -122,6 +119,24 @@ read_pglyco3_pglycoquant <- function(
     name <- paste("exp", Sys.time())
   }
 
+  # ----- Read data -----
+  if (quant_method == "label-free") {
+    .read_pglyco3_pglycoquant_label_free(
+      fp, sample_info_fp, name, parse_structure, describe_glycans
+    )
+  } else {
+    rlang::abort("TMT quantification is not supported yet.")
+  }
+}
+
+
+.read_pglyco3_pglycoquant_label_free <- function(
+  fp,
+  sample_info_fp = NULL,
+  name = NULL,
+  parse_structure = FALSE,
+  describe_glycans = TRUE
+) {
   # ----- Read data -----
   cli::cli_progress_step("Reading data.")
   col_types <- readr::cols(
