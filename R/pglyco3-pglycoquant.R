@@ -262,6 +262,7 @@ read_pglyco3_pglycoquant <- function(
   expr_mat <- df %>%
     dplyr::select(tidyselect::starts_with("Intensity")) %>%
     as.matrix()
+  expr_mat[expr_mat == 0] <- NA
   colnames(expr_mat) <- stringr::str_extract(colnames(expr_mat), "Intensity\\((.*)\\)", group = 1)
   rownames(expr_mat) <- var_info$variable
 

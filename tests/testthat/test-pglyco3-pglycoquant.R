@@ -97,3 +97,14 @@ test_that("error when samples in sample information is inconsistent with pGlyco3
     )
   })
 })
+
+
+test_that("zeros are replaced by NA", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-result.list"),
+      name = "my_exp",
+    )
+  )
+  expect_true(sum(is.na(res$expr_mat)) > 0)
+})
