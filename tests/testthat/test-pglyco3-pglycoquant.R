@@ -42,6 +42,22 @@ test_that("read_pglyco3_pglycoquant returns an experiment with correct informati
 })
 
 
+test_that("read_pglyco3_pglycoquant sums duplicated records", {
+  df <- suppressMessages(readr::read_tsv(test_path("pglyco3-pglycoquant-result.list")))
+  df <- dplyr::bind_rows(df, df)
+  withr::with_tempdir({
+    readr::write_tsv(df, "pglyco3-pglycoquant-result2.list")
+    suppressMessages(
+      exp <- read_pglyco3_pglycoquant(
+        test_path("pglyco3-pglycoquant-result2.list"),
+        name = "my_exp"
+    ))
+  })
+
+  expect_equal(nrow(exp$var_info), nrow(df) / 2)
+})
+
+
 test_that("read_pglyco3_pglycoquant provides a default name with current time", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
