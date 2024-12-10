@@ -9,6 +9,8 @@ read_pglyco3_pglycoquant(
   sample_info_fp = NULL,
   name = NULL,
   quant_method = c("label-free", "TMT"),
+  tmt_type = NULL,
+  ref_channel = NULL,
   parse_structure = FALSE
 )
 }
@@ -22,6 +24,24 @@ current time will be used.}
 
 \item{quant_method}{Quantification method. Either "label-free" or "TMT".
 Default is "label-free".}
+
+\item{tmt_type}{TMT type. Required if \code{quant_method} is "TMT".
+Options are "TMT-6plex", "TMT-10plex", "TMT-11plex", "TMTpro-10plex",
+"TMTpro-16plex", "TMTpro-18plex".}
+
+\item{ref_channel}{Reference channel for TMT normalization.
+A character scalar. Required if \code{quant_method} is "TMT".
+The reference channel must be one of the valid TMT channels.
+\itemize{
+\item TMT-6plex: 126, 127, 128, 129, 130, 131.
+\item TMT-10plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131.
+\item TMT-11plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C.
+\item TMTpro-10plex: 126, 127N, 128N, 129N, 130N, 131N, 132N, 133N, 134N, 135N.
+\item TMTpro-16plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N,
+131C, 132N, 132C, 133N, 133C, 134N.
+\item TMTpro-18plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N,
+131C, 132N, 132C, 133N, 133C, 134N, 134C, 135N.
+}}
 
 \item{parse_structure}{Whether to parse glycan structures. Default is \code{FALSE}.
 Although the results from pGlyco3 provide structural information,
@@ -49,6 +69,13 @@ The sample information file should be a \code{csv} file with the first column
 named \code{sample}, and the rest of the columns are sample information.
 The \code{sample} column must match the \code{RawName} column in the pGlyco3 result file,
 although the order can be different.
+
+For results from TMT quantification, the sample information file should have
+two additional columns: \code{raw_name} and \code{channel}.
+\code{raw_name} refers to the raw file names,
+matching the \code{RawName} column in the pGlyco3 result file.
+\code{channel} refers to the TMT channel names.
+
 You can put any useful information in the sample information file.
 Recommended columns are:
 \itemize{
