@@ -196,16 +196,7 @@ read_pglyco3_pglycoquant <- function(
       genes = stringr::str_remove(.data$genes, ";$")
     )
 
-  # ----- Aggregate quantification -----
-  # For label-free quantification, we sum the intensities of all
-  # spectra quantified for the same variable.
-  # A variable is defined as a unique combination of `names(new_names)`.
-  df <- df %>%
-    dplyr::summarize(
-      across(starts_with("Intensity"), sum),
-      .by = all_of(names(new_names))
-    )
-
+  # ----- Extract var_info -----
   var_info_cols <- names(new_names)
   var_info <- dplyr::select(df, all_of(var_info_cols))
 
