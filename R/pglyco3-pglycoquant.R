@@ -303,9 +303,9 @@ read_pglyco3_pglycoquant <- function(
       cli::cli_abort("Sample information is missing for these pairs: {.val {missing_pairs}}")
     }
     extra_samples <- default_sample_info %>%
-      dplyr::select(-all_of("sample")) %>%
+      dplyr::rename(all_of(c("fake_sample" = "sample"))) %>%
       dplyr::right_join(sample_info, by = c("raw_name", "channel")) %>%
-      dplyr::filter(is.na(.data$raw_name)) %>%
+      dplyr::filter(is.na(.data$fake_sample)) %>%
       dplyr::pull("sample")
     if (length(extra_samples) > 0) {
       cli::cli_abort("Extra samples found in sample information: {.val {extra_samples}}")

@@ -48,15 +48,14 @@ test_that("read_pglyco3_pglycoquant parses structures", {
 test_that("read_pglyco3_pglycoquant sums duplicated records (label-free)", {
   df <- suppressMessages(readr::read_tsv(test_path("pglyco3-pglycoquant-LFQ-result.list")))
   df <- dplyr::bind_rows(df, df)
-  withr::with_tempdir({
-    readr::write_tsv(df, "pglyco3-pglycoquant-result2.list")
-    suppressMessages(
-      exp <- read_pglyco3_pglycoquant(
-        test_path("pglyco3-pglycoquant-result2.list"),
-        name = "my_exp",
-        quant_method = "label-free"
+  new_result_path <- withr::local_tempfile(fileext = ".list")
+  readr::write_tsv(df, new_result_path)
+  suppressMessages(
+    exp <- read_pglyco3_pglycoquant(
+      test_path(new_result_path),
+      name = "my_exp",
+      quant_method = "label-free"
     ))
-  })
 
   expect_equal(nrow(exp$var_info), nrow(df) / 2)
 })
@@ -91,17 +90,17 @@ test_that("read_pglyco3_pglycoquant provides a default sample information tibble
 
 test_that("error when samples in sample information is inconsistent with pGlyco3 result (label-free)", {
   sample_info <- tibble::tibble(sample = c("S1", "S2", "S3"))
-  withr::with_tempdir({
-    readr::write_csv(sample_info, "sample_info.csv")
-    expect_error(
-      read_pglyco3_pglycoquant(
-        test_path("pglyco3-pglycoquant-LFQ-result.list"),
-        test_path("sample_info.csv"),
-        name = "my_exp",
-        quant_method = "label-free"
-      )
-    )
-  })
+  new_sample_info_path <- withr::local_tempfile(fileext = ".csv")
+  readr::write_csv(sample_info, new_sample_info_path)
+  expect_snapshot(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path(new_sample_info_path),
+      name = "my_exp",
+      quant_method = "label-free"
+    ),
+    error = TRUE
+  )
 })
 
 
@@ -114,6 +113,19 @@ test_that("zeros are replaced by NA (label-free)", {
     )
   )
   expect_true(sum(is.na(res$expr_mat)) > 0)
+})
+
+
+test_that("compositions are correctly re-formatted", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      name = "my_exp",
+      quant_method = "label-free"
+    )
+  )
+  expected <- c("H4N4F1", "H5N2", "H3N2", "H5N4F1", "H5N4F1A1", "H3N2")
+  expect_equal(res$var_info$glycan_composition, expected)
 })
 
 
@@ -154,19 +166,19 @@ test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
 test_that("missing samples in sample_info file (TMT)", {
   sample_info <- suppressMessages(readr::read_csv(test_path("pglyco3-TMT-sample-info.csv")))
   sample_info <- dplyr::slice_head(sample_info, n = 5)  # remove the last sample
-  withr::with_tempdir({
-    readr::write_csv(sample_info, "sample_info.csv")
-    expect_error(
-      read_pglyco3_pglycoquant(
-        test_path("pglyco3-pglycoquant-TMT-result.list"),
-        test_path("sample_info.csv"),
-        name = "my_exp",
-        quant_method = "TMT",
-        tmt_type = "TMT-10plex",
-        ref_channel = "126"
-      )
-    )
-  })
+  new_sample_info_path <- withr::local_tempfile(fileext = ".csv")
+  readr::write_csv(sample_info, new_sample_info_path)
+  expect_snapshot(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-TMT-result.list"),
+      test_path(new_sample_info_path),
+      name = "my_exp",
+      quant_method = "TMT",
+      tmt_type = "TMT-10plex",
+      ref_channel = "126"
+    ),
+    error = TRUE
+  )
 })
 
 
@@ -179,19 +191,19 @@ test_that("extra samples in sample_info file (TMT)", {
     "RAW3", "128N", "S9", "A",
   )
   sample_info <- dplyr::bind_rows(sample_info, new_samples_df)
-  withr::with_tempdir({
-    readr::write_csv(sample_info, "sample_info.csv")
-    expect_error(
-      read_pglyco3_pglycoquant(
-        test_path("pglyco3-pglycoquant-TMT-result.list"),
-        test_path("sample_info.csv"),
-        name = "my_exp",
-        quant_method = "TMT",
-        tmt_type = "TMT-10plex",
-        ref_channel = "126"
-      )
-    )
-  })
+  new_sample_info_path <- withr::local_tempfile(fileext = ".csv")
+  readr::write_csv(sample_info, new_sample_info_path)
+  expect_snapshot(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-TMT-result.list"),
+      test_path(new_sample_info_path),
+      name = "my_exp",
+      quant_method = "TMT",
+      tmt_type = "TMT-10plex",
+      ref_channel = "126"
+    ),
+    error = TRUE
+  )
 })
 
 
@@ -244,17 +256,35 @@ test_that("duplicated samples in sample_info raises an error", {
     "RAW1", "128N", "S5",
     "RAW2", "128N", "S5",  # duplicated sample
   )
-  withr::with_tempdir({
-    readr::write_csv(sample_info, "sample_info.csv")
-    expect_error(
-      read_pglyco3_pglycoquant(
-        test_path("pglyco3-pglycoquant-TMT-result.list"),
-        test_path("sample_info.csv"),
-        name = "my_exp",
-        quant_method = "TMT",
-        tmt_type = "TMT-10plex",
-        ref_channel = "126"
-      )
-    )
-  })
+  new_sample_info_path <- withr::local_tempfile(fileext = ".csv")
+  readr::write_csv(sample_info, new_sample_info_path)
+  expect_snapshot(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-TMT-result.list"),
+      test_path(new_sample_info_path),
+      name = "my_exp",
+      quant_method = "TMT",
+      tmt_type = "TMT-10plex",
+      ref_channel = "126"
+    ),
+    error = TRUE
+  )
+})
+
+
+test_that("read_pglyco3_pglycoquant takes the medians of duplicated records (TMT)", {
+  df <- suppressMessages(readr::read_tsv(test_path("pglyco3-pglycoquant-TMT-result.list")))
+  df <- dplyr::bind_rows(df, df, df)
+  new_result_path <- withr::local_tempfile(fileext = ".list")
+  readr::write_tsv(df, new_result_path)
+  suppressMessages(
+    exp <- read_pglyco3_pglycoquant(
+      test_path(new_result_path),
+      name = "my_exp",
+      quant_method = "TMT",
+      tmt_type = "TMT-10plex",
+      ref_channel = "126"
+    ))
+
+  expect_equal(nrow(exp$var_info), 3)
 })
