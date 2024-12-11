@@ -279,17 +279,22 @@ read_pglyco3_pglycoquant <- function(
   channels <- setdiff(channels, ref_channel)
 
   # ----- Read sample information -----
+  default_sample_info <- expand.grid(
+    raw_name = raw_names, channel = channels,
+    KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
+  ) %>%
+    tibble::as_tibble() %>%
+    dplyr::mutate(sample = paste0("S", dplyr::row_number()))
   if (is.null(sample_info_fp)) {
-    sample_info <- expand.grid(raw_name = raw_names, channel = channels) %>%
-      tibble::as_tibble() %>%
-      dplyr::mutate(sample = paste0("S", dplyr::row_number()))
+    sample_info <- default_sample_info
     cli::cli_alert_info("No sample information file passed in. An empty tibble will be used.")
   } else {
     sample_info <- suppressMessages(readr::read_csv(sample_info_fp))
     if (!all(c("raw_name", "channel", "sample") %in% colnames(sample_info))) {
       cli::cli_abort("Sample information file must have columns 'raw_name', 'channel', and 'sample'.")
     }
-    missing_pairs <- expand.grid(raw_name = raw_names, channel = channels) %>%
+    missing_pairs <- default_sample_info %>%
+      dplyr::select(-all_of("sample")) %>%
       dplyr::left_join(sample_info, by = c("raw_name", "channel")) %>%
       dplyr::filter(is.na(.data$sample)) %>%
       dplyr::mutate(pair = paste0(raw_name, ": ", channel)) %>%
@@ -297,7 +302,8 @@ read_pglyco3_pglycoquant <- function(
     if (length(missing_pairs) > 0) {
       cli::cli_abort("Sample information is missing for these pairs: {.val {missing_pairs}}")
     }
-    extra_samples <- expand.grid(raw_name = raw_names, channel = channels) %>%
+    extra_samples <- default_sample_info %>%
+      dplyr::select(-all_of("sample")) %>%
       dplyr::right_join(sample_info, by = c("raw_name", "channel")) %>%
       dplyr::filter(is.na(.data$raw_name)) %>%
       dplyr::pull("sample")

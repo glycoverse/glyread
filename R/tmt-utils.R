@@ -57,4 +57,5 @@ mz_to_tmt_channel <- function(x, tmt_type) {
 
   x <- round(as.double(x), 4)
   names(channels)[match(x, channels)]
+  # TODO: raise error if any NA
 }
