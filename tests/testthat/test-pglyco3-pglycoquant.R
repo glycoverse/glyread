@@ -12,15 +12,10 @@ test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
   expect_equal(
     colnames(res$var_info),
     c("variable",
-      "peptide",
       "proteins",
       "genes",
-      "glycan_composition",
-      "glycan_structure",
-      "peptide_site",
       "protein_sites",
-      "charge",
-      "modifications")
+      "glycan_composition")
   )
   expect_equal(colnames(res$sample_info), c("sample", "group"))
   expect_equal(colnames(res$expr_mat), c("S1", "S2"))
@@ -43,7 +38,8 @@ test_that("read_pglyco3_pglycoquant parses structures", {
       test_path("pglyco3-LFQ-sample-info.csv"),
       name = "my_exp",
       quant_method = "label-free",
-      parse_structure = TRUE
+      parse_structure = TRUE,
+      quant_aggr_method = "det"
     )
   )
 
@@ -135,8 +131,25 @@ test_that("compositions are correctly re-formatted", {
 })
 
 
+test_that("different aggregation methods (label-free)", {
+  suppressMessages(
+    res_det <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      name = "my_exp",
+      quant_method = "label-free",
+      quant_aggr_method = "det"
+    )
+  )
+  cols = c(
+    "variable", "peptide", "proteins", "genes", "glycan_composition",
+    "glycan_structure", "peptide_site", "protein_sites", "charge", "modifications"
+  )
+  expect_equal(colnames(res_det$var_info), cols)
+})
+
+
 # ----- TMT -----
-test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
+test_that("read_pglyco3_pglycoquant returns correct information (TMT)", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
       test_path("pglyco3-pglycoquant-TMT-result.list"),
@@ -151,15 +164,10 @@ test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
   expect_equal(
     colnames(res$var_info),
     c("variable",
-      "peptide",
       "proteins",
       "genes",
-      "glycan_composition",
-      "glycan_structure",
-      "peptide_site",
       "protein_sites",
-      "charge",
-      "modifications")
+      "glycan_composition")
   )
   expect_equal(colnames(res$sample_info), c("raw_name", "channel", "sample", "group"))
   expect_equal(colnames(res$expr_mat), paste0("S", 1:6))
@@ -299,4 +307,23 @@ test_that("read_pglyco3_pglycoquant takes the medians of duplicated records (TMT
     ))
 
   expect_equal(nrow(exp$var_info), 3)
+})
+
+
+test_that("different aggregation methods (TMT)", {
+  suppressMessages(
+    res_det <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-TMT-result.list"),
+      name = "my_exp",
+      quant_method = "TMT",
+      tmt_type = "TMT-10plex",
+      ref_channel = "126",
+      quant_aggr_method = "det"
+    )
+  )
+  cols = c(
+    "variable", "peptide", "proteins", "genes", "glycan_composition",
+    "glycan_structure", "peptide_site", "protein_sites", "charge", "modifications"
+  )
+  expect_equal(colnames(res_det$var_info), cols)
 })

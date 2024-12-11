@@ -30,4 +30,5 @@ Imports:
     rlang,
     stringr,
     tibble,
+    tidyr,
     tidyselect

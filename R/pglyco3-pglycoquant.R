@@ -63,6 +63,21 @@
 #' Glycan compositions are reformatted into condensed format,
 #' e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
 #'
+#' # Aggregation
+#'
+#' pGlycoQuant quantifies glycopeptides at the PSM level.
+#' Therefore, a glycopeptide could have multiple rows in the result file,
+#' due to different charge states, modifications, or just duplicate identifications.
+#' In this regard, we need to aggregate the quantification results
+#' to the level we are interested in.
+#' This function provides several aggregation methods,
+#' specified by the `quant_aggr_method` argument.
+#' The most commonly used method is "gf" (glycoform), which aggregates
+#' all PSMs of the same combination of protein, protein site, and glycan composition.
+#' The word "aggregate" here means "sum" for label-free quantification,
+#' and "take the median" for TMT quantification.
+#' For other aggregation methods, see the `quant_aggr_method` argument.
+#'
 #' @param fp File path of the pGlyco3 result file.
 #' @param sample_info_fp File path of the sample information file.
 #' @param name Name of the experiment. If not provided, a default name with
@@ -89,6 +104,20 @@
 #'  If you choose to enable this option,
 #'  please interpret the analysis results with caution.
 #'  For more rigorous structural information, we recommend using StrucGP.
+#' @param quant_aggr_method Aggregation method for quantification results.
+#'  - "gf": Glycoform level. The default. Aggregates all PSMs of the same
+#'  combination of protein, protein site, and glycan composition.
+#'  - "gp": Glycopeptide level. Aggregates all PSMs of the same
+#'  combination of peptide, peptide site, and glycan composition.
+#'  - "gfs": Glycoform level with glycan structure.
+#'  Aggregates all PSMs of the same combination of protein, protein site,
+#'  and glycan structure.
+#'  - "gps": Glycopeptide level with glycan structure.
+#'  Aggregates all PSMs of the same combination of peptide, peptide site,
+#'  and glycan structure.
+#'  - "det": Detailed level. Aggregates all PSMs of the same combination of
+#'  peptide, protein, gene, glycan composition, glycan structure, peptide site,
+#'  protein site, charge, and modifications.
 #'
 #' @returns An [glyexp::experiment()] object.
 #'
@@ -104,7 +133,8 @@ read_pglyco3_pglycoquant <- function(
   quant_method,
   tmt_type = NULL,
   ref_channel = NULL,
-  parse_structure = FALSE
+  parse_structure = FALSE,
+  quant_aggr_method = c("gf", "gp", "gfs", "gps", "det")
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
@@ -129,15 +159,34 @@ read_pglyco3_pglycoquant <- function(
     checkmate::check_string(ref_channel)
   )
   checkmate::assert_flag(parse_structure)
+  quant_aggr_method <- rlang::arg_match(quant_aggr_method)
   if (is.null(name)) {
     name <- paste("exp", Sys.time())
   }
+  if (!quant_aggr_method %in% c("gfs", "gps", "det")) {
+    if (parse_structure) {
+      parse_structure <- FALSE
+      cli::cli_alert_warning(
+        "parse_structure is not supported for quant_aggr_method: {.val {quant_aggr_method}}.",
+        i = "The option will be ignored."
+      )
+    }
+  }
 
   # ----- Read data -----
+  var_info_cols <- switch (quant_aggr_method,
+    gf = c("proteins", "genes", "protein_sites", "glycan_composition"),
+    gp = c("peptide", "proteins", "genes", "peptide_site", "protein_sites", "glycan_composition"),
+    gfs = c("proteins", "genes", "protein_sites", "glycan_composition", "glycan_structure"),
+    gps = c("peptide", "proteins", "genes", "peptide_site", "protein_sites",
+            "glycan_composition", "glycan_structure"),
+    det = c("peptide", "proteins", "genes", "glycan_composition", "glycan_structure",
+            "peptide_site", "protein_sites", "charge", "modifications")
+  )
   if (quant_method == "label-free") {
-    exp <- .read_pglyco3_pglycoquant_label_free(fp, sample_info_fp, name)
+    exp <- .read_pglyco3_pglycoquant_label_free(fp, sample_info_fp, name, var_info_cols)
   } else {
-    exp <- .read_pglyco3_pglycoquant_tmt(fp, sample_info_fp, name, tmt_type, ref_channel)
+    exp <- .read_pglyco3_pglycoquant_tmt(fp, sample_info_fp, name, tmt_type, ref_channel, var_info_cols)
   }
 
   # ----- Parse glycan structure -----
@@ -155,7 +204,8 @@ read_pglyco3_pglycoquant <- function(
 .read_pglyco3_pglycoquant_label_free <- function(
   fp,
   sample_info_fp = NULL,
-  name = NULL
+  name = NULL,
+  var_info_cols
 ) {
   # ----- Read data -----
   df <- .read_pglyco3_file_into_tibble(fp)
@@ -178,23 +228,10 @@ read_pglyco3_pglycoquant <- function(
     })
   }
 
-  # ----- Clean some columns -----
-  df <- df %>%
-    dplyr::mutate(
-      modifications = stringr::str_remove(.data$modifications, ";$"),
-      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
-      genes = stringr::str_remove(.data$genes, ";$")
-    ) %>%
-    .clean_pglyco3_glycan_composition()
-
   # ----- Aggregate quantification -----
   # For label-free quantification, we sum the intensities of all
   # spectra quantified for the same variable.
   # A variable is defined as a unique combination of `names(new_names)`.
-  var_info_cols <- c(
-    "peptide", "proteins", "genes", "glycan_composition", "glycan_structure",
-    "peptide_site", "protein_sites", "charge", "modifications"
-  )
   df <- df %>%
     dplyr::summarize(
       dplyr::across(tidyselect::starts_with("Intensity"), sum),
@@ -204,17 +241,7 @@ read_pglyco3_pglycoquant <- function(
 
   # ----- Pack Experiment -----
   # Add a unique "variable" column
-  var_info <- var_info %>%
-    dplyr::mutate(
-      variable = stringr::str_c(
-        .data$peptide,
-        .data$peptide_site,
-        .data$glycan_composition,
-        sep = "_"
-      ),
-      variable = make.unique(.data$variable, sep = "_"),
-      .before = 1
-    )
+  var_info <- .add_variable_column(var_info)
 
   # Extract the expression matrix
   expr_mat <- df %>%
@@ -242,7 +269,8 @@ read_pglyco3_pglycoquant <- function(
   sample_info_fp = NULL,
   name = NULL,
   tmt_type = NULL,
-  ref_channel = NULL
+  ref_channel = NULL,
+  var_info_cols
 ) {
   # ----- Read pGlyco result -----
   df <- .read_pglyco3_file_into_tibble(fp)
@@ -267,12 +295,12 @@ read_pglyco3_pglycoquant <- function(
     ))
   }
   df <- df %>%
-    dplyr::mutate(across(
+    dplyr::mutate(dplyr::across(
       all_of(paste0("TMT", channels)),
       ~ dplyr::if_else(. == 0, NA, .))
     ) %>%
     dplyr::filter(!is.na(.data[[paste0("TMT", ref_channel)]])) %>%
-    dplyr::mutate(across(
+    dplyr::mutate(dplyr::across(
       all_of(paste0("TMT", channels)),
       ~ . / .data[[paste0("TMT", ref_channel)]])
     ) %>%
@@ -299,7 +327,7 @@ read_pglyco3_pglycoquant <- function(
       dplyr::select(-all_of("sample")) %>%
       dplyr::left_join(sample_info, by = c("raw_name", "channel")) %>%
       dplyr::filter(is.na(.data$sample)) %>%
-      dplyr::mutate(pair = paste0(raw_name, ": ", channel)) %>%
+      dplyr::mutate(pair = paste0(.data$raw_name, ": ", .data$channel)) %>%
       dplyr::pull("pair")
     if (length(missing_pairs) > 0) {
       cli::cli_abort("Sample information is missing for these pairs: {.val {missing_pairs}}")
@@ -320,24 +348,11 @@ read_pglyco3_pglycoquant <- function(
   # ----- Aggregate quantification -----
   # For TMT quantification, we take the median value of all PSMs quantified
   # for a variable in each sample (raw name and channel pair).
-  var_info_cols <- c(
-    "peptide", "proteins", "genes", "glycan_composition", "glycan_structure",
-    "peptide_site", "protein_sites", "charge", "modifications"
-  )
   df <- df %>%
     dplyr::summarize(
       dplyr::across(tidyselect::starts_with("TMT"), ~ median(., na.rm = TRUE)),
       .by = all_of(c("raw_name", var_info_cols))
     )
-
-  # ----- Clean some columns -----
-  df <- df %>%
-    dplyr::mutate(
-      modifications = stringr::str_remove(.data$modifications, ";$"),
-      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
-      genes = stringr::str_remove(.data$genes, ";$")
-    ) %>%
-    .clean_pglyco3_glycan_composition()
 
   # ----- Pack experiment -----
   df <- df %>%
@@ -355,15 +370,8 @@ read_pglyco3_pglycoquant <- function(
     tidyr::pivot_wider(names_from = "sample", values_from = "ratio")
 
   var_info <- df %>%
-    dplyr::select(-all_of(sample_info$sample)) %>%
-    dplyr::mutate(variable = stringr::str_c(
-      .data$peptide,
-      .data$peptide_site,
-      .data$glycan_composition,
-      sep = "_"
-    )) %>%
-    dplyr::mutate(variable = make.unique(.data$variable, sep = "_")) %>%
-    dplyr::relocate(all_of("variable"))
+    dplyr::select(all_of(var_info_cols)) %>%
+    .add_variable_column()
 
   expr_mat <- df %>%
     dplyr::select(-all_of(var_info_cols)) %>%
@@ -413,7 +421,13 @@ read_pglyco3_pglycoquant <- function(
     suppressMessages(readr::read_tsv(fp, col_types = col_types)),
     classes = "vroom_mismatched_column_name"
   ) %>%
-    dplyr::rename(all_of(new_names))
+    dplyr::rename(all_of(new_names)) %>%
+    dplyr::mutate(
+      modifications = stringr::str_remove(.data$modifications, ";$"),
+      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
+      genes = stringr::str_remove(.data$genes, ";$")
+    ) %>%
+    .clean_pglyco3_glycan_composition()
 }
 
 
@@ -438,4 +452,17 @@ read_pglyco3_pglycoquant <- function(
       dplyr::if_else(.data$nA == 0, "", paste0("A", .data$nA)),
       dplyr::if_else(.data$nG == 0, "", paste0("G", .data$nG))
     ), .keep = "unused")
+}
+
+
+.add_variable_column <- function(df) {
+  # Add a unique "variable" column by concatenating all columns by "_"
+  df %>%
+    dplyr::mutate(dplyr::across(dplyr::everything(), as.character, .names = "..name..{.col}")) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      variable = paste(dplyr::c_across(dplyr::starts_with("..name..")), collapse = "_"),
+      .before = 1, .keep = "unused"
+    ) %>%
+    dplyr::ungroup()
 }

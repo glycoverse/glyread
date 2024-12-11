@@ -11,7 +11,8 @@ read_pglyco3_pglycoquant(
   quant_method,
   tmt_type = NULL,
   ref_channel = NULL,
-  parse_structure = FALSE
+  parse_structure = FALSE,
+  quant_aggr_method = c("gf", "gp", "gfs", "gps", "det")
 )
 }
 \arguments{
@@ -49,6 +50,23 @@ any quality control for the structural speculation process.
 If you choose to enable this option,
 please interpret the analysis results with caution.
 For more rigorous structural information, we recommend using StrucGP.}
+
+\item{quant_aggr_method}{Aggregation method for quantification results.
+\itemize{
+\item "gf": Glycoform level. The default. Aggregates all PSMs of the same
+combination of protein, protein site, and glycan composition.
+\item "gp": Glycopeptide level. Aggregates all PSMs of the same
+combination of peptide, peptide site, and glycan composition.
+\item "gfs": Glycoform level with glycan structure.
+Aggregates all PSMs of the same combination of protein, protein site,
+and glycan structure.
+\item "gps": Glycopeptide level with glycan structure.
+Aggregates all PSMs of the same combination of peptide, peptide site,
+and glycan structure.
+\item "det": Detailed level. Aggregates all PSMs of the same combination of
+peptide, protein, gene, glycan composition, glycan structure, peptide site,
+protein site, charge, and modifications.
+}}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -118,5 +136,20 @@ separated by semicolon
 
 Glycan compositions are reformatted into condensed format,
 e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
+}
+
+\section{Aggregation}{
+pGlycoQuant quantifies glycopeptides at the PSM level.
+Therefore, a glycopeptide could have multiple rows in the result file,
+due to different charge states, modifications, or just duplicate identifications.
+In this regard, we need to aggregate the quantification results
+to the level we are interested in.
+This function provides several aggregation methods,
+specified by the \code{quant_aggr_method} argument.
+The most commonly used method is "gf" (glycoform), which aggregates
+all PSMs of the same combination of protein, protein site, and glycan composition.
+The word "aggregate" here means "sum" for label-free quantification,
+and "take the median" for TMT quantification.
+For other aggregation methods, see the \code{quant_aggr_method} argument.
 }
 
