@@ -227,7 +227,8 @@ read_pglyco3_pglycoquant <- function(
   meta_data <- list(
     experiment_type = "glycoproteomics",
     glycan_type = "N-glycan",
-    quantification_method = "label-free"
+    quantification_method = "label-free",
+    structure_type = "pglyco"
   )
   exp <- glyexp::experiment(name, expr_mat, sample_info, var_info, meta_data)
 
@@ -372,7 +373,8 @@ read_pglyco3_pglycoquant <- function(
   meta_data <- list(
     experiment_type = "glycoproteomics",
     glycan_type = "N-glycan",
-    quantification_method = "TMT"
+    quantification_method = "TMT",
+    structure_type = "pglyco"
   )
   exp <- glyexp::experiment(name, expr_mat, sample_info, var_info, meta_data)
 

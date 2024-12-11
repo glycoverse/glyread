@@ -27,6 +27,12 @@ test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
   expect_equal(rownames(res$expr_mat), res$var_info$variable)
   expect_equal(res$name, "my_exp")
   expect_true(is.null(res$glycan_graphs))
+  expect_equal(res$meta_data, list(
+    experiment_type = "glycoproteomics",
+    glycan_type = "N-glycan",
+    quantification_method = "label-free",
+    structure_type = "pglyco"
+  ))
 })
 
 
@@ -160,6 +166,12 @@ test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
   expect_equal(rownames(res$expr_mat), res$var_info$variable)
   expect_equal(res$name, "my_exp")
   expect_true(is.null(res$glycan_graphs))
+  expect_equal(res$meta_data, list(
+    experiment_type = "glycoproteomics",
+    glycan_type = "N-glycan",
+    quantification_method = "TMT",
+    structure_type = "pglyco"
+  ))
 })
 
 
