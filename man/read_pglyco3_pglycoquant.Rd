@@ -8,7 +8,7 @@ read_pglyco3_pglycoquant(
   fp,
   sample_info_fp = NULL,
   name = NULL,
-  quant_method = c("label-free", "TMT"),
+  quant_method,
   tmt_type = NULL,
   ref_channel = NULL,
   parse_structure = FALSE
@@ -22,8 +22,7 @@ read_pglyco3_pglycoquant(
 \item{name}{Name of the experiment. If not provided, a default name with
 current time will be used.}
 
-\item{quant_method}{Quantification method. Either "label-free" or "TMT".
-Default is "label-free".}
+\item{quant_method}{Quantification method. Either "label-free" or "TMT".}
 
 \item{tmt_type}{TMT type. Required if \code{quant_method} is "TMT".
 Options are "TMT-6plex", "TMT-10plex", "TMT-11plex", "TMTpro-10plex",
@@ -58,6 +57,7 @@ An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 If you used pGlyco3 for intact glycopeptide identification,
 and used pGlycoQuant for quantification, this is the function for you.
 It reads the pGlycoQuant result file and returns an \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+Both label-free and TMT quantification are supported.
 }
 \section{Input}{
 You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
@@ -71,10 +71,11 @@ The \code{sample} column must match the \code{RawName} column in the pGlyco3 res
 although the order can be different.
 
 For results from TMT quantification, the sample information file should have
-two additional columns: \code{raw_name} and \code{channel}.
+two additional columns besides \code{sample}: \code{raw_name} and \code{channel}.
 \code{raw_name} refers to the raw file names,
 matching the \code{RawName} column in the pGlyco3 result file.
 \code{channel} refers to the TMT channel names.
+For valid TMT channels, see the \code{ref_channel} argument.
 
 You can put any useful information in the sample information file.
 Recommended columns are:
@@ -116,6 +117,6 @@ separated by semicolon
 }
 
 Glycan compositions are reformatted into condensed format,
-e.g. "H5N4A1F1" for "H(5)N(4)A(1)F(1)".
+e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
 }
 

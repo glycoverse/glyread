@@ -3,6 +3,7 @@
 #' If you used pGlyco3 for intact glycopeptide identification,
 #' and used pGlycoQuant for quantification, this is the function for you.
 #' It reads the pGlycoQuant result file and returns an [glyexp::experiment()] object.
+#' Both label-free and TMT quantification are supported.
 #'
 #' @details
 #' # Input
@@ -18,10 +19,11 @@
 #' although the order can be different.
 #'
 #' For results from TMT quantification, the sample information file should have
-#' two additional columns: `raw_name` and `channel`.
+#' two additional columns besides `sample`: `raw_name` and `channel`.
 #' `raw_name` refers to the raw file names,
 #' matching the `RawName` column in the pGlyco3 result file.
 #' `channel` refers to the TMT channel names.
+#' For valid TMT channels, see the `ref_channel` argument.
 #'
 #' You can put any useful information in the sample information file.
 #' Recommended columns are:
@@ -59,14 +61,13 @@
 #'    separated by semicolon
 #'
 #' Glycan compositions are reformatted into condensed format,
-#' e.g. "H5N4A1F1" for "H(5)N(4)A(1)F(1)".
+#' e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
 #'
 #' @param fp File path of the pGlyco3 result file.
 #' @param sample_info_fp File path of the sample information file.
 #' @param name Name of the experiment. If not provided, a default name with
 #'  current time will be used.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".
-#'  Default is "label-free".
 #' @param tmt_type TMT type. Required if `quant_method` is "TMT".
 #'  Options are "TMT-6plex", "TMT-10plex", "TMT-11plex", "TMTpro-10plex",
 #'  "TMTpro-16plex", "TMTpro-18plex".
@@ -100,7 +101,7 @@ read_pglyco3_pglycoquant <- function(
   fp,
   sample_info_fp = NULL,
   name = NULL,
-  quant_method = c("label-free", "TMT"),
+  quant_method,
   tmt_type = NULL,
   ref_channel = NULL,
   parse_structure = FALSE
@@ -115,7 +116,7 @@ read_pglyco3_pglycoquant <- function(
     checkmate::check_null(name),
     checkmate::check_character(name, len = 1, min.chars = 1)
   )
-  quant_method <- rlang::arg_match(quant_method)
+  quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
   if (!is.null(tmt_type)){
     checkmate::assert_choice(
       tmt_type,
