@@ -2,7 +2,7 @@
 #'
 #' If you used pGlyco3 for intact glycopeptide identification,
 #' and used pGlycoQuant for quantification, this is the function for you.
-#' It reads the pGlycoQuant result file and returns an [glyexp::experiment()] object.
+#' It reads in a pGlycoQuant result file and returns a [glyexp::experiment()] object.
 #' Both label-free and TMT quantification are supported.
 #'
 #' @details
@@ -14,7 +14,7 @@
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
 #' The sample information file should be a `csv` file with the first column
-#' named `sample`, and the rest of the columns are sample information.
+#' named `sample`, and the rest of the columns being sample information.
 #' The `sample` column must match the `RawName` column in the pGlyco3 result file,
 #' although the order can be different.
 #'
@@ -40,13 +40,20 @@
 #'
 #' # Output
 #'
-#' The result is an [glyexp::experiment()] object.
-#' If `parse_structure` is `TRUE` (by default),
+#' This function returns a [glyexp::experiment()] object.
+#'
+#' If `parse_structure` is `TRUE`,
 #' a list of parsed `glycan_graph` objects will be stored in the experiment,
 #' with the glycan structure strings as names.
 #' It can be accessed by `exp$glycan_graphs` or `exp[["glycan_graphs"]]`.
+#' Although the results from pGlyco3 provide structural information,
+#' many of these structures are speculative, and pGlyco3 doesn’t include
+#' any quality control for the structural speculation process.
+#' If you choose to enable this option,
+#' please interpret the analysis results with caution.
+#' This is why `parse_structure` is `FALSE` by default for this function.
 #'
-#' The following columns are in the variable information tibble:
+#' The following columns could be found in the variable information tibble:
 #' - `charge`: integer, charge state
 #' - `peptide`: character, peptide sequence
 #' - `modifications`: character, modifications other than glycosylation,
@@ -60,8 +67,8 @@
 #' - `protein_sites`: character, site of glycosylation on protein,
 #'    separated by semicolon
 #'
-#' Glycan compositions are reformatted into condensed format,
-#' e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
+#' Some of them might not be present, depending on the aggregation method.
+#' See `quant_aggr_method` argument for more information.
 #'
 #' # Aggregation
 #'
@@ -98,12 +105,9 @@
 #'  - TMTpro-18plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N,
 #'  131C, 132N, 132C, 133N, 133C, 134N, 134C, 135N.
 #' @param parse_structure Whether to parse glycan structures. Default is `FALSE`.
-#'  Although the results from pGlyco3 provide structural information,
-#'  many of these structures are speculative, and pGlyco3 doesn’t include
-#'  any quality control for the structural speculation process.
-#'  If you choose to enable this option,
-#'  please interpret the analysis results with caution.
-#'  For more rigorous structural information, we recommend using StrucGP.
+#'  It can only be set `TRUE` when `quant_aggr_method` is "gfs", "gps", or "det".
+#'  In other cases, the structure column is dropped after aggregation.
+#'  See the details section and `quant_aggr_method` argument for more information.
 #' @param quant_aggr_method Aggregation method for quantification results.
 #'  - "gf": Glycoform level. The default. Aggregates all PSMs of the same
 #'  combination of protein, protein site, and glycan composition.

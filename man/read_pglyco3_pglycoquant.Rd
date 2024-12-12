@@ -45,12 +45,9 @@ The reference channel must be one of the valid TMT channels.
 }}
 
 \item{parse_structure}{Whether to parse glycan structures. Default is \code{FALSE}.
-Although the results from pGlyco3 provide structural information,
-many of these structures are speculative, and pGlyco3 doesn’t include
-any quality control for the structural speculation process.
-If you choose to enable this option,
-please interpret the analysis results with caution.
-For more rigorous structural information, we recommend using StrucGP.}
+It can only be set \code{TRUE} when \code{quant_aggr_method} is "gfs", "gps", or "det".
+In other cases, the structure column is dropped after aggregation.
+See the details section and \code{quant_aggr_method} argument for more information.}
 
 \item{quant_aggr_method}{Aggregation method for quantification results.
 \itemize{
@@ -77,7 +74,7 @@ An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 \description{
 If you used pGlyco3 for intact glycopeptide identification,
 and used pGlycoQuant for quantification, this is the function for you.
-It reads the pGlycoQuant result file and returns an \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+It reads in a pGlycoQuant result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 Both label-free and TMT quantification are supported.
 }
 \section{Input}{
@@ -87,7 +84,7 @@ For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%20for\%20pGlycoQuant_v202211.pdf}{pGlycoQuant}.
 
 The sample information file should be a \code{csv} file with the first column
-named \code{sample}, and the rest of the columns are sample information.
+named \code{sample}, and the rest of the columns being sample information.
 The \code{sample} column must match the \code{RawName} column in the pGlyco3 result file,
 although the order can be different.
 
@@ -115,13 +112,20 @@ biological replicates from technical replicates.
 }
 
 \section{Output}{
-The result is an \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
-If \code{parse_structure} is \code{TRUE} (by default),
+This function returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+
+If \code{parse_structure} is \code{TRUE},
 a list of parsed \code{glycan_graph} objects will be stored in the experiment,
 with the glycan structure strings as names.
 It can be accessed by \code{exp$glycan_graphs} or \code{exp[["glycan_graphs"]]}.
+Although the results from pGlyco3 provide structural information,
+many of these structures are speculative, and pGlyco3 doesn’t include
+any quality control for the structural speculation process.
+If you choose to enable this option,
+please interpret the analysis results with caution.
+This is why \code{parse_structure} is \code{FALSE} by default for this function.
 
-The following columns are in the variable information tibble:
+The following columns could be found in the variable information tibble:
 \itemize{
 \item \code{charge}: integer, charge state
 \item \code{peptide}: character, peptide sequence
@@ -137,8 +141,8 @@ separated by semicolon, e.g. \verb{5,Carbamidomethyl[C];10,Carbamidomethyl[C]}
 separated by semicolon
 }
 
-Glycan compositions are reformatted into condensed format,
-e.g. "H5N4F1A1" for "H(5)N(4)A(1)F(1)".
+Some of them might not be present, depending on the aggregation method.
+See \code{quant_aggr_method} argument for more information.
 }
 
 \section{Aggregation}{
