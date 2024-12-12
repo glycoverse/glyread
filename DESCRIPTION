@@ -22,10 +22,8 @@ Imports:
     checkmate,
     cli,
     dplyr,
-    glyexp (>= 0.1.3),
-    glymotif,
-    glyparse,
-    janitor,
+    glyexp (>= 0.1.5),
+    glyparse (>= 0.0.0.9015),
     magrittr,
     purrr,
     readr,
@@ -34,3 +32,6 @@ Imports:
     tibble,
     tidyr,
     tidyselect
+Remotes:  
+    glycoverse/glyexp,
+    glycoverse/glyparse
