@@ -24,7 +24,7 @@ test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
   expect_true(is.null(res$glycan_graphs))
   expect_equal(res$meta_data, list(
     experiment_type = "glycoproteomics",
-    glycan_type = "N-glycan",
+    glycan_type = "N",
     quantification_method = "label-free",
     structure_type = "pglyco"
   ))
@@ -176,7 +176,7 @@ test_that("read_pglyco3_pglycoquant returns correct information (TMT)", {
   expect_true(is.null(res$glycan_graphs))
   expect_equal(res$meta_data, list(
     experiment_type = "glycoproteomics",
-    glycan_type = "N-glycan",
+    glycan_type = "N",
     quantification_method = "TMT",
     structure_type = "pglyco"
   ))

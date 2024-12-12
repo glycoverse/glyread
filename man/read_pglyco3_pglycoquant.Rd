@@ -12,7 +12,8 @@ read_pglyco3_pglycoquant(
   tmt_type = NULL,
   ref_channel = NULL,
   parse_structure = FALSE,
-  quant_aggr_method = c("gf", "gp", "gfs", "gps", "det")
+  quant_aggr_method = c("gf", "gp", "gfs", "gps", "det"),
+  glycan_type = c("N", "O")
 )
 }
 \arguments{
@@ -67,6 +68,8 @@ and glycan structure.
 peptide, protein, gene, glycan composition, glycan structure, peptide site,
 protein site, charge, and modifications.
 }}
+
+\item{glycan_type}{Glycan type. Either "N" or "O". Default is "N".}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.

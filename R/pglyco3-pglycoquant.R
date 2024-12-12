@@ -118,6 +118,7 @@
 #'  - "det": Detailed level. Aggregates all PSMs of the same combination of
 #'  peptide, protein, gene, glycan composition, glycan structure, peptide site,
 #'  protein site, charge, and modifications.
+#' @param glycan_type Glycan type. Either "N" or "O". Default is "N".
 #'
 #' @returns An [glyexp::experiment()] object.
 #'
@@ -134,7 +135,8 @@ read_pglyco3_pglycoquant <- function(
   tmt_type = NULL,
   ref_channel = NULL,
   parse_structure = FALSE,
-  quant_aggr_method = c("gf", "gp", "gfs", "gps", "det")
+  quant_aggr_method = c("gf", "gp", "gfs", "gps", "det"),
+  glycan_type = c("N", "O")
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
@@ -160,6 +162,7 @@ read_pglyco3_pglycoquant <- function(
   )
   checkmate::assert_flag(parse_structure)
   quant_aggr_method <- rlang::arg_match(quant_aggr_method)
+  glycan_type <- rlang::arg_match(glycan_type)
   if (is.null(name)) {
     name <- paste("exp", Sys.time())
   }
@@ -184,9 +187,11 @@ read_pglyco3_pglycoquant <- function(
             "peptide_site", "protein_sites", "charge", "modifications")
   )
   if (quant_method == "label-free") {
-    exp <- .read_pglyco3_pglycoquant_label_free(fp, sample_info_fp, name, var_info_cols)
+    exp <- .read_pglyco3_pglycoquant_label_free(
+      fp, sample_info_fp, name, glycan_type, var_info_cols)
   } else {
-    exp <- .read_pglyco3_pglycoquant_tmt(fp, sample_info_fp, name, tmt_type, ref_channel, var_info_cols)
+    exp <- .read_pglyco3_pglycoquant_tmt(
+      fp, sample_info_fp, name, tmt_type, ref_channel, glycan_type, var_info_cols)
   }
 
   # ----- Parse glycan structure -----
@@ -205,6 +210,7 @@ read_pglyco3_pglycoquant <- function(
   fp,
   sample_info_fp = NULL,
   name = NULL,
+  glycan_type,
   var_info_cols
 ) {
   # ----- Read data -----
@@ -253,7 +259,7 @@ read_pglyco3_pglycoquant <- function(
 
   meta_data <- list(
     experiment_type = "glycoproteomics",
-    glycan_type = "N-glycan",
+    glycan_type = glycan_type,
     quantification_method = "label-free",
     structure_type = "pglyco"
   )
@@ -270,6 +276,7 @@ read_pglyco3_pglycoquant <- function(
   name = NULL,
   tmt_type = NULL,
   ref_channel = NULL,
+  glycan_type,
   var_info_cols
 ) {
   # ----- Read pGlyco result -----
@@ -380,7 +387,7 @@ read_pglyco3_pglycoquant <- function(
 
   meta_data <- list(
     experiment_type = "glycoproteomics",
-    glycan_type = "N-glycan",
+    glycan_type = glycan_type,
     quantification_method = "TMT",
     structure_type = "pglyco"
   )
