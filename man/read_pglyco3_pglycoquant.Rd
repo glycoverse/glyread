@@ -8,11 +8,8 @@ read_pglyco3_pglycoquant(
   fp,
   sample_info_fp = NULL,
   name = NULL,
-  quant_method,
-  tmt_type = NULL,
-  ref_channel = NULL,
+  quant_method = c("label-free", "TMT"),
   parse_structure = FALSE,
-  quant_aggr_method = c("gf", "gp", "gfs", "gps", "det"),
   glycan_type = c("N", "O")
 )
 }
@@ -26,45 +23,7 @@ current time will be used.}
 
 \item{quant_method}{Quantification method. Either "label-free" or "TMT".}
 
-\item{tmt_type}{TMT type. Required if \code{quant_method} is "TMT".
-Options are "TMT-6plex", "TMT-10plex", "TMT-11plex", "TMTpro-10plex",
-"TMTpro-16plex", "TMTpro-18plex".}
-
-\item{ref_channel}{Reference channel for TMT normalization.
-A character scalar. Required if \code{quant_method} is "TMT".
-The reference channel must be one of the valid TMT channels.
-\itemize{
-\item TMT-6plex: 126, 127, 128, 129, 130, 131.
-\item TMT-10plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131.
-\item TMT-11plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C.
-\item TMTpro-10plex: 126, 127N, 128N, 129N, 130N, 131N, 132N, 133N, 134N, 135N.
-\item TMTpro-16plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N,
-131C, 132N, 132C, 133N, 133C, 134N.
-\item TMTpro-18plex: 126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N,
-131C, 132N, 132C, 133N, 133C, 134N, 134C, 135N.
-}}
-
-\item{parse_structure}{Whether to parse glycan structures. Default is \code{FALSE}.
-It can only be set \code{TRUE} when \code{quant_aggr_method} is "gfs", "gps", or "det".
-In other cases, the structure column is dropped after aggregation.
-See the details section and \code{quant_aggr_method} argument for more information.}
-
-\item{quant_aggr_method}{Aggregation method for quantification results.
-\itemize{
-\item "gf": Glycoform level. The default. Aggregates all PSMs of the same
-combination of protein, protein site, and glycan composition.
-\item "gp": Glycopeptide level. Aggregates all PSMs of the same
-combination of peptide, peptide site, and glycan composition.
-\item "gfs": Glycoform level with glycan structure.
-Aggregates all PSMs of the same combination of protein, protein site,
-and glycan structure.
-\item "gps": Glycopeptide level with glycan structure.
-Aggregates all PSMs of the same combination of peptide, peptide site,
-and glycan structure.
-\item "det": Detailed level. Aggregates all PSMs of the same combination of
-peptide, protein, gene, glycan composition, glycan structure, peptide site,
-protein site, charge, and modifications.
-}}
+\item{parse_structure}{Whether to parse glycan structures. Default is \code{FALSE}.}
 
 \item{glycan_type}{Glycan type. Either "N" or "O". Default is "N".}
 }
@@ -75,7 +34,7 @@ An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 If you used pGlyco3 for intact glycopeptide identification,
 and used pGlycoQuant for quantification, this is the function for you.
 It reads in a pGlycoQuant result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
-Both label-free and TMT quantification are supported.
+Currently only label-free quantification is supported.
 }
 \section{Input}{
 You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
@@ -87,13 +46,6 @@ The sample information file should be a \code{csv} file with the first column
 named \code{sample}, and the rest of the columns being sample information.
 The \code{sample} column must match the \code{RawName} column in the pGlyco3 result file,
 although the order can be different.
-
-For results from TMT quantification, the sample information file should have
-two additional columns besides \code{sample}: \code{raw_name} and \code{channel}.
-\code{raw_name} refers to the raw file names,
-matching the \code{RawName} column in the pGlyco3 result file.
-\code{channel} refers to the TMT channel names.
-For valid TMT channels, see the \code{ref_channel} argument.
 
 You can put any useful information in the sample information file.
 Recommended columns are:
@@ -140,23 +92,5 @@ separated by semicolon, e.g. \verb{5,Carbamidomethyl[C];10,Carbamidomethyl[C]}
 \item \code{protein_sites}: character, site of glycosylation on protein,
 separated by semicolon
 }
-
-Some of them might not be present, depending on the aggregation method.
-See \code{quant_aggr_method} argument for more information.
-}
-
-\section{Aggregation}{
-pGlycoQuant quantifies glycopeptides at the PSM level.
-Therefore, a glycopeptide could have multiple rows in the result file,
-due to different charge states, modifications, or just duplicate identifications.
-In this regard, we need to aggregate the quantification results
-to the level we are interested in.
-This function provides several aggregation methods,
-specified by the \code{quant_aggr_method} argument.
-The most commonly used method is "gf" (glycoform), which aggregates
-all PSMs of the same combination of protein, protein site, and glycan composition.
-The word "aggregate" here means "sum" for label-free quantification,
-and "take the median" for TMT quantification.
-For other aggregation methods, see the \code{quant_aggr_method} argument.
 }
 
