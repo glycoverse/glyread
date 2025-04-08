@@ -31,19 +31,7 @@ test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
 })
 
 
-test_that("read_pglyco3_pglycoquant parses structures", {
-  suppressMessages(
-    res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
-      test_path("pglyco3-LFQ-sample-info.csv"),
-      name = "my_exp",
-      quant_method = "label-free",
-      parse_structure = TRUE
-    )
-  )
 
-  expect_true(!is.null(res$glycan_graphs))
-})
 
 
 test_that("read_pglyco3_pglycoquant provides a default name with current time", {

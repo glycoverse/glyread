@@ -38,7 +38,7 @@
 #' If `parse_structure` is `TRUE`,
 #' a list of parsed `glycan_graph` objects will be stored in the experiment,
 #' with the glycan structure strings as names.
-#' It can be accessed by `exp$glycan_graphs` or `exp[["glycan_graphs"]]`.
+#' It can be accessed by `exp$glycan_structures` or `exp[["glycan_structures"]]`.
 #' Although the results from pGlyco3 provide structural information,
 #' many of these structures are speculative, and pGlyco3 doesn’t include
 #' any quality control for the structural speculation process.
@@ -65,7 +65,6 @@
 #' @param name Name of the experiment. If not provided, a default name with
 #'  current time will be used.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".
-#' @param parse_structure Whether to parse glycan structures. Default is `FALSE`.
 #' @param glycan_type Glycan type. Either "N" or "O". Default is "N".
 #'
 #' @returns An [glyexp::experiment()] object.
@@ -80,7 +79,7 @@ read_pglyco3_pglycoquant <- function(
   sample_info_fp = NULL,
   name = NULL,
   quant_method = c("label-free", "TMT"),
-  parse_structure = FALSE,
+
   glycan_type = c("N", "O")
 ) {
   # ----- Check arguments -----
@@ -96,7 +95,7 @@ read_pglyco3_pglycoquant <- function(
     checkmate::check_character(name, len = 1, min.chars = 1)
   )
   quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
-  checkmate::assert_flag(parse_structure)
+
   glycan_type <- rlang::arg_match(glycan_type)
   if (is.null(name)) {
     name <- paste("exp", Sys.time())
@@ -116,13 +115,7 @@ read_pglyco3_pglycoquant <- function(
     rlang::abort("TMT quantification is not supported yet.")
   }
 
-  # ----- Parse glycan structure -----
-  if (parse_structure) {
-    glycan_structures <- unique(exp$var_info$glycan_structure)
-    glycan_graphs <- purrr::map(glycan_structures, glyparse::parse_pglyco_struc)
-    names(glycan_graphs) <- glycan_structures
-    exp$glycan_graphs <- glycan_graphs
-  }
+
 
   exp
 }
