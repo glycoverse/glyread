@@ -35,17 +35,6 @@
 #'
 #' This function returns a [glyexp::experiment()] object.
 #'
-#' If `parse_structure` is `TRUE`,
-#' a list of parsed `glycan_graph` objects will be stored in the experiment,
-#' with the glycan structure strings as names.
-#' It can be accessed by `exp$glycan_structures` or `exp[["glycan_structures"]]`.
-#' Although the results from pGlyco3 provide structural information,
-#' many of these structures are speculative, and pGlyco3 doesn’t include
-#' any quality control for the structural speculation process.
-#' If you choose to enable this option,
-#' please interpret the analysis results with caution.
-#' This is why `parse_structure` is `FALSE` by default for this function.
-#'
 #' The following columns could be found in the variable information tibble:
 #' - `charge`: integer, charge state
 #' - `peptide`: character, peptide sequence
@@ -66,6 +55,11 @@
 #'  current time will be used.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".
 #' @param glycan_type Glycan type. Either "N" or "O". Default is "N".
+#' @param sample_name_converter A function to convert sample names from file paths.
+#'  The function should take a character vector of old sample names
+#'  and return new sample names.
+#'  Note that sample names in `sample_info_fp` should match the new names.
+#'  If NULL, original names are kept.
 #'
 #' @returns An [glyexp::experiment()] object.
 #'
@@ -79,8 +73,8 @@ read_pglyco3_pglycoquant <- function(
   sample_info_fp = NULL,
   name = NULL,
   quant_method = c("label-free", "TMT"),
-
-  glycan_type = c("N", "O")
+  glycan_type = c("N", "O"),
+  sample_name_converter = NULL
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
@@ -95,6 +89,10 @@ read_pglyco3_pglycoquant <- function(
     checkmate::check_character(name, len = 1, min.chars = 1)
   )
   quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
+  checkmate::assert(
+    checkmate::check_null(sample_name_converter),
+    checkmate::check_function(sample_name_converter)
+  )
 
   glycan_type <- rlang::arg_match(glycan_type)
   if (is.null(name)) {
@@ -109,13 +107,16 @@ read_pglyco3_pglycoquant <- function(
   )
   if (quant_method == "label-free") {
     exp <- .read_pglyco3_pglycoquant_label_free(
-      fp, sample_info_fp, name, glycan_type, var_info_cols
+      fp,
+      sample_info_fp,
+      name,
+      glycan_type,
+      var_info_cols,
+      sample_name_converter
     )
   } else {
     rlang::abort("TMT quantification is not supported yet.")
   }
-
-
 
   exp
 }
@@ -126,23 +127,34 @@ read_pglyco3_pglycoquant <- function(
   sample_info_fp = NULL,
   name = NULL,
   glycan_type,
-  var_info_cols
+  var_info_cols,
+  sample_name_converter
 ) {
   # ----- Read data -----
   df <- .read_pglyco3_file_into_tibble(fp)
-  samples <- unique(df$raw_name)
 
+  if (!is.null(sample_name_converter)) {
+    df$raw_name <- sample_name_converter(df$raw_name)
+  }
+
+  samples <- unique(df$raw_name)
   if (is.null(sample_info_fp)) {
     sample_info <- tibble::tibble(sample = samples)
-    cli::cli_alert_info("No sample information file passed in. An empty tibble will be used.")
+    cli::cli_alert_info(
+      "No sample information file passed in. An empty tibble will be used."
+    )
   } else {
     sample_info <- suppressMessages(readr::read_csv(sample_info_fp))
     # Here we create an empty var_info tibble and an empty expr_mat matrix,
-    # and check if the sample info is in correct format by creating an experiment.
+    # and check if the sample info is in correct format
+    # by creating an experiment.
     # This passes the checking responsibility to `experiment()`.
     local({
       fake_var_info <- tibble::tibble(variable = character(0))
-      fake_expr_mat <- matrix(nrow = 0, ncol = length(samples), dimnames = list(NULL, samples))
+      fake_expr_mat <- matrix(
+        nrow = 0, ncol = length(samples),
+        dimnames = list(NULL, samples)
+      )
 
       # This line will throw an error if sample_info is not in correct format.
       glyexp::experiment(name, fake_expr_mat, sample_info, fake_var_info)
@@ -153,14 +165,22 @@ read_pglyco3_pglycoquant <- function(
   # Add a unique "variable" column
   var_info <- df %>%
     dplyr::select(all_of(var_info_cols)) %>%
-    dplyr::mutate(variable = stringr::str_c("PSM", dplyr::row_number()), .before = 1)
+    dplyr::mutate(
+      variable = stringr::str_c("PSM", dplyr::row_number()),
+      .before = 1
+    )
 
   # Extract the expression matrix
   expr_mat <- df %>%
     dplyr::select(tidyselect::starts_with("Intensity")) %>%
     as.matrix()
   expr_mat[expr_mat == 0] <- NA
-  colnames(expr_mat) <- stringr::str_extract(colnames(expr_mat), "Intensity\\((.*)\\)", group = 1)
+  colnames(expr_mat) <- stringr::str_extract(
+    colnames(expr_mat), "Intensity\\((.*)\\)", group = 1
+  )
+  if (!is.null(sample_name_converter)) {
+    colnames(expr_mat) <- sample_name_converter(colnames(expr_mat))
+  }
   rownames(expr_mat) <- var_info$variable
 
   meta_data <- list(
@@ -209,7 +229,9 @@ read_pglyco3_pglycoquant <- function(
     dplyr::rename(all_of(new_names)) %>%
     dplyr::mutate(
       modifications = stringr::str_remove(.data$modifications, ";$"),
-      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
+      modifications = dplyr::if_else(
+        is.na(.data$modifications), "", .data$modifications
+        ),
       genes = stringr::str_remove(.data$genes, ";$")
     ) %>%
     .clean_pglyco3_glycan_composition()

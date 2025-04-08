@@ -9,7 +9,8 @@ read_pglyco3_pglycoquant(
   sample_info_fp = NULL,
   name = NULL,
   quant_method = c("label-free", "TMT"),
-  glycan_type = c("N", "O")
+  glycan_type = c("N", "O"),
+  sample_name_converter = NULL
 )
 }
 \arguments{
@@ -23,6 +24,12 @@ current time will be used.}
 \item{quant_method}{Quantification method. Either "label-free" or "TMT".}
 
 \item{glycan_type}{Glycan type. Either "N" or "O". Default is "N".}
+
+\item{sample_name_converter}{A function to convert sample names from file paths.
+The function should take a character vector of old sample names
+and return new sample names.
+Note that sample names in \code{sample_info_fp} should match the new names.
+If NULL, original names are kept.}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -62,17 +69,6 @@ biological replicates from technical replicates.
 
 \section{Output}{
 This function returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
-
-If \code{parse_structure} is \code{TRUE},
-a list of parsed \code{glycan_graph} objects will be stored in the experiment,
-with the glycan structure strings as names.
-It can be accessed by \code{exp$glycan_structures} or \code{exp[["glycan_structures"]]}.
-Although the results from pGlyco3 provide structural information,
-many of these structures are speculative, and pGlyco3 doesn’t include
-any quality control for the structural speculation process.
-If you choose to enable this option,
-please interpret the analysis results with caution.
-This is why \code{parse_structure} is \code{FALSE} by default for this function.
 
 The following columns could be found in the variable information tibble:
 \itemize{

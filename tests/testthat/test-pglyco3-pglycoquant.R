@@ -100,3 +100,20 @@ test_that("compositions are correctly re-formatted", {
   expected <- c("H4N4F1", "H5N2", "H3N2", "H5N4F1", "H5N4F1A1", "H3N2")
   expect_equal(res$var_info$glycan_composition, expected)
 })
+
+
+test_that("sample name converter works", {
+  sample_name_converter <- function(x) {
+    stringr::str_replace(x, "S", "Sample_")
+  }
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      name = "my_exp",
+      quant_method = "label-free",
+      sample_name_converter = sample_name_converter
+    )
+  )
+  expect_equal(colnames(res$expr_mat), c("Sample_1", "Sample_2"))
+  expect_equal(res$sample_info$sample, c("Sample_1", "Sample_2"))
+})
