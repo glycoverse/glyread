@@ -9,7 +9,6 @@ read_pglyco3_pglycoquant(
   sample_info_fp = NULL,
   name = NULL,
   quant_method = c("label-free", "TMT"),
-  parse_structure = FALSE,
   glycan_type = c("N", "O")
 )
 }
@@ -22,8 +21,6 @@ read_pglyco3_pglycoquant(
 current time will be used.}
 
 \item{quant_method}{Quantification method. Either "label-free" or "TMT".}
-
-\item{parse_structure}{Whether to parse glycan structures. Default is \code{FALSE}.}
 
 \item{glycan_type}{Glycan type. Either "N" or "O". Default is "N".}
 }
@@ -69,7 +66,7 @@ This function returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} ob
 If \code{parse_structure} is \code{TRUE},
 a list of parsed \code{glycan_graph} objects will be stored in the experiment,
 with the glycan structure strings as names.
-It can be accessed by \code{exp$glycan_graphs} or \code{exp[["glycan_graphs"]]}.
+It can be accessed by \code{exp$glycan_structures} or \code{exp[["glycan_structures"]]}.
 Although the results from pGlyco3 provide structural information,
 many of these structures are speculative, and pGlyco3 doesn’t include
 any quality control for the structural speculation process.
