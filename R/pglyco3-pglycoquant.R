@@ -50,7 +50,8 @@
 #'    separated by semicolon
 #'
 #' @param fp File path of the pGlyco3 result file.
-#' @param sample_info_fp File path of the sample information file.
+#' @param sample_info File path of the sample information file,
+#'  or a sample information tibble.
 #' @param name Name of the experiment. If not provided, a default name with
 #'  current time will be used.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".
@@ -58,7 +59,7 @@
 #' @param sample_name_converter A function to convert sample names from file paths.
 #'  The function should take a character vector of old sample names
 #'  and return new sample names.
-#'  Note that sample names in `sample_info_fp` should match the new names.
+#'  Note that sample names in `sample_info` should match the new names.
 #'  If NULL, original names are kept.
 #'
 #' @returns An [glyexp::experiment()] object.
@@ -70,7 +71,7 @@
 #' @export
 read_pglyco3_pglycoquant <- function(
   fp,
-  sample_info_fp = NULL,
+  sample_info = NULL,
   name = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
@@ -79,10 +80,11 @@ read_pglyco3_pglycoquant <- function(
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
   checkmate::assert(
-    checkmate::check_null(sample_info_fp),
+    checkmate::check_null(sample_info),
     checkmate::check_file_exists(
-      sample_info_fp, access = "r", extension = ".csv"
-    )
+      sample_info, access = "r", extension = ".csv"
+    ),
+    checkmate::check_tibble(sample_info)
   )
   checkmate::assert(
     checkmate::check_null(name),
@@ -101,17 +103,12 @@ read_pglyco3_pglycoquant <- function(
 
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
-  var_info_cols <- c(
-    "peptide", "proteins", "genes", "glycan_composition", "glycan_structure",
-    "peptide_site", "protein_sites", "charge", "modifications"
-  )
   if (quant_method == "label-free") {
     exp <- .read_pglyco3_pglycoquant_label_free(
       fp,
-      sample_info_fp,
+      sample_info,
       name,
       glycan_type,
-      var_info_cols,
       sample_name_converter
     )
   } else {
@@ -124,12 +121,16 @@ read_pglyco3_pglycoquant <- function(
 
 .read_pglyco3_pglycoquant_label_free <- function(
   fp,
-  sample_info_fp = NULL,
+  sample_info = NULL,
   name = NULL,
   glycan_type,
-  var_info_cols,
   sample_name_converter
 ) {
+  var_info_cols <- c(
+    "peptide", "proteins", "genes", "glycan_composition", "glycan_structure",
+    "peptide_site", "protein_sites", "charge", "modifications"
+  )
+
   # ----- Read data -----
   df <- .read_pglyco3_file_into_tibble(fp)
 
@@ -138,13 +139,15 @@ read_pglyco3_pglycoquant <- function(
   }
 
   samples <- unique(df$raw_name)
-  if (is.null(sample_info_fp)) {
+  if (is.null(sample_info)) {
     sample_info <- tibble::tibble(sample = samples)
     cli::cli_alert_info(
       "No sample information file passed in. An empty tibble will be used."
     )
   } else {
-    sample_info <- suppressMessages(readr::read_csv(sample_info_fp))
+    if (is.character(sample_info)) {
+      sample_info <- suppressMessages(readr::read_csv(sample_info))
+    }  # Otherwise, assume it's a tibble.
     # Here we create an empty var_info tibble and an empty expr_mat matrix,
     # and check if the sample info is in correct format
     # by creating an experiment.

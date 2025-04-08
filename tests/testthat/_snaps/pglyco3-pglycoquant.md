@@ -1,4 +1,4 @@
-# error when samples in sample information is inconsistent with pGlyco3 result (label-free)
+# it raiss an error when samples in sample information is inconsistent with pGlyco3 result (label-free)
 
     Code
       read_pglyco3_pglycoquant(test_path("pglyco3-pglycoquant-LFQ-result.list"),

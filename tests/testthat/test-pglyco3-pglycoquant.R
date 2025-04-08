@@ -1,5 +1,5 @@
 # ----- Label-free -----
-test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
+test_that("it returns correct information (label-free)", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
       test_path("pglyco3-pglycoquant-LFQ-result.list"),
@@ -31,10 +31,21 @@ test_that("read_pglyco3_pglycoquant returns correct information (label-free)", {
 })
 
 
+test_that("it accepts a sample_info tibble", {
+  suppressMessages({
+    sample_info <- readr::read_csv(test_path("pglyco3-LFQ-sample-info.csv"))
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      sample_info = sample_info,
+      name = "my_exp",
+      quant_method = "label-free"
+    )
+  })
+  expect_equal(colnames(res$sample_info), c("sample", "group"))
+})
 
 
-
-test_that("read_pglyco3_pglycoquant provides a default name with current time", {
+test_that("it provides a default name with current time", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
       test_path("pglyco3-pglycoquant-LFQ-result.list"),
@@ -49,7 +60,7 @@ test_that("read_pglyco3_pglycoquant provides a default name with current time", 
 })
 
 
-test_that("read_pglyco3_pglycoquant provides a default sample information tibble (label-free)", {
+test_that("it provides a default sample information tibble (label-free)", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
       test_path("pglyco3-pglycoquant-LFQ-result.list"),
@@ -61,7 +72,7 @@ test_that("read_pglyco3_pglycoquant provides a default sample information tibble
 })
 
 
-test_that("error when samples in sample information is inconsistent with pGlyco3 result (label-free)", {
+test_that("it raiss an error when samples in sample information is inconsistent with pGlyco3 result (label-free)", {
   sample_info <- tibble::tibble(sample = c("S1", "S2", "S3"))
   new_sample_info_path <- withr::local_tempfile(fileext = ".csv")
   readr::write_csv(sample_info, new_sample_info_path)

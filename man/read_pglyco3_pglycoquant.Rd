@@ -6,7 +6,7 @@
 \usage{
 read_pglyco3_pglycoquant(
   fp,
-  sample_info_fp = NULL,
+  sample_info = NULL,
   name = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
@@ -16,7 +16,8 @@ read_pglyco3_pglycoquant(
 \arguments{
 \item{fp}{File path of the pGlyco3 result file.}
 
-\item{sample_info_fp}{File path of the sample information file.}
+\item{sample_info}{File path of the sample information file,
+or a sample information tibble.}
 
 \item{name}{Name of the experiment. If not provided, a default name with
 current time will be used.}
@@ -28,7 +29,7 @@ current time will be used.}
 \item{sample_name_converter}{A function to convert sample names from file paths.
 The function should take a character vector of old sample names
 and return new sample names.
-Note that sample names in \code{sample_info_fp} should match the new names.
+Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
 }
 \value{
