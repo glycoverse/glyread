@@ -13,7 +13,7 @@ Currently only label-free quantification is supported."><meta property="og:image
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,6 @@ Currently only label-free quantification is supported.</p>
 <span>  sample_info_fp <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  quant_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"label-free"</span>, <span class="st">"TMT"</span><span class="op">)</span>,</span>
-<span>  parse_structure <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  glycan_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"N"</span>, <span class="st">"O"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -74,10 +73,6 @@ current time will be used.</p></dd>
 
 <dt id="arg-quant-method">quant_method<a class="anchor" aria-label="anchor" href="#arg-quant-method"></a></dt>
 <dd><p>Quantification method. Either "label-free" or "TMT".</p></dd>
-
-
-<dt id="arg-parse-structure">parse_structure<a class="anchor" aria-label="anchor" href="#arg-parse-structure"></a></dt>
-<dd><p>Whether to parse glycan structures. Default is <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-glycan-type">glycan_type<a class="anchor" aria-label="anchor" href="#arg-glycan-type"></a></dt>
@@ -116,7 +111,7 @@ biological replicates from technical replicates.</p></li>
 <p>If <code>parse_structure</code> is <code>TRUE</code>,
 a list of parsed <code>glycan_graph</code> objects will be stored in the experiment,
 with the glycan structure strings as names.
-It can be accessed by <code>exp$glycan_graphs</code> or <code>exp[["glycan_graphs"]]</code>.
+It can be accessed by <code>exp$glycan_structures</code> or <code>exp[["glycan_structures"]]</code>.
 Although the results from pGlyco3 provide structural information,
 many of these structures are speculative, and pGlyco3 doesn’t include
 any quality control for the structural speculation process.
