@@ -13,7 +13,7 @@ Currently only label-free quantification is supported."><meta property="og:image
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,8 @@ Currently only label-free quantification is supported.</p>
 <span>  sample_info_fp <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  quant_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"label-free"</span>, <span class="st">"TMT"</span><span class="op">)</span>,</span>
-<span>  glycan_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"N"</span>, <span class="st">"O"</span><span class="op">)</span></span>
+<span>  glycan_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"N"</span>, <span class="st">"O"</span><span class="op">)</span>,</span>
+<span>  sample_name_converter <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -77,6 +78,14 @@ current time will be used.</p></dd>
 
 <dt id="arg-glycan-type">glycan_type<a class="anchor" aria-label="anchor" href="#arg-glycan-type"></a></dt>
 <dd><p>Glycan type. Either "N" or "O". Default is "N".</p></dd>
+
+
+<dt id="arg-sample-name-converter">sample_name_converter<a class="anchor" aria-label="anchor" href="#arg-sample-name-converter"></a></dt>
+<dd><p>A function to convert sample names from file paths.
+The function should take a character vector of old sample names
+and return new sample names.
+Note that sample names in <code>sample_info_fp</code> should match the new names.
+If NULL, original names are kept.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -108,16 +117,6 @@ biological replicates from technical replicates.</p></li>
     <div class="section level2">
     <h2 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a></h2>
     <p>This function returns a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object.</p>
-<p>If <code>parse_structure</code> is <code>TRUE</code>,
-a list of parsed <code>glycan_graph</code> objects will be stored in the experiment,
-with the glycan structure strings as names.
-It can be accessed by <code>exp$glycan_structures</code> or <code>exp[["glycan_structures"]]</code>.
-Although the results from pGlyco3 provide structural information,
-many of these structures are speculative, and pGlyco3 doesn’t include
-any quality control for the structural speculation process.
-If you choose to enable this option,
-please interpret the analysis results with caution.
-This is why <code>parse_structure</code> is <code>FALSE</code> by default for this function.</p>
 <p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>charge</code>: integer, charge state</p></li>
 <li><p><code>peptide</code>: character, peptide sequence</p></li>
 <li><p><code>modifications</code>: character, modifications other than glycosylation,
