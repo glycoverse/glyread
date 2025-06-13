@@ -7,7 +7,6 @@
 read_pglyco3_pglycoquant(
   fp,
   sample_info = NULL,
-  name = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL
@@ -18,9 +17,6 @@ read_pglyco3_pglycoquant(
 
 \item{sample_info}{File path of the sample information file,
 or a sample information tibble.}
-
-\item{name}{Name of the experiment. If not provided, a default name with
-current time will be used.}
 
 \item{quant_method}{Quantification method. Either "label-free" or "TMT".}
 
@@ -77,9 +73,8 @@ The following columns could be found in the variable information tibble:
 \item \code{peptide}: character, peptide sequence
 \item \code{modifications}: character, modifications other than glycosylation,
 separated by semicolon, e.g. \verb{5,Carbamidomethyl[C];10,Carbamidomethyl[C]}
-\item \code{glycan_composition}: character, glycan composition, e.g. "H5N4F1A1"
-\item \code{glycan_structure}: character, pGlyco-style structure strings, renamed from
-\code{PlausibleStruct} in the original file
+\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+\item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures.
 \item \code{peptide_site}: integer, site of glycosylation on peptide
 \item \code{proteins}: character, protein names, separated by semicolon
 \item \code{genes}: character, gene names, separated by semicolon
@@ -88,3 +83,7 @@ separated by semicolon
 }
 }
 
+\seealso{
+\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
+\code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}
+}

@@ -40,9 +40,8 @@
 #' - `peptide`: character, peptide sequence
 #' - `modifications`: character, modifications other than glycosylation,
 #'   separated by semicolon, e.g. `5,Carbamidomethyl[C];10,Carbamidomethyl[C]`
-#' - `glycan_composition`: character, glycan composition, e.g. "H5N4F1A1"
-#' - `glycan_structure`: character, pGlyco-style structure strings, renamed from
-#'   `PlausibleStruct` in the original file
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures.
 #' - `peptide_site`: integer, site of glycosylation on peptide
 #' - `proteins`: character, protein names, separated by semicolon
 #' - `genes`: character, gene names, separated by semicolon
@@ -52,8 +51,6 @@
 #' @param fp File path of the pGlyco3 result file.
 #' @param sample_info File path of the sample information file,
 #'  or a sample information tibble.
-#' @param name Name of the experiment. If not provided, a default name with
-#'  current time will be used.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".
 #' @param glycan_type Glycan type. Either "N" or "O". Default is "N".
 #' @param sample_name_converter A function to convert sample names from file paths.
@@ -63,6 +60,8 @@
 #'  If NULL, original names are kept.
 #'
 #' @returns An [glyexp::experiment()] object.
+#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
+#'   [glyrepr::glycan_structure()]
 #'
 #' @importFrom magrittr %>%
 #' @importFrom tidyselect all_of
@@ -72,7 +71,6 @@
 read_pglyco3_pglycoquant <- function(
   fp,
   sample_info = NULL,
-  name = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL
@@ -86,10 +84,6 @@ read_pglyco3_pglycoquant <- function(
     ),
     checkmate::check_tibble(sample_info)
   )
-  checkmate::assert(
-    checkmate::check_null(name),
-    checkmate::check_character(name, len = 1, min.chars = 1)
-  )
   quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
   checkmate::assert(
     checkmate::check_null(sample_name_converter),
@@ -97,9 +91,6 @@ read_pglyco3_pglycoquant <- function(
   )
 
   glycan_type <- rlang::arg_match(glycan_type)
-  if (is.null(name)) {
-    name <- paste("exp", Sys.time())
-  }
 
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
@@ -107,7 +98,6 @@ read_pglyco3_pglycoquant <- function(
     exp <- .read_pglyco3_pglycoquant_label_free(
       fp,
       sample_info,
-      name,
       glycan_type,
       sample_name_converter
     )
@@ -122,7 +112,6 @@ read_pglyco3_pglycoquant <- function(
 .read_pglyco3_pglycoquant_label_free <- function(
   fp,
   sample_info = NULL,
-  name = NULL,
   glycan_type,
   sample_name_converter
 ) {
@@ -160,7 +149,7 @@ read_pglyco3_pglycoquant <- function(
       )
 
       # This line will throw an error if sample_info is not in correct format.
-      glyexp::experiment(name, fake_expr_mat, sample_info, fake_var_info)
+      glyexp::experiment(fake_expr_mat, sample_info, fake_var_info)
     })
   }
 
@@ -189,10 +178,9 @@ read_pglyco3_pglycoquant <- function(
   meta_data <- list(
     experiment_type = "glycoproteomics",
     glycan_type = glycan_type,
-    quantification_method = "label-free",
-    structure_type = "pglyco"
+    quantification_method = "label-free"
   )
-  exp <- glyexp::experiment(name, expr_mat, sample_info, var_info, meta_data)
+  exp <- glyexp::experiment(expr_mat, sample_info, var_info, meta_data)
 
   print(exp)
   invisible(exp)
@@ -235,31 +223,46 @@ read_pglyco3_pglycoquant <- function(
       modifications = dplyr::if_else(
         is.na(.data$modifications), "", .data$modifications
         ),
-      genes = stringr::str_remove(.data$genes, ";$")
-    ) %>%
-    .clean_pglyco3_glycan_composition()
+      genes = stringr::str_remove(.data$genes, ";$"),
+      glycan_composition = .convert_glycan_composition(.data$glycan_composition),
+      glycan_structure = glyparse::parse_pglyco_struc(.data$glycan_structure),
+    )
 }
 
 
-.clean_pglyco3_glycan_composition <- function(df) {
+.convert_glycan_composition <- function(x) {
+  # Define mapping from pGlyco3 notation to generic monosaccharides
+  pglyco_to_generic <- c(
+    "H" = "Hex",      # Hexose
+    "N" = "HexNAc",   # N-Acetylhexosamine  
+    "A" = "NeuAc",    # N-Acetylneuraminic acid
+    "G" = "HexA",     # Hexuronic acid
+    "F" = "dHex"      # Deoxyhexose (Fucose)
+  )
+  
   extract_n_mono <- function(comp, mono) {
     n <- stringr::str_extract(comp, paste0(mono, "\\((\\d+)\\)"), group = 1)
-    dplyr::if_else(is.na(n), 0, as.integer(n))
+    dplyr::if_else(is.na(n), 0L, as.integer(n))
   }
 
-  df %>%
-    dplyr::mutate(
-      nH = extract_n_mono(.data$glycan_composition, "H"),
-      nN = extract_n_mono(.data$glycan_composition, "N"),
-      nA = extract_n_mono(.data$glycan_composition, "A"),
-      nG = extract_n_mono(.data$glycan_composition, "G"),
-      nF = extract_n_mono(.data$glycan_composition, "F")
-    ) %>%
-    dplyr::mutate(glycan_composition = paste0(
-      dplyr::if_else(.data$nH == 0, "", paste0("H", .data$nH)),
-      dplyr::if_else(.data$nN == 0, "", paste0("N", .data$nN)),
-      dplyr::if_else(.data$nF == 0, "", paste0("F", .data$nF)),
-      dplyr::if_else(.data$nA == 0, "", paste0("A", .data$nA)),
-      dplyr::if_else(.data$nG == 0, "", paste0("G", .data$nG))
-    ), .keep = "unused")
+  # Extract counts for each monosaccharide type
+  comp_df <- purrr::map_dfc(names(pglyco_to_generic), ~ {
+    counts <- purrr::map_int(x, extract_n_mono, mono = .x)
+    tibble::tibble(!!pglyco_to_generic[[.x]] := counts)
+  })
+  
+  # Convert each row to a glyrepr_composition object
+  compositions <- purrr::pmap(comp_df, function(...) {
+    counts <- c(...)
+    # Keep only non-zero counts
+    counts <- counts[counts > 0]
+    if (length(counts) == 0) {
+      # Handle empty composition - return empty composition
+      return(glyrepr::as_glycan_composition(integer(0)))
+    }
+    glyrepr::as_glycan_composition(counts)
+  })
+  
+  # Convert list to vector
+  do.call(c, compositions)
 }

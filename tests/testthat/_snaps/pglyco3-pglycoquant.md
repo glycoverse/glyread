@@ -2,7 +2,7 @@
 
     Code
       read_pglyco3_pglycoquant(test_path("pglyco3-pglycoquant-LFQ-result.list"),
-      test_path(new_sample_info_path), name = "my_exp", quant_method = "label-free")
+      test_path(new_sample_info_path), quant_method = "label-free")
     Condition
       Error in `glyexp::experiment()`:
       ! Samples or variables must be consistent between `expr_mat`, `sample_info`, and `var_info`.

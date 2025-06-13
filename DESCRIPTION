@@ -22,12 +22,17 @@ Imports:
     checkmate,
     cli,
     dplyr,
-    glyexp (>= 0.1.5),
+    glyexp (>= 0.3.0),
+    glyparse (>= 0.1.1),
+    glyrepr (>= 0.3.5),
     magrittr,
+    purrr,
     readr,
     rlang,
     stringr,
     tibble,
     tidyselect
-Remotes:  
-    glycoverse/glyexp
+Remotes: 
+    glycoverse/glyexp,
+    glycoverse/glyparse,
+    glycoverse/glyrepr
