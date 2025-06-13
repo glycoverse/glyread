@@ -95,3 +95,342 @@ test_that("sample name converter works", {
   expect_equal(colnames(res$expr_mat), c("Sample_1", "Sample_2"))
   expect_equal(res$sample_info$sample, c("Sample_1", "Sample_2"))
 })
+
+# ----- Parameter validation tests -----
+test_that("it validates file path parameter", {
+  expect_error(
+    read_pglyco3_pglycoquant(
+      "non_existent_file.list",
+      quant_method = "label-free"
+    ),
+    class = "simpleError"
+  )
+  
+  # Test wrong file extension
+  temp_wrong_ext <- withr::local_tempfile(fileext = ".txt")
+  writeLines("test", temp_wrong_ext)
+  expect_error(
+    read_pglyco3_pglycoquant(
+      temp_wrong_ext,
+      quant_method = "label-free"
+    ),
+    class = "simpleError"
+  )
+})
+
+test_that("it validates sample_info parameter", {
+  # Test invalid sample_info file
+  temp_invalid_csv <- withr::local_tempfile(fileext = ".txt")
+  writeLines("not a csv", temp_invalid_csv)
+  expect_error(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      temp_invalid_csv,
+      quant_method = "label-free"
+    ),
+    class = "simpleError"
+  )
+})
+
+test_that("it validates quant_method parameter", {
+  expect_error(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "invalid_method"
+    ),
+    "must be one of"
+  )
+})
+
+test_that("it validates glycan_type parameter", {
+  expect_error(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free",
+      glycan_type = "invalid_type"
+    ),
+    "must be one of"
+  )
+})
+
+test_that("it validates sample_name_converter parameter", {
+  expect_error(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free",
+      sample_name_converter = "not_a_function"
+    ),
+    class = "simpleError"
+  )
+})
+
+# ----- Glycan type tests -----
+test_that("it handles O-linked glycan type", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free",
+      glycan_type = "O"
+    )
+  )
+  expect_equal(res$meta_data$glycan_type, "O")
+})
+
+# ----- TMT quantification test -----
+test_that("it rejects TMT quantification (not implemented)", {
+  expect_error(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "TMT"
+    ),
+    "TMT quantification is not supported yet"
+  )
+})
+
+# ----- Data parsing tests -----
+test_that("glycan composition parsing works correctly", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  # Check that all glycan compositions are correctly parsed
+  expect_true(all(!is.na(res$var_info$glycan_composition)))
+  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+  
+  # Check specific glycan compositions from test data
+  compositions <- res$var_info$glycan_composition
+  expect_true(length(compositions) > 0)
+})
+
+test_that("glycan structure parsing works correctly", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  # Check that all glycan structures are parsed
+  expect_s3_class(res$var_info$glycan_structure, "glyrepr_structure")
+  structures <- res$var_info$glycan_structure
+  expect_true(length(structures) > 0)
+})
+
+test_that("modifications are correctly processed", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  modifications <- res$var_info$modifications
+  # Check that trailing semicolons are removed
+  expect_true(all(!stringr::str_ends(modifications, ";")))
+  # Check that NA modifications are converted to empty strings
+  expect_true(all(!is.na(modifications)))
+})
+
+test_that("protein and gene information is correctly processed", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  genes <- res$var_info$genes
+  # Check that trailing semicolons are removed from genes
+  expect_true(all(!stringr::str_ends(genes, ";")))
+  expect_true(all(nchar(genes) > 0))
+})
+
+# ----- Expression matrix tests -----
+test_that("expression matrix has correct dimensions and properties", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  expr_mat <- res$expr_mat
+  
+  # Check dimensions
+  expect_equal(nrow(expr_mat), nrow(res$var_info))
+  expect_equal(ncol(expr_mat), nrow(res$sample_info))
+  
+  # Check that matrix contains numeric values or NA
+  expect_true(is.numeric(expr_mat))
+  
+  # Check that all zero values were converted to NA
+  expect_true(all(is.na(expr_mat) | expr_mat > 0))
+})
+
+test_that("variable identifiers are unique", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  variables <- res$var_info$variable
+  expect_equal(length(variables), length(unique(variables)))
+  expect_true(all(stringr::str_starts(variables, "PSM")))
+})
+
+# ----- Edge cases -----
+test_that("it handles empty sample_name_converter result", {
+  bad_converter <- function(x) character(0)
+  expect_error(
+    suppressMessages(
+      read_pglyco3_pglycoquant(
+        test_path("pglyco3-pglycoquant-LFQ-result.list"),
+        quant_method = "label-free",
+        sample_name_converter = bad_converter
+      )
+    )
+  )
+})
+
+test_that("it handles complex sample info with multiple columns", {
+  complex_sample_info <- tibble::tibble(
+    sample = c("S1", "S2"),
+    group = c("A", "B"), 
+    batch = c(1, 2),
+    bio_replicate = c("Bio1", "Bio2")
+  )
+  
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      sample_info = complex_sample_info,
+      quant_method = "label-free"
+    )
+  )
+  
+  expect_equal(colnames(res$sample_info), c("sample", "group", "batch", "bio_replicate"))
+  expect_equal(res$sample_info$batch, c(1, 2))
+})
+
+# ----- Error handling tests -----
+test_that("it handles malformed data files gracefully", {
+  # This test checks that the function provides meaningful error messages
+  # when encountering malformed data files
+  expect_error(
+    suppressMessages(
+      read_pglyco3_pglycoquant(
+        test_path("pglyco3-malformed-data.list"),
+        quant_method = "label-free"
+      )
+    )
+  )
+})
+
+test_that("it handles files with missing essential columns", {
+  # Test with a file that's missing essential columns
+  expect_error(
+    suppressMessages(
+      read_pglyco3_pglycoquant(
+        test_path("pglyco3-missing-columns.list"),
+        quant_method = "label-free"
+      )
+    )
+  )
+})
+
+test_that("it handles sample_info with missing sample column", {
+  malformed_sample_info <- tibble::tibble(
+    name = c("S1", "S2"),  # Wrong column name
+    group = c("A", "B")
+  )
+  
+  expect_error(
+    suppressMessages(
+      read_pglyco3_pglycoquant(
+        test_path("pglyco3-pglycoquant-LFQ-result.list"),
+        sample_info = malformed_sample_info,
+        quant_method = "label-free"
+      )
+    )
+  )
+})
+
+# ----- Internal function tests -----
+test_that(".convert_glycan_composition works correctly", {
+  # Test individual glycan composition strings
+  test_comps <- c("H(4)N(4)F(1)", "H(5)N(2)", "H(3)N(2)")
+  result <- glyread:::.convert_glycan_composition(test_comps)
+  
+  expect_s3_class(result, "glyrepr_composition")
+  expect_equal(length(result), 3)
+})
+
+test_that(".convert_glycan_composition handles duplicates efficiently", {
+  # Test that duplicate compositions are handled efficiently
+  test_comps <- rep("H(4)N(4)F(1)", 100)
+  result <- glyread:::.convert_glycan_composition(test_comps)
+  
+  expect_s3_class(result, "glyrepr_composition")
+  expect_equal(length(result), 100)
+})
+
+test_that(".convert_glycan_composition handles complex compositions", {
+  # Test various complex glycan compositions
+  test_comps <- c(
+    "H(5)N(4)A(1)F(1)",  # Complex composition with sialic acid
+    "H(6)N(5)F(2)",      # High mannose with fucose
+    "H(3)N(2)G(1)"       # With hexuronic acid
+  )
+  result <- glyread:::.convert_glycan_composition(test_comps)
+  
+  expect_s3_class(result, "glyrepr_composition")
+  expect_equal(length(result), 3)
+  expect_true(all(!is.na(result)))
+})
+
+# ----- Data consistency tests -----
+test_that("all output data types are consistent", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  # Check data types of variable information
+  expect_type(res$var_info$peptide, "character")
+  expect_type(res$var_info$proteins, "character")
+  expect_type(res$var_info$genes, "character")
+  expect_type(res$var_info$peptide_site, "integer")
+  expect_type(res$var_info$protein_sites, "character")
+  expect_type(res$var_info$charge, "integer")
+  expect_type(res$var_info$modifications, "character")
+  
+  # Check that all rows have data
+  expect_true(all(nchar(res$var_info$peptide) > 0))
+  expect_true(all(!is.na(res$var_info$charge)))
+  expect_true(all(res$var_info$charge > 0))
+})
+
+test_that("intensity columns are correctly extracted", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  # Check that intensity column names are correctly processed
+  expr_mat <- res$expr_mat
+  expect_true(all(colnames(expr_mat) %in% c("S1", "S2")))
+  expect_true(is.numeric(expr_mat))
+  
+  # Check that intensity values are positive when not NA
+  non_na_values <- expr_mat[!is.na(expr_mat)]
+  expect_true(all(non_na_values > 0))
+})
