@@ -3,8 +3,13 @@
     Code
       read_pglyco3_pglycoquant(test_path("pglyco3-pglycoquant-LFQ-result.list"),
       test_path(new_sample_info_path), quant_method = "label-free")
+    Message
+      i Reading data[K
     Condition
       Error in `glyexp::experiment()`:
       ! Samples or variables must be consistent between `expr_mat`, `sample_info`, and `var_info`.
       x  Samples in `sample_info` but not in `expr_mat`: "S3"
+    Message
+      x Reading data [25ms][K
+      
 

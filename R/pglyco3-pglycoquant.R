@@ -121,6 +121,7 @@ read_pglyco3_pglycoquant <- function(
   )
 
   # ----- Read data -----
+  cli::cli_progress_step("Reading data")
   df <- .read_pglyco3_file_into_tibble(fp)
 
   if (!is.null(sample_name_converter)) {
@@ -153,7 +154,16 @@ read_pglyco3_pglycoquant <- function(
     })
   }
 
+  # ----- Parse glycan compositions -----
+  cli::cli_progress_step("Parsing glycan compositions")
+  df <- dplyr::mutate(df, glycan_composition = .convert_glycan_composition(.data$glycan_composition))
+
+  # ----- Parse glycan structures -----
+  cli::cli_progress_step("Parsing glycan structures")
+  df <- dplyr::mutate(df, glycan_structure = glyparse::parse_pglyco_struc(.data$glycan_structure))
+
   # ----- Pack Experiment -----
+  cli::cli_progress_step("Packing experiment")
   # Add a unique "variable" column
   var_info <- df %>%
     dplyr::select(all_of(var_info_cols)) %>%
@@ -181,9 +191,7 @@ read_pglyco3_pglycoquant <- function(
     quantification_method = "label-free"
   )
   exp <- glyexp::experiment(expr_mat, sample_info, var_info, meta_data)
-
-  print(exp)
-  invisible(exp)
+  exp
 }
 
 
@@ -214,7 +222,7 @@ read_pglyco3_pglycoquant <- function(
 
   # TODO: check column existence
   suppressWarnings(
-    suppressMessages(readr::read_tsv(fp, col_types = col_types)),
+    suppressMessages(readr::read_tsv(fp, col_types = col_types, progress = FALSE)),
     classes = "vroom_mismatched_column_name"
   ) %>%
     dplyr::rename(all_of(new_names)) %>%
@@ -224,8 +232,6 @@ read_pglyco3_pglycoquant <- function(
         is.na(.data$modifications), "", .data$modifications
         ),
       genes = stringr::str_remove(.data$genes, ";$"),
-      glycan_composition = .convert_glycan_composition(.data$glycan_composition),
-      glycan_structure = glyparse::parse_pglyco_struc(.data$glycan_structure),
     )
 }
 
