@@ -58,10 +58,12 @@ test_that("it raiss an error when samples in sample information is inconsistent 
   new_sample_info_path <- withr::local_tempfile(fileext = ".csv")
   readr::write_csv(sample_info, new_sample_info_path)
   expect_snapshot(
-    read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
-      test_path(new_sample_info_path),
-      quant_method = "label-free"
+    suppressMessages(
+      read_pglyco3_pglycoquant(
+        test_path("pglyco3-pglycoquant-LFQ-result.list"),
+        test_path(new_sample_info_path),
+        quant_method = "label-free"
+      )
     ),
     error = TRUE
   )

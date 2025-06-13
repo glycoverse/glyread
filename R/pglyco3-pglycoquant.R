@@ -250,15 +250,18 @@ read_pglyco3_pglycoquant <- function(
     n <- stringr::str_extract(comp, paste0(mono, "\\((\\d+)\\)"), group = 1)
     dplyr::if_else(is.na(n), 0L, as.integer(n))
   }
-
-  # Extract counts for each monosaccharide type
+  
+  # Performance optimization: process unique values only
+  unique_x <- unique(x)
+  
+  # Extract counts for each monosaccharide type for unique values
   comp_df <- purrr::map_dfc(names(pglyco_to_generic), ~ {
-    counts <- purrr::map_int(x, extract_n_mono, mono = .x)
+    counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
     tibble::tibble(!!pglyco_to_generic[[.x]] := counts)
   })
   
-  # Convert each row to a glyrepr_composition object
-  compositions <- purrr::pmap(comp_df, function(...) {
+  # Convert each row to a glyrepr_composition object for unique values
+  unique_compositions <- purrr::pmap(comp_df, function(...) {
     counts <- c(...)
     # Keep only non-zero counts
     counts <- counts[counts > 0]
@@ -270,5 +273,10 @@ read_pglyco3_pglycoquant <- function(
   })
   
   # Convert list to vector
-  do.call(c, compositions)
+  unique_compositions <- do.call(c, unique_compositions)
+  
+  # Map back to original vector using match
+  compositions <- unique_compositions[match(x, unique_x)]
+  
+  compositions
 }
