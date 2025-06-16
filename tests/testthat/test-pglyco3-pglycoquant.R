@@ -22,9 +22,9 @@ test_that("it returns correct information (label-free)", {
   expect_equal(colnames(res$expr_mat), c("S1", "S2"))
   expect_equal(rownames(res$expr_mat), res$var_info$variable)
   expect_equal(res$meta_data, list(
-    experiment_type = "glycoproteomics",
+    exp_type = "glycoproteomics",
     glycan_type = "N",
-    quantification_method = "label-free"
+    quant_method = "label-free"
   ))
 })
 

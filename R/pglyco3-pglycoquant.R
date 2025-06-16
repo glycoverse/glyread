@@ -150,7 +150,11 @@ read_pglyco3_pglycoquant <- function(
       )
 
       # This line will throw an error if sample_info is not in correct format.
-      glyexp::experiment(fake_expr_mat, sample_info, fake_var_info)
+      glyexp::experiment(
+        fake_expr_mat, sample_info, fake_var_info,
+        exp_type = "glycoproteomics",
+        glycan_type = glycan_type
+      )
     })
   }
 
@@ -185,12 +189,12 @@ read_pglyco3_pglycoquant <- function(
   }
   rownames(expr_mat) <- var_info$variable
 
-  meta_data <- list(
-    experiment_type = "glycoproteomics",
+  exp <- glyexp::experiment(
+    expr_mat, sample_info, var_info,
+    exp_type = "glycoproteomics",
     glycan_type = glycan_type,
-    quantification_method = "label-free"
+    quant_method = "label-free"
   )
-  exp <- glyexp::experiment(expr_mat, sample_info, var_info, meta_data)
   exp
 }
 
