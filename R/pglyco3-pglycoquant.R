@@ -128,7 +128,13 @@ read_pglyco3_pglycoquant <- function(
     df$raw_name <- sample_name_converter(df$raw_name)
   }
 
-  samples <- unique(df$raw_name)
+  # Extract sample names from intensity columns to ensure consistency
+  intensity_cols <- names(df)[stringr::str_starts(names(df), "Intensity")]
+  samples <- stringr::str_extract(intensity_cols, "Intensity\\((.*)\\)", group = 1)
+  if (!is.null(sample_name_converter)) {
+    samples <- sample_name_converter(samples)
+  }
+  
   if (is.null(sample_info)) {
     sample_info <- tibble::tibble(sample = samples)
     cli::cli_alert_info(
