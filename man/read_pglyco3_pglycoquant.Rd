@@ -37,12 +37,14 @@ and used pGlycoQuant for quantification, this is the function for you.
 It reads in a pGlycoQuant result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 Currently only label-free quantification is supported.
 }
-\section{Input}{
+\section{Which file to use?}{
 You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
 Files from pGlyco3 result folder are not needed.
 For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%20for\%20pGlycoQuant_v202211.pdf}{pGlycoQuant}.
+}
 
+\section{Sample information}{
 The sample information file should be a \code{csv} file with the first column
 named \code{sample}, and the rest of the columns being sample information.
 The \code{sample} column must match the \code{RawName} column in the pGlyco3 result file,
@@ -54,13 +56,6 @@ Recommended columns are:
 \item \code{group}: grouping or conditions, e.g. "control" or "tumor",
 required for most downstream analyses
 \item \code{batch}: batch information, required for batch effect correction
-\item \code{bio_replicate}:  Indicates the identity of biologically distinct samples.
-While the \code{sample} column is typically used as a unique identifier for each run,
-\code{bio_replicate} specifies whether the samples originate from the same biological source.
-In common experimental designs,
-multiple technical replicates are often derived from the same biological sample,
-making the bio_replicate column essential for distinguishing
-biological replicates from technical replicates.
 }
 }
 

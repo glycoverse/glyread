@@ -6,13 +6,15 @@
 #' Currently only label-free quantification is supported.
 #'
 #' @details
-#' # Input
+#' # Which file to use?
 #'
 #' You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
 #' Files from pGlyco3 result folder are not needed.
 #' For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
+#' # Sample information
+#' 
 #' The sample information file should be a `csv` file with the first column
 #' named `sample`, and the rest of the columns being sample information.
 #' The `sample` column must match the `RawName` column in the pGlyco3 result file,
@@ -23,13 +25,6 @@
 #' - `group`: grouping or conditions, e.g. "control" or "tumor",
 #'   required for most downstream analyses
 #' - `batch`: batch information, required for batch effect correction
-#' - `bio_replicate`:  Indicates the identity of biologically distinct samples.
-#'   While the `sample` column is typically used as a unique identifier for each run,
-#'   `bio_replicate` specifies whether the samples originate from the same biological source.
-#'   In common experimental designs,
-#'   multiple technical replicates are often derived from the same biological sample,
-#'   making the bio_replicate column essential for distinguishing
-#'   biological replicates from technical replicates.
 #'
 #' # Output
 #'
@@ -77,19 +72,9 @@ read_pglyco3_pglycoquant <- function(
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
-  checkmate::assert(
-    checkmate::check_null(sample_info),
-    checkmate::check_file_exists(
-      sample_info, access = "r", extension = ".csv"
-    ),
-    checkmate::check_data_frame(sample_info)
-  )
+  .check_sample_info_arg(sample_info)
   quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
-  checkmate::assert(
-    checkmate::check_null(sample_name_converter),
-    checkmate::check_function(sample_name_converter)
-  )
-
+  .check_sample_name_conv_arg(sample_name_converter)
   glycan_type <- rlang::arg_match(glycan_type)
 
   # ----- Read data -----
