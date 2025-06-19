@@ -13,7 +13,7 @@ Currently only label-free quantification is supported."><meta property="og:image
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,8 +63,8 @@ Currently only label-free quantification is supported.</p>
 
 
 <dt id="arg-sample-info">sample_info<a class="anchor" aria-label="anchor" href="#arg-sample-info"></a></dt>
-<dd><p>File path of the sample information file,
-or a sample information tibble.</p></dd>
+<dd><p>File path of the sample information file (csv),
+or a sample information data.frame/tibble.</p></dd>
 
 
 <dt id="arg-quant-method">quant_method<a class="anchor" aria-label="anchor" href="#arg-quant-method"></a></dt>
@@ -88,12 +88,15 @@ If NULL, original names are kept.</p></dd>
     <p>An <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object.</p>
     </div>
     <div class="section level2">
-    <h2 id="input">Input<a class="anchor" aria-label="anchor" href="#input"></a></h2>
+    <h2 id="which-file-to-use-">Which file to use?<a class="anchor" aria-label="anchor" href="#which-file-to-use-"></a></h2>
     <p>You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
 Files from pGlyco3 result folder are not needed.
 For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 the manual: <a href="https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf" class="external-link">pGlycoQuant</a>.</p>
-<p>The sample information file should be a <code>csv</code> file with the first column
+    </div>
+    <div class="section level2">
+    <h2 id="sample-information">Sample information<a class="anchor" aria-label="anchor" href="#sample-information"></a></h2>
+    <p>The sample information file should be a <code>csv</code> file with the first column
 named <code>sample</code>, and the rest of the columns being sample information.
 The <code>sample</code> column must match the <code>RawName</code> column in the pGlyco3 result file,
 although the order can be different.</p>
@@ -101,13 +104,6 @@ although the order can be different.</p>
 Recommended columns are:</p><ul><li><p><code>group</code>: grouping or conditions, e.g. "control" or "tumor",
 required for most downstream analyses</p></li>
 <li><p><code>batch</code>: batch information, required for batch effect correction</p></li>
-<li><p><code>bio_replicate</code>:  Indicates the identity of biologically distinct samples.
-While the <code>sample</code> column is typically used as a unique identifier for each run,
-<code>bio_replicate</code> specifies whether the samples originate from the same biological source.
-In common experimental designs,
-multiple technical replicates are often derived from the same biological sample,
-making the bio_replicate column essential for distinguishing
-biological replicates from technical replicates.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a></h2>
