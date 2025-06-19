@@ -32,4 +32,16 @@ pak::pak("glycoverse/glyread")
 
 ## Example
 
-Coming soon…
+Used pGlyco3 and pGlycoQuant for glycopeptide identification and
+quantification? Try `read_pglyco3_pglycoquant()`!
+
+``` r
+library(glyread)
+
+exp <- read_pglyco3_pglycoquant(
+  "path/to/pGlyco3-pGlycoQuant/result/Quant.spectra.list",
+  sample_info = "path/to/sample_info.csv",
+  quant_method = "label-free",
+  glycan_type = "N"
+)
+```
