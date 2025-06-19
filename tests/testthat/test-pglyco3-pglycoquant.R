@@ -42,6 +42,25 @@ test_that("it accepts a sample_info tibble", {
 })
 
 
+test_that("it accepts a sample_info data.frame", {
+  suppressMessages({
+    # Create a data.frame (not tibble)
+    sample_info <- data.frame(
+      sample = c("S1", "S2"),
+      group = c("control", "treatment"),
+      stringsAsFactors = FALSE
+    )
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      sample_info = sample_info,
+      quant_method = "label-free"
+    )
+  })
+  expect_equal(colnames(res$sample_info), c("sample", "group"))
+  expect_s3_class(res$sample_info, "tbl_df")  # Should be converted to tibble
+})
+
+
 test_that("it provides a default sample information tibble (label-free)", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
@@ -364,7 +383,7 @@ test_that("it handles sample_info with missing sample column", {
 test_that(".convert_glycan_composition works correctly", {
   # Test individual glycan composition strings
   test_comps <- c("H(4)N(4)F(1)", "H(5)N(2)", "H(3)N(2)")
-  result <- glyread:::.convert_glycan_composition(test_comps)
+  result <- glyread:::.convert_pglyco3_comp(test_comps)
   
   expect_s3_class(result, "glyrepr_composition")
   expect_equal(length(result), 3)
@@ -373,7 +392,7 @@ test_that(".convert_glycan_composition works correctly", {
 test_that(".convert_glycan_composition handles duplicates efficiently", {
   # Test that duplicate compositions are handled efficiently
   test_comps <- rep("H(4)N(4)F(1)", 100)
-  result <- glyread:::.convert_glycan_composition(test_comps)
+  result <- glyread:::.convert_pglyco3_comp(test_comps)
   
   expect_s3_class(result, "glyrepr_composition")
   expect_equal(length(result), 100)
@@ -386,7 +405,7 @@ test_that(".convert_glycan_composition handles complex compositions", {
     "H(6)N(5)F(2)",      # High mannose with fucose
     "H(3)N(2)G(1)"       # With hexuronic acid
   )
-  result <- glyread:::.convert_glycan_composition(test_comps)
+  result <- glyread:::.convert_pglyco3_comp(test_comps)
   
   expect_s3_class(result, "glyrepr_composition")
   expect_equal(length(result), 3)

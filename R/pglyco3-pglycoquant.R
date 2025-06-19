@@ -49,8 +49,8 @@
 #'    separated by semicolon
 #'
 #' @param fp File path of the pGlyco3 result file.
-#' @param sample_info File path of the sample information file,
-#'  or a sample information tibble.
+#' @param sample_info File path of the sample information file (csv),
+#'  or a sample information data.frame/tibble.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".
 #' @param glycan_type Glycan type. Either "N" or "O". Default is "N".
 #' @param sample_name_converter A function to convert sample names from file paths.
@@ -82,7 +82,7 @@ read_pglyco3_pglycoquant <- function(
     checkmate::check_file_exists(
       sample_info, access = "r", extension = ".csv"
     ),
-    checkmate::check_tibble(sample_info)
+    checkmate::check_data_frame(sample_info)
   )
   quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
   checkmate::assert(
@@ -135,38 +135,12 @@ read_pglyco3_pglycoquant <- function(
     samples <- sample_name_converter(samples)
   }
   
-  if (is.null(sample_info)) {
-    sample_info <- tibble::tibble(sample = samples)
-    cli::cli_alert_info(
-      "No sample information file passed in. An empty tibble will be used."
-    )
-  } else {
-    if (is.character(sample_info)) {
-      sample_info <- suppressMessages(readr::read_csv(sample_info))
-    }  # Otherwise, assume it's a tibble.
-    # Here we create an empty var_info tibble and an empty expr_mat matrix,
-    # and check if the sample info is in correct format
-    # by creating an experiment.
-    # This passes the checking responsibility to `experiment()`.
-    local({
-      fake_var_info <- tibble::tibble(variable = character(0))
-      fake_expr_mat <- matrix(
-        nrow = 0, ncol = length(samples),
-        dimnames = list(NULL, samples)
-      )
-
-      # This line will throw an error if sample_info is not in correct format.
-      glyexp::experiment(
-        fake_expr_mat, sample_info, fake_var_info,
-        exp_type = "glycoproteomics",
-        glycan_type = glycan_type
-      )
-    })
-  }
+  # Process sample information using the common utility function
+  sample_info <- .process_sample_info(sample_info, samples, glycan_type)
 
   # ----- Parse glycan compositions -----
   cli::cli_progress_step("Parsing glycan compositions")
-  df <- dplyr::mutate(df, glycan_composition = .convert_glycan_composition(.data$glycan_composition))
+  df <- dplyr::mutate(df, glycan_composition = .convert_pglyco3_comp(.data$glycan_composition))
 
   # ----- Parse glycan structures -----
   cli::cli_progress_step("Parsing glycan structures")
@@ -246,7 +220,7 @@ read_pglyco3_pglycoquant <- function(
 }
 
 
-.convert_glycan_composition <- function(x) {
+.convert_pglyco3_comp <- function(x) {
   # Define mapping from pGlyco3 notation to generic monosaccharides
   pglyco_to_generic <- c(
     "H" = "Hex",      # Hexose

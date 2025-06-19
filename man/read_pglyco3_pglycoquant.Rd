@@ -15,8 +15,8 @@ read_pglyco3_pglycoquant(
 \arguments{
 \item{fp}{File path of the pGlyco3 result file.}
 
-\item{sample_info}{File path of the sample information file,
-or a sample information tibble.}
+\item{sample_info}{File path of the sample information file (csv),
+or a sample information data.frame/tibble.}
 
 \item{quant_method}{Quantification method. Either "label-free" or "TMT".}
 
