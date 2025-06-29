@@ -38,8 +38,8 @@
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures.
 #' - `peptide_site`: integer, site of glycosylation on peptide
-#' - `proteins`: character, protein names, separated by semicolon
-#' - `genes`: character, gene names, separated by semicolon
+#' - `proteins`: character, protein accessions, separated by semicolon
+#' - `genes`: character, gene names (symbols), separated by semicolon
 #' - `protein_sites`: character, site of glycosylation on protein,
 #'    separated by semicolon
 #'
@@ -197,10 +197,9 @@ read_pglyco3_pglycoquant <- function(
     dplyr::rename(all_of(new_names)) %>%
     dplyr::mutate(
       modifications = stringr::str_remove(.data$modifications, ";$"),
-      modifications = dplyr::if_else(
-        is.na(.data$modifications), "", .data$modifications
-        ),
+      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
       genes = stringr::str_remove(.data$genes, ";$"),
+      proteins = stringr::str_replace_all(.data$proteins, "sp\\|(\\w+)\\|\\w+", "\\1")
     )
 }
 

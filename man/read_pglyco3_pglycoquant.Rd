@@ -71,8 +71,8 @@ separated by semicolon, e.g. \verb{5,Carbamidomethyl[C];10,Carbamidomethyl[C]}
 \item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
 \item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures.
 \item \code{peptide_site}: integer, site of glycosylation on peptide
-\item \code{proteins}: character, protein names, separated by semicolon
-\item \code{genes}: character, gene names, separated by semicolon
+\item \code{proteins}: character, protein accessions, separated by semicolon
+\item \code{genes}: character, gene names (symbols), separated by semicolon
 \item \code{protein_sites}: character, site of glycosylation on protein,
 separated by semicolon
 }
