@@ -100,67 +100,85 @@ read_pglyco3_pglycoquant <- function(
   glycan_type,
   sample_name_converter
 ) {
-  var_info_cols <- c(
-    "peptide", "proteins", "genes", "glycan_composition", "glycan_structure",
-    "peptide_site", "protein_sites", "charge", "modifications"
-  )
-
   # ----- Read data -----
   cli::cli_progress_step("Reading data")
   df <- .read_pglyco3_file_into_tibble(fp)
-
-  if (!is.null(sample_name_converter)) {
-    df$raw_name <- sample_name_converter(df$raw_name)
-  }
-
-  # Extract sample names from intensity columns to ensure consistency
-  intensity_cols <- names(df)[stringr::str_starts(names(df), "Intensity")]
-  samples <- stringr::str_extract(intensity_cols, "Intensity\\((.*)\\)", group = 1)
-  if (!is.null(sample_name_converter)) {
-    samples <- sample_name_converter(samples)
-  }
-  
-  # Process sample information using the common utility function
+  expr_mat <- .extract_expr_mat_from_pglycoquant(df)
+  samples <- .extract_sample_names_from_pglycoquant(df, sample_name_converter)
   sample_info <- .process_sample_info(sample_info, samples, glycan_type)
+  var_info <- .extract_var_info_from_pglyco3(df)
+  colnames(expr_mat) <- sample_info$sample
+  rownames(expr_mat) <- var_info$variable
 
-  # ----- Parse glycan compositions -----
-  cli::cli_progress_step("Parsing glycan compositions")
-  df <- dplyr::mutate(df, glycan_composition = .convert_pglyco3_comp(.data$glycan_composition))
-
-  # ----- Parse glycan structures -----
-  cli::cli_progress_step("Parsing glycan structures")
-  df <- dplyr::mutate(df, glycan_structure = glyparse::parse_pglyco_struc(.data$glycan_structure))
+  # ----- Parse glycan compositions and structures -----
+  cli::cli_progress_step("Parsing glycan compositions and structures")
+  var_info <- dplyr::mutate(
+    var_info,
+    glycan_composition = .convert_pglyco3_comp(.data$glycan_composition),
+    glycan_structure = glyparse::parse_pglyco_struc(.data$glycan_structure)
+  )
 
   # ----- Pack Experiment -----
   cli::cli_progress_step("Packing experiment")
-  # Add a unique "variable" column
-  var_info <- df %>%
-    dplyr::select(all_of(var_info_cols)) %>%
-    dplyr::mutate(
-      variable = stringr::str_c("PSM", dplyr::row_number()),
-      .before = 1
-    )
-
-  # Extract the expression matrix
-  expr_mat <- df %>%
-    dplyr::select(tidyselect::starts_with("Intensity")) %>%
-    as.matrix()
-  expr_mat[expr_mat == 0] <- NA
-  colnames(expr_mat) <- stringr::str_extract(
-    colnames(expr_mat), "Intensity\\((.*)\\)", group = 1
-  )
-  if (!is.null(sample_name_converter)) {
-    colnames(expr_mat) <- sample_name_converter(colnames(expr_mat))
-  }
-  rownames(expr_mat) <- var_info$variable
-
-  exp <- glyexp::experiment(
+  glyexp::experiment(
     expr_mat, sample_info, var_info,
     exp_type = "glycoproteomics",
     glycan_type = glycan_type,
     quant_method = "label-free"
   )
-  exp
+}
+
+
+# Extract expression matrix from pGlycoQuant result
+# Note: rownames and colnames are not set here
+.extract_expr_mat_from_pglycoquant <- function(df) {
+  expr_mat <- df %>%
+    dplyr::select(tidyselect::starts_with("Intensity")) %>%
+    as.matrix()
+  expr_mat[expr_mat == 0] <- NA
+  colnames(expr_mat) <- NULL
+  expr_mat
+}
+
+
+.extract_sample_names_from_pglycoquant <- function(df, sample_name_converter) {
+  intensity_cols <- colnames(df)[stringr::str_starts(colnames(df), "Intensity")]
+  samples <- stringr::str_extract(intensity_cols, "Intensity\\((.*)\\)", group = 1)
+  if (!is.null(sample_name_converter)) {
+    new_samples <- sample_name_converter(samples)
+    if (length(new_samples) != length(samples)) {
+      rlang::abort("Sample name converter must return the same number of samples.")
+    }
+    samples <- new_samples
+  }
+  samples
+}
+
+
+# Extract variable information from pGlyco3 result
+# Glycan composition and structure are not parsed here
+# A "variable" column is added to the tibble
+.extract_var_info_from_pglyco3 <- function(df) {
+  new_names <- c(
+    peptide = "Peptide",
+    proteins = "Proteins",
+    genes = "Genes",
+    glycan_composition = "GlycanComposition",
+    glycan_structure = "PlausibleStruct",
+    peptide_site = "GlySite",
+    protein_sites = "ProSites",
+    charge = "Charge",
+    modifications = "Mod"
+  )
+  df %>%
+    dplyr::select(all_of(new_names)) %>%
+    dplyr::mutate(
+      modifications = stringr::str_remove(.data$modifications, ";$"),
+      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
+      genes = stringr::str_remove(.data$genes, ";$"),
+      proteins = stringr::str_replace_all(.data$proteins, "sp\\|(\\w+)\\|\\w+", "\\1")
+    ) %>%
+    dplyr::mutate(variable = stringr::str_c("PSM", dplyr::row_number()), .before = 1)
 }
 
 
@@ -176,31 +194,12 @@ read_pglyco3_pglycoquant <- function(
     Charge = readr::col_integer(),
     Mod = readr::col_character()
   )
-  new_names <- c(
-    raw_name = "RawName",
-    peptide = "Peptide",
-    proteins = "Proteins",
-    genes = "Genes",
-    glycan_composition = "GlycanComposition",
-    glycan_structure = "PlausibleStruct",
-    peptide_site = "GlySite",
-    protein_sites = "ProSites",
-    charge = "Charge",
-    modifications = "Mod"
-  )
 
   # TODO: check column existence
   suppressWarnings(
     suppressMessages(readr::read_tsv(fp, col_types = col_types, progress = FALSE)),
     classes = "vroom_mismatched_column_name"
-  ) %>%
-    dplyr::rename(all_of(new_names)) %>%
-    dplyr::mutate(
-      modifications = stringr::str_remove(.data$modifications, ";$"),
-      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
-      genes = stringr::str_remove(.data$genes, ";$"),
-      proteins = stringr::str_replace_all(.data$proteins, "sp\\|(\\w+)\\|\\w+", "\\1")
-    )
+  )
 }
 
 
@@ -218,11 +217,8 @@ read_pglyco3_pglycoquant <- function(
     n <- stringr::str_extract(comp, paste0(mono, "\\((\\d+)\\)"), group = 1)
     dplyr::if_else(is.na(n), 0L, as.integer(n))
   }
-  
-  # Performance optimization: process unique values only
+
   unique_x <- unique(x)
-  
-  # Extract counts for each monosaccharide type for unique values
   comp_df <- purrr::map_dfc(names(pglyco_to_generic), ~ {
     counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
     tibble::tibble(!!pglyco_to_generic[[.x]] := counts)
@@ -231,20 +227,14 @@ read_pglyco3_pglycoquant <- function(
   # Convert each row to a glyrepr_composition object for unique values
   unique_compositions <- purrr::pmap(comp_df, function(...) {
     counts <- c(...)
-    # Keep only non-zero counts
     counts <- counts[counts > 0]
     if (length(counts) == 0) {
-      # Handle empty composition - return empty composition
       return(glyrepr::as_glycan_composition(integer(0)))
     }
     glyrepr::as_glycan_composition(counts)
   })
-  
-  # Convert list to vector
+
   unique_compositions <- do.call(c, unique_compositions)
-  
-  # Map back to original vector using match
   compositions <- unique_compositions[match(x, unique_x)]
-  
   compositions
 }
