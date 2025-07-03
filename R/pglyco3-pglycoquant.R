@@ -57,11 +57,6 @@
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
 #'   [glyrepr::glycan_structure()]
-#'
-#' @importFrom magrittr %>%
-#' @importFrom tidyselect all_of
-#' @importFrom rlang .data
-#'
 #' @export
 read_pglyco3_pglycoquant <- function(
   fp,

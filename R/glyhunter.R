@@ -22,11 +22,6 @@
 #' 
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()]
-#' 
-#' @importFrom magrittr %>%
-#' @importFrom tidyselect all_of
-#' @importFrom rlang .data
-#' 
 #' @export
 read_glyhunter <- function(
   fp,
