@@ -43,7 +43,7 @@
 #' - `protein_sites`: character, site of glycosylation on protein,
 #'    separated by semicolon
 #'
-#' @param fp File path of the pGlyco3 result file.
+#' @param fp File path of the pGlycoQuant result file.
 #' @param sample_info File path of the sample information file (csv),
 #'  or a sample information data.frame/tibble.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".

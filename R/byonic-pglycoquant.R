@@ -27,16 +27,7 @@
 #' - `protein`: character, protein accessions
 #' - `protein_site`: integer, site of glycosylation on protein
 #'
-#' @param fp File path of the pGlycoQuant result file.
-#' @param sample_info File path of the sample information file (csv),
-#'  or a sample information data.frame/tibble.
-#' @param quant_method Quantification method. Either "label-free" or "TMT".
-#' @param glycan_type Glycan type. Either "N" or "O". Default is "N".
-#' @param sample_name_converter A function to convert sample names from file paths.
-#'  The function should take a character vector of old sample names
-#'  and return new sample names.
-#'  Note that sample names in `sample_info` should match the new names.
-#'  If NULL, original names are kept.
+#' @inheritParams read_pglyco3_pglycoquant
 #'
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()]

@@ -13,7 +13,7 @@ read_pglyco3_pglycoquant(
 )
 }
 \arguments{
-\item{fp}{File path of the pGlyco3 result file.}
+\item{fp}{File path of the pGlycoQuant result file.}
 
 \item{sample_info}{File path of the sample information file (csv),
 or a sample information data.frame/tibble.}
