@@ -7,5 +7,5 @@
     Condition
       Error in `glyexp::experiment()`:
       ! Samples or variables must be consistent between `expr_mat`, `sample_info`, and `var_info`.
-      x  Samples in `sample_info` but not in `expr_mat`: "S3"
+      x  Samples in `sample_info` but not in `expr_mat`: S3
 
