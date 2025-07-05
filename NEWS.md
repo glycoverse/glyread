@@ -1,15 +1,9 @@
-# glyread 0.3.3
+# glyread 0.3.2
 
 ## Minor improvements
 
 * Use `AnnotationDbi::mapIds()` to convert protein IDs to gene symbols.
 * Remove `clusterProfiler` from Suggests.
-
-## Bug fixes
-
-* Try to fix the R CMD check errors on Github Actions.
-
-# glyread 0.3.3
 
 ## Bug fixes
 
