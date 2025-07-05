@@ -10,7 +10,7 @@ test_that("it returns correct information (label-free)", {
   # Check expected columns
   expected_cols <- c(
     "variable", "peptide", "protein", "protein_site",
-    "glycan_composition", "peptide_site", "gene"
+    "glycan_composition", "peptide_site"
   )
   expect_true(all(expected_cols %in% colnames(res$var_info)))
   

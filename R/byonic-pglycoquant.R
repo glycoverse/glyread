@@ -155,8 +155,8 @@ read_byonic_pglycoquant <- function(
 }
 
 .add_gene_symbols <- function(var_info, bitr_db) {
-  if (!requireNamespace("AnnotationDbi", quietly = TRUE) || !requireNamespace(bitr_db, quietly = TRUE)) {
-    cli::cli_alert_info("Package `AnnotationDbi` and/or `{bitr_db}` not installed. Skipping gene symbol conversion.")
+  if (!requireNamespace(bitr_db, quietly = TRUE)) {
+    cli::cli_alert_info("Package `{bitr_db}` not installed. Skipping gene symbol conversion.")
     return(var_info)
   }
 
