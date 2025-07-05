@@ -10,9 +10,15 @@ test_that("it returns correct information (label-free)", {
   # Check expected columns (gene column may or may not be present)
   expected_cols <- c(
     "variable", "peptide", "protein", "protein_site",
-    "glycan_composition", "peptide_site", "gene"
+    "glycan_composition", "peptide_site"
   )
   expect_true(all(expected_cols %in% colnames(res$var_info)))
+  
+  # Gene column is optional (requires clusterProfiler and org.Hs.eg.db)
+  if ("gene" %in% colnames(res$var_info)) {
+    expect_type(res$var_info$gene, "character")
+  }
+
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
   expect_equal(colnames(res$sample_info), c("sample"))
   expect_equal(colnames(res$expr_mat), c("20241224-lxj-nglyco-h_1"))

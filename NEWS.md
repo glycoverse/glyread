@@ -1,3 +1,13 @@
+# glyread 0.3.1
+
+## Minor improvements
+
+* `read_byonic_pglycoquant()` now only perform gene symbol conversion if both `clusterProfiler` 
+   and the specified OrgDb package (e.g., `org.Hs.eg.db`) are installed. 
+   If not, the gene column is omitted and a message is shown. 
+   This improves robustness in minimal or CI environments.
+* `clusterProfiler` and `org.Hs.eg.db` are now listed under Suggests, not Imports.
+
 # glyread 0.3.0
 
 ## Major changes

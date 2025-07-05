@@ -1,6 +1,6 @@
 Package: glyread
 Title: Read and process glycomics and glycoproteomics data
-Version: 0.3.0
+Version: 0.3.1
 Authors@R: 
     person("Bin", "Fu", , "23110220018@m.fudan.edu.cn", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8567-2997"))
@@ -12,7 +12,9 @@ Description: This package reads and processes quantification results from
 License: MIT + file LICENSE
 Suggests: 
     testthat (>= 3.0.0),
-    withr
+    withr,
+    clusterProfiler,
+    org.Hs.eg.db
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -21,7 +23,6 @@ URL: https://glycoverse.github.io/glyread/
 Imports: 
     checkmate,
     cli,
-    clusterProfiler,
     dplyr,
     glyexp (>= 0.5.1),
     glyparse (>= 0.2.0),

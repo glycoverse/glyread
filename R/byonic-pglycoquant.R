@@ -155,6 +155,11 @@ read_byonic_pglycoquant <- function(
 }
 
 .add_gene_symbols <- function(var_info, bitr_db) {
+  if (!requireNamespace("clusterProfiler", quietly = TRUE) || !requireNamespace(bitr_db, quietly = TRUE)) {
+    cli::cli_alert_info("Package `clusterProfiler` and/or `{bitr_db}` not installed. Skipping gene symbol conversion.")
+    return(var_info)
+  }
+
   # Get unique protein IDs (uniprot IDs)
   unique_proteins <- unique(var_info$protein)
   unique_proteins <- unique_proteins[!is.na(unique_proteins)]
