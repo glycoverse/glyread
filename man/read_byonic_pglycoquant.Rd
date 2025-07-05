@@ -66,7 +66,7 @@ The following columns could be found in the variable information tibble:
 \item \code{peptide_site}: integer, site of glycosylation on peptide
 \item \code{protein}: character, protein accessions
 \item \code{protein_site}: integer, site of glycosylation on protein
-\item \code{gene}: character, gene symbols (if clusterProfiler package is available)
+\item \code{gene}: character, gene symbols
 }
 }
 

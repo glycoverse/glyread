@@ -26,7 +26,7 @@
 #' - `peptide_site`: integer, site of glycosylation on peptide
 #' - `protein`: character, protein accessions
 #' - `protein_site`: integer, site of glycosylation on protein
-#' - `gene`: character, gene symbols (if clusterProfiler package is available)
+#' - `gene`: character, gene symbols
 #'
 #' @inheritParams read_pglyco3_pglycoquant
 #' @param bitr_db name of the OrgDb package to use for UniProt to gene symbol conversion.
@@ -155,8 +155,8 @@ read_byonic_pglycoquant <- function(
 }
 
 .add_gene_symbols <- function(var_info, bitr_db) {
-  if (!requireNamespace("clusterProfiler", quietly = TRUE) || !requireNamespace(bitr_db, quietly = TRUE)) {
-    cli::cli_alert_info("Package `clusterProfiler` and/or `{bitr_db}` not installed. Skipping gene symbol conversion.")
+  if (!requireNamespace("AnnotationDbi", quietly = TRUE) || !requireNamespace(bitr_db, quietly = TRUE)) {
+    cli::cli_alert_info("Package `AnnotationDbi` and/or `{bitr_db}` not installed. Skipping gene symbol conversion.")
     return(var_info)
   }
 
@@ -170,37 +170,47 @@ read_byonic_pglycoquant <- function(
   }
 
   # Try to convert uniprot IDs to gene symbols
-  tryCatch({
-    # Use bitr to convert UNIPROT to SYMBOL, suppress warnings about mapping failures
-    id_mapping <- suppressMessages(suppressWarnings(
-      clusterProfiler::bitr(
-        unique_proteins,
-        fromType = "UNIPROT",
-        toType = "SYMBOL",
-        OrgDb = bitr_db
+  tryCatch(
+    {
+      org_db <- utils::getFromNamespace(bitr_db, bitr_db)
+
+      # Use mapIds to convert UNIPROT to SYMBOL
+      mapped_symbols <- suppressMessages(AnnotationDbi::mapIds(
+        org_db,
+        keys = unique_proteins,
+        column = "SYMBOL",
+        keytype = "UNIPROT",
+        multiVals = "first"
+      ))
+
+      id_mapping <- tibble::tibble(
+        UNIPROT = names(mapped_symbols),
+        SYMBOL = mapped_symbols
+      ) %>%
+        tidyr::drop_na("SYMBOL")
+
+      # Join with var_info to add gene symbols
+      var_info <- dplyr::left_join(
+        var_info,
+        id_mapping,
+        by = c("protein" = "UNIPROT")
+      ) %>%
+        dplyr::rename(gene = "SYMBOL")
+
+      # Report conversion success
+      n_converted <- sum(!is.na(var_info$gene))
+      n_total <- nrow(var_info)
+      perc_converted <- round(n_converted / n_total * 100, 1)
+      cli::cli_alert_info(
+        "Converted {.val {n_converted}} of {.val {n_total}} ({.val {perc_converted}}%) protein IDs to gene symbols."
       )
-    ))
-
-    # Join with var_info to add gene symbols
-    var_info <- dplyr::left_join(
-      var_info,
-      id_mapping,
-      by = c("protein" = "UNIPROT")
-    ) %>%
-      dplyr::rename(gene = "SYMBOL")
-
-    # Report conversion success
-    n_converted <- sum(!is.na(var_info$gene))
-    n_total <- nrow(var_info)
-    perc_converted <- round(n_converted / n_total * 100, 1)
-    cli::cli_alert_info(
-      "Converted {.val {n_converted}} of {.val {n_total}} ({.val {perc_converted}}%) protein IDs to gene symbols."
-    )
-  }, error = function(e) {
-    cli::cli_alert_warning(
-      "Failed to convert protein IDs to gene symbols: {.val {e$message}}"
-    )
-  })
+    },
+    error = function(e) {
+      cli::cli_alert_warning(
+        "Failed to convert protein IDs to gene symbols: {.val {e$message}}"
+      )
+    }
+  )
 
   var_info
 }
