@@ -21,6 +21,7 @@ URL: https://glycoverse.github.io/glyread/
 Imports: 
     checkmate,
     cli,
+    clusterProfiler,
     dplyr,
     glyexp (>= 0.5.1),
     glyparse (>= 0.2.0),

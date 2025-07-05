@@ -26,8 +26,11 @@
 #' - `peptide_site`: integer, site of glycosylation on peptide
 #' - `protein`: character, protein accessions
 #' - `protein_site`: integer, site of glycosylation on protein
+#' - `gene`: character, gene symbols (if clusterProfiler package is available)
 #'
 #' @inheritParams read_pglyco3_pglycoquant
+#' @param bitr_db name of the OrgDb package to use for UniProt to gene symbol conversion.
+#'  Default is "org.Hs.eg.db".
 #'
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()]
@@ -37,7 +40,8 @@ read_byonic_pglycoquant <- function(
   sample_info = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
-  sample_name_converter = NULL
+  sample_name_converter = NULL,
+  bitr_db = "org.Hs.eg.db"
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
@@ -50,7 +54,7 @@ read_byonic_pglycoquant <- function(
   # Keep all PSM-level columns for variable info
   if (quant_method == "label-free") {
     exp <- .read_byonic_pglycoquant_label_free(
-      fp, sample_info, glycan_type, sample_name_converter
+      fp, sample_info, glycan_type, sample_name_converter, bitr_db
     )
   } else {
     rlang::abort("TMT quantification is not supported yet.")
@@ -64,7 +68,8 @@ read_byonic_pglycoquant <- function(
   fp,
   sample_info,
   glycan_type,
-  sample_name_converter
+  sample_name_converter,
+  bitr_db
 ) {
   # ----- Read data -----
   cli::cli_progress_step("Reading data")
@@ -73,7 +78,7 @@ read_byonic_pglycoquant <- function(
   expr_mat <- .extract_expr_mat_from_pglycoquant(df)
   samples <- .extract_sample_names_from_pglycoquant(df, sample_name_converter)
   sample_info <- .process_sample_info(sample_info, samples, glycan_type)
-  var_info <- .extract_var_info_from_byonic(df)
+  var_info <- .extract_var_info_from_byonic(df, bitr_db)
   colnames(expr_mat) <- sample_info$sample
   rownames(expr_mat) <- var_info$variable
 
@@ -112,19 +117,20 @@ read_byonic_pglycoquant <- function(
   new_df <- dplyr::filter(df, !stringr::str_detect(.data$Composition, stringr::fixed(",")))
   n_removed <- nrow(df) - nrow(new_df)
   perc_removed <- round(n_removed / nrow(df) * 100, 1)
-  cli::cli_alert_info("Removed {.val {n_removed}} ({.val {perc_removed}}%) multisite PSMs.")
+  cli::cli_alert_info("Removed {.val {n_removed}} of {.val {nrow(df)}} ({.val {perc_removed}}%) multisite PSMs.")
   new_df
 }
 
 
-.extract_var_info_from_byonic <- function(df) {
+.extract_var_info_from_byonic <- function(df, bitr_db) {
   new_names <- c(
     peptide = "Peptide",
     protein = "Protein Name",
     protein_site = "Position",
     glycan_composition = "Composition"
   )
-  df %>%
+
+  var_info <- df %>%
     dplyr::select(all_of(new_names)) %>%
     dplyr::mutate(
       # K.N[+203.07937]GTR.G -> K.nGTR.G (mark glycosylated N)
@@ -142,5 +148,54 @@ read_byonic_pglycoquant <- function(
       # HexNAc(4)Hex(4)Fuc(1)NeuAc(1) -> HexNAc(4)Hex(4)dHex(1)NeuAc(1)
       glycan_composition = stringr::str_replace(.data$glycan_composition, "Fuc", "dHex"),
     ) %>%
-    dplyr::mutate(variable = stringr::str_c("PSM", dplyr::row_number()), .before = 1)
+    dplyr::mutate(variable = stringr::str_c("PSM", dplyr::row_number()), .before = 1) %>%
+    .add_gene_symbols(bitr_db)
+
+  var_info
+}
+
+.add_gene_symbols <- function(var_info, bitr_db) {
+  # Get unique protein IDs (uniprot IDs)
+  unique_proteins <- unique(var_info$protein)
+  unique_proteins <- unique_proteins[!is.na(unique_proteins)]
+
+  if (length(unique_proteins) == 0) {
+    cli::cli_alert_info("No valid protein IDs found, skipping gene symbol conversion.")
+    return(var_info)
+  }
+
+  # Try to convert uniprot IDs to gene symbols
+  tryCatch({
+    # Use bitr to convert UNIPROT to SYMBOL, suppress warnings about mapping failures
+    id_mapping <- suppressMessages(suppressWarnings(
+      clusterProfiler::bitr(
+        unique_proteins,
+        fromType = "UNIPROT",
+        toType = "SYMBOL",
+        OrgDb = bitr_db
+      )
+    ))
+
+    # Join with var_info to add gene symbols
+    var_info <- dplyr::left_join(
+      var_info,
+      id_mapping,
+      by = c("protein" = "UNIPROT")
+    ) %>%
+      dplyr::rename(gene = "SYMBOL")
+
+    # Report conversion success
+    n_converted <- sum(!is.na(var_info$gene))
+    n_total <- nrow(var_info)
+    perc_converted <- round(n_converted / n_total * 100, 1)
+    cli::cli_alert_info(
+      "Converted {.val {n_converted}} of {.val {n_total}} ({.val {perc_converted}}%) protein IDs to gene symbols."
+    )
+  }, error = function(e) {
+    cli::cli_alert_warning(
+      "Failed to convert protein IDs to gene symbols: {.val {e$message}}"
+    )
+  })
+
+  var_info
 }

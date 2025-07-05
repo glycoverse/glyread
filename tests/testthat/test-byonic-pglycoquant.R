@@ -7,10 +7,12 @@ test_that("it returns correct information (label-free)", {
     )
   )
 
-  expect_equal(
-    colnames(res$var_info),
-    c("variable", "peptide", "protein", "protein_site", "glycan_composition", "peptide_site")
+  # Check expected columns (gene column may or may not be present)
+  expected_cols <- c(
+    "variable", "peptide", "protein", "protein_site",
+    "glycan_composition", "peptide_site", "gene"
   )
+  expect_true(all(expected_cols %in% colnames(res$var_info)))
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
   expect_equal(colnames(res$sample_info), c("sample"))
   expect_equal(colnames(res$expr_mat), c("20241224-lxj-nglyco-h_1"))

@@ -9,7 +9,8 @@ read_byonic_pglycoquant(
   sample_info = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
-  sample_name_converter = NULL
+  sample_name_converter = NULL,
+  bitr_db = "org.Hs.eg.db"
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ The function should take a character vector of old sample names
 and return new sample names.
 Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
+
+\item{bitr_db}{name of the OrgDb package to use for UniProt to gene symbol conversion.
+Default is "org.Hs.eg.db".}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -62,6 +66,7 @@ The following columns could be found in the variable information tibble:
 \item \code{peptide_site}: integer, site of glycosylation on peptide
 \item \code{protein}: character, protein accessions
 \item \code{protein_site}: integer, site of glycosylation on protein
+\item \code{gene}: character, gene symbols (if clusterProfiler package is available)
 }
 }
 
