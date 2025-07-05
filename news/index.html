@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,16 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.1" id="glyread-031">glyread 0.3.1<a class="anchor" aria-label="anchor" href="#glyread-031"></a></h2>
+<div class="section level3">
+<h3 id="minor-improvements-0-3-1">Minor improvements<a class="anchor" aria-label="anchor" href="#minor-improvements-0-3-1"></a></h3>
+<ul><li>
+<code><a href="../reference/read_byonic_pglycoquant.html">read_byonic_pglycoquant()</a></code> now only perform gene symbol conversion if both <code>clusterProfiler</code> and the specified OrgDb package (e.g., <code>org.Hs.eg.db</code>) are installed. If not, the gene column is omitted and a message is shown. This improves robustness in minimal or CI environments.</li>
+<li>
+<code>clusterProfiler</code> and <code>org.Hs.eg.db</code> are now listed under Suggests, not Imports.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="glyread-030">glyread 0.3.0<a class="anchor" aria-label="anchor" href="#glyread-030"></a></h2>
 <div class="section level3">
