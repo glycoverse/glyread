@@ -9,7 +9,8 @@ read_pglyco3_pglycoquant(
   sample_info = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
-  sample_name_converter = NULL
+  sample_name_converter = NULL,
+  protein_inference_method = c("parsimony", "unique", "share")
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ The function should take a character vector of old sample names
 and return new sample names.
 Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
+
+\item{protein_inference_method}{Method for protein inference. Either "parsimony",
+"unique", or "share". Default is "parsimony".}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -59,6 +63,24 @@ required for most downstream analyses
 }
 }
 
+\section{Protein inference}{
+By default, this function automatically performs protein inference using the
+parsimony method to resolve shared glycopeptides. This converts the plural
+columns (\code{proteins}, \code{genes}, \code{protein_sites}) to singular equivalents
+(\code{protein}, \code{gene}, \code{protein_site}).
+
+Three methods are available:
+\itemize{
+\item \code{parsimony}: Uses a greedy set cover algorithm to find the minimal set of
+proteins that explain all glycopeptides, then assigns each shared glycopeptide
+to the protein with highest coverage.
+\item \code{unique}: Only retains glycopeptides that are uniquely assigned to a single
+protein.
+\item \code{share}: Splits shared glycopeptides into multiple entries, with expression
+values divided equally among associated proteins.
+}
+}
+
 \section{Output}{
 This function returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 
@@ -71,10 +93,9 @@ separated by semicolon, e.g. \verb{5,Carbamidomethyl[C];10,Carbamidomethyl[C]}
 \item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
 \item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures.
 \item \code{peptide_site}: integer, site of glycosylation on peptide
-\item \code{proteins}: character, protein accessions, separated by semicolon
-\item \code{genes}: character, gene names (symbols), separated by semicolon
-\item \code{protein_sites}: character, site of glycosylation on protein,
-separated by semicolon
+\item \code{protein}: character, protein accession (after protein inference)
+\item \code{gene}: character, gene name (symbol) (after protein inference)
+\item \code{protein_site}: integer, site of glycosylation on protein (after protein inference)
 }
 }
 

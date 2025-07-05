@@ -11,13 +11,14 @@ test_that("it returns correct information (label-free)", {
   expect_equal(
     colnames(res$var_info),
     c(
-      "variable", "peptide", "proteins", "genes", "glycan_composition",
-      "glycan_structure", "peptide_site", "protein_sites", "charge",
-      "modifications"
+      "variable", "peptide", "glycan_composition",
+      "glycan_structure", "peptide_site", "charge",
+      "modifications", "protein", "gene", "protein_site"
     )
   )
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
   expect_s3_class(res$var_info$glycan_structure, "glyrepr_structure")
+  expect_type(res$var_info$protein_site, "integer")
   expect_equal(colnames(res$sample_info), c("sample", "group"))
   expect_equal(colnames(res$expr_mat), c("S1", "S2"))
   expect_equal(rownames(res$expr_mat), res$var_info$variable)
@@ -261,10 +262,10 @@ test_that("protein and gene information is correctly processed", {
     )
   )
   
-  genes <- res$var_info$genes
-  # Check that trailing semicolons are removed from genes
-  expect_true(all(!stringr::str_ends(genes, ";")))
+  genes <- res$var_info$gene
+  # Check that gene names are properly processed (after protein inference)
   expect_true(all(nchar(genes) > 0))
+  expect_true(all(!is.na(genes)))
 })
 
 # ----- Expression matrix tests -----
@@ -423,10 +424,10 @@ test_that("all output data types are consistent", {
   
   # Check data types of variable information
   expect_type(res$var_info$peptide, "character")
-  expect_type(res$var_info$proteins, "character")
-  expect_type(res$var_info$genes, "character")
+  expect_type(res$var_info$protein, "character")
+  expect_type(res$var_info$gene, "character")
   expect_type(res$var_info$peptide_site, "integer")
-  expect_type(res$var_info$protein_sites, "character")
+  expect_type(res$var_info$protein_site, "integer")
   expect_type(res$var_info$charge, "integer")
   expect_type(res$var_info$modifications, "character")
   
@@ -452,4 +453,84 @@ test_that("intensity columns are correctly extracted", {
   # Check that intensity values are positive when not NA
   non_na_values <- expr_mat[!is.na(expr_mat)]
   expect_true(all(non_na_values > 0))
+})
+
+# ----- Protein inference tests -----
+test_that("it performs protein inference with parsimony method by default", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+  
+  # Check that protein inference columns exist
+  expect_true("protein" %in% colnames(res$var_info))
+  expect_true("gene" %in% colnames(res$var_info))
+  expect_true("protein_site" %in% colnames(res$var_info))
+  
+  # Check that original columns are removed
+  expect_false("proteins" %in% colnames(res$var_info))
+  expect_false("genes" %in% colnames(res$var_info))
+  expect_false("protein_sites" %in% colnames(res$var_info))
+  
+  # Check that protein_site is integer
+  expect_type(res$var_info$protein_site, "integer")
+})
+
+test_that("it performs protein inference with unique method", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free",
+      protein_inference_method = "unique"
+    )
+  )
+  
+  # Check that protein inference columns exist
+  expect_true("protein" %in% colnames(res$var_info))
+  expect_true("gene" %in% colnames(res$var_info))
+  expect_true("protein_site" %in% colnames(res$var_info))
+  
+  # Check that original columns are removed
+  expect_false("proteins" %in% colnames(res$var_info))
+  expect_false("genes" %in% colnames(res$var_info))
+  expect_false("protein_sites" %in% colnames(res$var_info))
+  
+  # Check that protein_site is integer
+  expect_type(res$var_info$protein_site, "integer")
+})
+
+test_that("it performs protein inference with share method", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free",
+      protein_inference_method = "share"
+    )
+  )
+  
+  # Check that protein inference columns exist
+  expect_true("protein" %in% colnames(res$var_info))
+  expect_true("gene" %in% colnames(res$var_info))
+  expect_true("protein_site" %in% colnames(res$var_info))
+  
+  # Check that original columns are removed
+  expect_false("proteins" %in% colnames(res$var_info))
+  expect_false("genes" %in% colnames(res$var_info))
+  expect_false("protein_sites" %in% colnames(res$var_info))
+  
+  # Check that protein_site is integer
+  expect_type(res$var_info$protein_site, "integer")
+})
+
+test_that("it validates protein_inference_method parameter", {
+  expect_error(
+    read_pglyco3_pglycoquant(
+      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free",
+      protein_inference_method = "invalid_method"
+    ),
+    "must be one of"
+  )
 })
