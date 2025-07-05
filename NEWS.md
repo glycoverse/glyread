@@ -1,9 +1,3 @@
-# glyread 0.3.2
-
-## Bug fixes
-
-* Remove `clusterProfiler` and `org.Hs.eg.db` from Suggests to fix R CMD check errors on Github Actions.
-
 # glyread 0.3.1
 
 ## Minor improvements
