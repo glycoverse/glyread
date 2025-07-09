@@ -14,7 +14,7 @@
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
 #' # Sample information
-#' 
+#'
 #' The sample information file should be a `csv` file with the first column
 #' named `sample`, and the rest of the columns being sample information.
 #' The `sample` column must match the `RawName` column in the pGlyco3 result file,
@@ -27,36 +27,33 @@
 #' - `batch`: batch information, required for batch effect correction
 #'
 #' # Protein inference
-#' 
+#'
 #' By default, this function automatically performs protein inference using the
 #' parsimony method to resolve shared glycopeptides. This converts the plural
 #' columns (`proteins`, `genes`, `protein_sites`) to singular equivalents
 #' (`protein`, `gene`, `protein_site`).
 #' 
-#' Three methods are available:
-#' - `parsimony`: Uses a greedy set cover algorithm to find the minimal set of
-#'   proteins that explain all glycopeptides, then assigns each shared glycopeptide
-#'   to the protein with highest coverage.
-#' - `unique`: Only retains glycopeptides that are uniquely assigned to a single
-#'   protein.
-#' - `share`: Splits shared glycopeptides into multiple entries, with expression
-#'   values divided equally among associated proteins.
+#' # Aggregation
+#'
+#' pGlycoQuant performs quantification on the PSM level.
+#' This level of information is too detailed for most downstream analyses.
+#' This function aggregate PSMs into glycopeptides through summation.
+#' For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
+#' "gene", "glycan_composition", "glycan_structure"),
+#' we sum up the quantifications of all PSMs that belong to this glycopeptide.
 #'
 #' # Output
 #'
 #' This function returns a [glyexp::experiment()] object.
 #'
 #' The following columns could be found in the variable information tibble:
-#' - `charge`: integer, charge state
 #' - `peptide`: character, peptide sequence
-#' - `modifications`: character, modifications other than glycosylation,
-#'   separated by semicolon, e.g. `5,Carbamidomethyl[C];10,Carbamidomethyl[C]`
-#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
-#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures.
 #' - `peptide_site`: integer, site of glycosylation on peptide
 #' - `protein`: character, protein accession (after protein inference)
-#' - `gene`: character, gene name (symbol) (after protein inference)
 #' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
+#' - `gene`: character, gene name (symbol) (after protein inference)
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures.
 #'
 #' @param fp File path of the pGlycoQuant result file.
 #' @param sample_info File path of the sample information file (csv),
@@ -68,8 +65,6 @@
 #'  and return new sample names.
 #'  Note that sample names in `sample_info` should match the new names.
 #'  If NULL, original names are kept.
-#' @param protein_inference_method Method for protein inference. Either "parsimony",
-#'  "unique", or "share". Default is "parsimony".
 #'
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
@@ -80,8 +75,7 @@ read_pglyco3_pglycoquant <- function(
   sample_info = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
-  sample_name_converter = NULL,
-  protein_inference_method = c("parsimony", "unique", "share")
+  sample_name_converter = NULL
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
@@ -89,7 +83,6 @@ read_pglyco3_pglycoquant <- function(
   quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
   .check_sample_name_conv_arg(sample_name_converter)
   glycan_type <- rlang::arg_match(glycan_type)
-  protein_inference_method <- rlang::arg_match(protein_inference_method)
 
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
@@ -98,8 +91,7 @@ read_pglyco3_pglycoquant <- function(
       fp,
       sample_info,
       glycan_type,
-      sample_name_converter,
-      protein_inference_method
+      sample_name_converter
     )
   } else {
     rlang::abort("TMT quantification is not supported yet.")
@@ -113,8 +105,7 @@ read_pglyco3_pglycoquant <- function(
   fp,
   sample_info = NULL,
   glycan_type,
-  sample_name_converter,
-  protein_inference_method
+  sample_name_converter
 ) {
   # ----- Read data -----
   cli::cli_progress_step("Reading data")
@@ -126,6 +117,16 @@ read_pglyco3_pglycoquant <- function(
   colnames(expr_mat) <- sample_info$sample
   rownames(expr_mat) <- var_info$variable
 
+  # ----- Protein inference -----
+  cli::cli_progress_step("Performing protein inference")
+  var_info <- .infer_proteins(var_info)
+
+  # ----- Aggregate PSMs to glycopeptides -----
+  cli::cli_progress_step("Aggregating PSMs to glycopeptides")
+  aggregated_result <- .aggregate_psms_to_glycopeptides(var_info, expr_mat)
+  var_info <- aggregated_result$var_info
+  expr_mat <- aggregated_result$expr_mat
+
   # ----- Parse glycan compositions and structures -----
   cli::cli_progress_step("Parsing glycan compositions and structures")
   var_info <- dplyr::mutate(
@@ -136,18 +137,12 @@ read_pglyco3_pglycoquant <- function(
 
   # ----- Pack Experiment -----
   cli::cli_progress_step("Packing experiment")
-  exp <- glyexp::experiment(
+  glyexp::experiment(
     expr_mat, sample_info, var_info,
     exp_type = "glycoproteomics",
     glycan_type = glycan_type,
     quant_method = "label-free"
   )
-
-  # ----- Protein inference -----
-  cli::cli_progress_step("Performing protein inference")
-  exp <- .infer_protein_internal(exp, protein_inference_method)
-
-  exp
 }
 
 
@@ -162,15 +157,11 @@ read_pglyco3_pglycoquant <- function(
     glycan_composition = "GlycanComposition",
     glycan_structure = "PlausibleStruct",
     peptide_site = "GlySite",
-    protein_sites = "ProSites",
-    charge = "Charge",
-    modifications = "Mod"
+    protein_sites = "ProSites"
   )
   df %>%
     dplyr::select(all_of(new_names)) %>%
     dplyr::mutate(
-      modifications = stringr::str_remove(.data$modifications, ";$"),
-      modifications = dplyr::if_else(is.na(.data$modifications), "", .data$modifications),
       genes = stringr::str_remove(.data$genes, ";$"),
       proteins = stringr::str_replace_all(.data$proteins, "sp\\|(\\w+)\\|\\w+", "\\1")
     ) %>%
@@ -236,34 +227,12 @@ read_pglyco3_pglycoquant <- function(
 }
 
 # ----- Internal protein inference functions -----
-
-.infer_protein_internal <- function(exp, method) {
-  if (!"proteins" %in% colnames(exp$var_info)) {
-    return(exp)  # No protein inference needed
-  }
-  
-  switch(method,
-    unique = .infer_pro_unique_internal(exp),
-    parsimony = .infer_pro_parsimony_internal(exp),
-    share = .infer_pro_share_internal(exp)
-  )
-}
-
-.infer_pro_unique_internal <- function(exp) {
-  exp %>%
-    glyexp::filter_var(!stringr::str_detect(.data$proteins, ";")) %>%
-    glyexp::rename_var(tidyselect::all_of(c("protein" = "proteins", "gene" = "genes", "protein_site" = "protein_sites"))) %>%
-    glyexp::mutate_var(protein_site = as.integer(.data$protein_site))
-}
-
-.infer_pro_parsimony_internal <- function(exp) {
-  var_info <- exp$var_info
-  
+.infer_proteins <- function(var_info) {
   # Parse the proteins, genes, and protein_sites columns
   proteins_list <- stringr::str_split(var_info$proteins, ";")
   genes_list <- stringr::str_split(var_info$genes, ";")
   protein_sites_list <- stringr::str_split(var_info$protein_sites, ";")
-  
+
   # Create a mapping from protein to glycopeptide indices
   protein_to_gp <- proteins_list %>%
     purrr::imap(~ tibble::tibble(protein = .x, gp_idx = .y)) %>%
@@ -335,7 +304,7 @@ read_pglyco3_pglycoquant <- function(
   assigned_gene <- purrr::map_chr(assignments, ~ .x$gene) 
   assigned_site <- purrr::map_chr(assignments, ~ .x$site)
   
-  # Update the experiment
+  # Update var_info with protein inference results
   new_var_info <- var_info %>%
     dplyr::select(-tidyselect::all_of(c("proteins", "genes", "protein_sites"))) %>%
     dplyr::mutate(
@@ -343,79 +312,74 @@ read_pglyco3_pglycoquant <- function(
       gene = assigned_gene,
       protein_site = as.integer(assigned_site)
     )
-  
-  new_exp <- exp
-  new_exp$var_info <- new_var_info
-  new_exp
+
+  new_var_info
 }
 
-.infer_pro_share_internal <- function(exp) {
-  var_info <- exp$var_info
-  expr_mat <- exp$expr_mat
-  
-  # Parse the proteins, genes, and protein_sites columns
-  proteins_list <- stringr::str_split(var_info$proteins, ";")
-  genes_list <- stringr::str_split(var_info$genes, ";")
-  protein_sites_list <- stringr::str_split(var_info$protein_sites, ";")
-  
-  # Helper function to create a single protein entry from shared glycopeptide
-  create_protein_entry <- function(protein, gene, site, idx, shared_expr) {
-    new_variable <- paste0(var_info$variable[idx], "_", protein)
-    
-    # Create new var_info row
-    new_var_row <- var_info[idx, , drop = FALSE]
-    new_var_row$variable <- new_variable
-    new_var_row <- new_var_row %>%
-      dplyr::select(-tidyselect::all_of(c("proteins", "genes", "protein_sites"))) %>%
-      dplyr::mutate(
-        protein = protein,
-        gene = gene,
-        protein_site = as.integer(site)
-      )
-    
-    # Create new expression row
-    new_expr_row <- shared_expr
-    rownames(new_expr_row) <- new_variable
-    
-    list(var_info = new_var_row, expr_row = new_expr_row)
+
+
+
+# ----- PSM to glycopeptide aggregation -----
+
+# Aggregate PSMs to glycopeptides by summing expression values
+# for unique combinations of glycopeptide-defining columns
+.aggregate_psms_to_glycopeptides <- function(var_info, expr_mat) {
+  # Define glycopeptide-defining columns (after protein inference)
+  glycopeptide_cols <- c("peptide", "peptide_site", "protein", "protein_site",
+                         "gene", "glycan_composition", "glycan_structure")
+
+  # Check if all required columns exist
+  missing_cols <- setdiff(glycopeptide_cols, colnames(var_info))
+  if (length(missing_cols) > 0) {
+    rlang::abort(paste("Missing required columns for glycopeptide aggregation:",
+                       paste(missing_cols, collapse = ", ")))
   }
-  
-  # Helper function to process a single glycopeptide and split by proteins
-  process_glycopeptide <- function(proteins, genes, sites, idx) {
-    n_proteins <- length(proteins)
-    original_expr <- expr_mat[idx, , drop = FALSE]
-    shared_expr <- original_expr / n_proteins
-    
-    # Create rows for each protein
-    purrr::pmap(
-      list(protein = proteins, gene = genes, site = sites),
-      ~ create_protein_entry(..1, ..2, ..3, idx, shared_expr)
+
+  # Create grouping variables for aggregation
+  grouping_data <- var_info[, glycopeptide_cols, drop = FALSE]
+
+  # Find unique glycopeptide combinations
+  unique_glycopeptides <- unique(grouping_data)
+  n_glycopeptides <- nrow(unique_glycopeptides)
+
+  # Create new variable names for glycopeptides
+  new_variable_names <- paste0("GP", seq_len(n_glycopeptides))
+
+  # Initialize new expression matrix
+  new_expr_mat <- matrix(0, nrow = n_glycopeptides, ncol = ncol(expr_mat))
+  colnames(new_expr_mat) <- colnames(expr_mat)
+  rownames(new_expr_mat) <- new_variable_names
+
+  # Aggregate expression values by summing PSMs for each glycopeptide
+  for (i in seq_len(n_glycopeptides)) {
+    # Find PSMs that belong to this glycopeptide
+    psm_indices <- which(
+      apply(grouping_data, 1, function(row) {
+        all(row == unique_glycopeptides[i, ])
+      })
     )
+
+    # Sum expression values across PSMs
+    if (length(psm_indices) == 1) {
+      new_expr_mat[i, ] <- expr_mat[psm_indices, ]
+    } else {
+      # Sum values, but preserve NA when all values are NA
+      psm_data <- expr_mat[psm_indices, , drop = FALSE]
+      for (j in seq_len(ncol(psm_data))) {
+        col_values <- psm_data[, j]
+        if (all(is.na(col_values))) {
+          new_expr_mat[i, j] <- NA
+        } else {
+          new_expr_mat[i, j] <- sum(col_values, na.rm = TRUE)
+        }
+      }
+    }
   }
-  
-  # Process each glycopeptide and split by proteins
-  share_results <- purrr::pmap(
-    list(
-      proteins = proteins_list,
-      genes = genes_list, 
-      sites = protein_sites_list,
-      idx = seq_len(nrow(var_info))
-    ),
-    process_glycopeptide
-  ) %>%
-    purrr::flatten()
-  
-  # Extract var_info and expression data
-  new_var_info_list <- purrr::map(share_results, ~ .x$var_info)
-  new_expr_rows <- purrr::map(share_results, ~ .x$expr_row)
-  
-  # Combine all new data
-  new_var_info <- dplyr::bind_rows(new_var_info_list)
-  new_expr_mat <- do.call(rbind, new_expr_rows)
-  
-  # Create new experiment
-  new_exp <- exp
-  new_exp$var_info <- new_var_info
-  new_exp$expr_mat <- new_expr_mat
-  new_exp
+
+  # Create new var_info with glycopeptide information
+  new_var_info <- unique_glycopeptides
+  new_var_info$variable <- new_variable_names
+  new_var_info <- new_var_info[, c("variable", glycopeptide_cols), drop = FALSE]
+
+  list(var_info = new_var_info, expr_mat = new_expr_mat)
 }
