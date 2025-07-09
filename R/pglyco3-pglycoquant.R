@@ -316,70 +316,26 @@ read_pglyco3_pglycoquant <- function(
   new_var_info
 }
 
-
-
-
 # ----- PSM to glycopeptide aggregation -----
 
 # Aggregate PSMs to glycopeptides by summing expression values
 # for unique combinations of glycopeptide-defining columns
 .aggregate_psms_to_glycopeptides <- function(var_info, expr_mat) {
   # Define glycopeptide-defining columns (after protein inference)
-  glycopeptide_cols <- c("peptide", "peptide_site", "protein", "protein_site",
-                         "gene", "glycan_composition", "glycan_structure")
-
-  # Check if all required columns exist
-  missing_cols <- setdiff(glycopeptide_cols, colnames(var_info))
-  if (length(missing_cols) > 0) {
-    rlang::abort(paste("Missing required columns for glycopeptide aggregation:",
-                       paste(missing_cols, collapse = ", ")))
-  }
-
-  # Create grouping variables for aggregation
-  grouping_data <- var_info[, glycopeptide_cols, drop = FALSE]
-
-  # Find unique glycopeptide combinations
-  unique_glycopeptides <- unique(grouping_data)
-  n_glycopeptides <- nrow(unique_glycopeptides)
-
-  # Create new variable names for glycopeptides
-  new_variable_names <- paste0("GP", seq_len(n_glycopeptides))
-
-  # Initialize new expression matrix
-  new_expr_mat <- matrix(0, nrow = n_glycopeptides, ncol = ncol(expr_mat))
-  colnames(new_expr_mat) <- colnames(expr_mat)
-  rownames(new_expr_mat) <- new_variable_names
-
-  # Aggregate expression values by summing PSMs for each glycopeptide
-  for (i in seq_len(n_glycopeptides)) {
-    # Find PSMs that belong to this glycopeptide
-    psm_indices <- which(
-      apply(grouping_data, 1, function(row) {
-        all(row == unique_glycopeptides[i, ])
-      })
-    )
-
-    # Sum expression values across PSMs
-    if (length(psm_indices) == 1) {
-      new_expr_mat[i, ] <- expr_mat[psm_indices, ]
-    } else {
-      # Sum values, but preserve NA when all values are NA
-      psm_data <- expr_mat[psm_indices, , drop = FALSE]
-      for (j in seq_len(ncol(psm_data))) {
-        col_values <- psm_data[, j]
-        if (all(is.na(col_values))) {
-          new_expr_mat[i, j] <- NA
-        } else {
-          new_expr_mat[i, j] <- sum(col_values, na.rm = TRUE)
-        }
-      }
-    }
-  }
-
-  # Create new var_info with glycopeptide information
-  new_var_info <- unique_glycopeptides
-  new_var_info$variable <- new_variable_names
-  new_var_info <- new_var_info[, c("variable", glycopeptide_cols), drop = FALSE]
-
+  aggr_cols <- c(
+    "peptide", "peptide_site", "protein", "protein_site",
+    "gene", "glycan_composition", "glycan_structure"
+  )
+  var_info <- var_info[, aggr_cols]
+  sample_names <- colnames(expr_mat)
+  res_df <- dplyr::bind_cols(var_info, tibble::as_tibble(expr_mat)) %>%
+    tidyr::pivot_longer(all_of(sample_names), names_to = "sample", values_to = "value") %>%
+    dplyr::summarise(value = sum(.data$value, na.rm = TRUE), .by = all_of(c(aggr_cols, "sample"))) %>%
+    dplyr::mutate(value = dplyr::if_else(.data$value == 0, NA, .data$value)) %>%
+    tidyr::pivot_wider(names_from = "sample", values_from = "value")
+  new_var_info <- res_df[, aggr_cols] %>%
+    dplyr::mutate(variable = paste0("GP", dplyr::row_number()), .before = 1)
+  new_expr_mat <- as.matrix(res_df[, sample_names])
+  rownames(new_expr_mat) <- new_var_info$variable
   list(var_info = new_var_info, expr_mat = new_expr_mat)
 }
