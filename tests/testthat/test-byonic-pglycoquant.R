@@ -2,7 +2,7 @@
 test_that("it returns correct information (label-free)", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -34,7 +34,7 @@ test_that("it returns correct information (label-free)", {
 test_that("multisite glycopeptides are filtered in full workflow", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -53,7 +53,7 @@ test_that("multisite glycopeptides are filtered in full workflow", {
 test_that("peptide_site and protein_site are correctly calculated", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -78,7 +78,7 @@ test_that("peptide_site and protein_site are correctly calculated", {
 test_that("protein accessions are correctly extracted", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -96,7 +96,7 @@ test_that("protein accessions are correctly extracted", {
 test_that("glycan compositions are correctly processed and parsed", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -120,7 +120,7 @@ test_that("glycan compositions are correctly processed and parsed", {
 test_that("variables are correctly named with PSM prefix", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -134,7 +134,7 @@ test_that("variables are correctly named with PSM prefix", {
 test_that("intensity values are correctly processed", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -156,7 +156,7 @@ test_that("intensity values are correctly processed", {
 test_that("sample names are correctly extracted from intensity columns", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -170,7 +170,7 @@ test_that("sample names are correctly extracted from intensity columns", {
 test_that("TMT quantification throws error", {
   expect_error(
     read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "TMT"
     ),
     "TMT quantification is not supported yet"
@@ -180,7 +180,7 @@ test_that("TMT quantification throws error", {
 test_that("it handles O-linked glycan type", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free",
       glycan_type = "O"
     )
@@ -192,7 +192,7 @@ test_that("it handles O-linked glycan type", {
 test_that("all output data types are consistent", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -220,7 +220,7 @@ test_that("sample name converter works", {
   
   suppressMessages(
     res <- read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free",
       sample_name_converter = sample_name_converter
     )
@@ -234,7 +234,7 @@ test_that("sample name converter works", {
 test_that("it validates quant_method parameter", {
   expect_error(
     read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "invalid_method"
     ),
     "must be one of"
@@ -244,7 +244,7 @@ test_that("it validates quant_method parameter", {
 test_that("it validates glycan_type parameter", {
   expect_error(
     read_byonic_pglycoquant(
-      test_path("byonic-pglycoquant-LFQ-result.list"),
+      test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free",
       glycan_type = "invalid_type"
     ),
@@ -255,7 +255,7 @@ test_that("it validates glycan_type parameter", {
 # ----- PSM aggregation tests -----
 test_that("PSMs are correctly aggregated to glycopeptides", {
   # Read data and double the rows to simulate multiple PSMs per glycopeptide
-  suppressMessages(res <- read_byonic_pglycoquant(test_path("byonic-pglycoquant-LFQ-result.list")))
+  suppressMessages(res <- read_byonic_pglycoquant(test_path("data/byonic-pglycoquant-LFQ-result.list")))
   # Check that aggregation worked correctly
   expect_equal(nrow(res$var_info), 5)
 })

@@ -2,7 +2,7 @@
 test_that("it returns correct information (label-free) with single sample", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -45,7 +45,7 @@ test_that("it returns correct information (label-free) with single sample", {
 test_that("it provides a default sample information tibble", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -58,7 +58,7 @@ test_that("it provides a default sample information tibble", {
 test_that("zeros are replaced by NA", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -70,7 +70,7 @@ test_that("zeros are replaced by NA", {
 test_that("it filters uncertain or multisite PSMs", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -84,7 +84,7 @@ test_that("it filters uncertain or multisite PSMs", {
 test_that("it handles O-linked glycan type", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free",
       glycan_type = "O"
     )
@@ -117,7 +117,7 @@ test_that("it validates directory path parameter", {
 test_that("it validates quant_method parameter", {
   expect_error(
     read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "invalid_method"
     ),
     "must be one of"
@@ -127,7 +127,7 @@ test_that("it validates quant_method parameter", {
 test_that("it validates glycan_type parameter", {
   expect_error(
     read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free",
       glycan_type = "invalid_type"
     ),
@@ -138,7 +138,7 @@ test_that("it validates glycan_type parameter", {
 test_that("it validates sample_name_converter parameter", {
   expect_error(
     read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free",
       sample_name_converter = "not_a_function"
     ),
@@ -149,7 +149,7 @@ test_that("it validates sample_name_converter parameter", {
 test_that("it rejects TMT quantification (not implemented)", {
   expect_error(
     read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "TMT"
     ),
     "TMT quantification is not supported yet"
@@ -162,7 +162,7 @@ test_that("sample name converter works", {
   }
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free",
       sample_name_converter = sample_name_converter
     )
@@ -176,7 +176,7 @@ test_that("sample name converter works", {
 test_that("it correctly parses glycan compositions", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -212,7 +212,7 @@ test_that("glycan composition parsing handles complex compositions", {
   # Test with real compositions from the test data
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -232,7 +232,7 @@ test_that("glycan composition parsing handles complex compositions", {
 test_that("it correctly extracts variable information", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -263,7 +263,7 @@ test_that("it correctly extracts variable information", {
 test_that("it correctly calculates protein sites from peptide sites", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -280,7 +280,7 @@ test_that("it correctly calculates protein sites from peptide sites", {
 test_that("it handles missing or zero intensity values correctly", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -337,7 +337,7 @@ test_that("it handles directory with no psm.tsv files", {
 test_that("it correctly aggregates PSMs to glycopeptides", {
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       quant_method = "label-free"
     )
   )
@@ -363,7 +363,7 @@ test_that("it preserves sample information structure", {
 
   suppressMessages(
     res <- read_msfragger(
-      test_path("msfragger_result"),
+      test_path("data/msfragger_result"),
       sample_info = sample_info,
       quant_method = "label-free"
     )

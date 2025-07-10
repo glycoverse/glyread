@@ -1,6 +1,6 @@
 test_that("read_glyhunter works", {
   exp <- suppressMessages(read_glyhunter(
-    test_path("glyhunter-result.csv"),
+    test_path("data/glyhunter-result.csv"),
     glycan_type = "N"
   ))
 

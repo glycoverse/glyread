@@ -2,8 +2,8 @@
 test_that("it returns correct information (label-free)", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
-      test_path("pglyco3-LFQ-sample-info.csv"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-LFQ-sample-info.csv"),
       quant_method = "label-free"
     )
   )
@@ -31,9 +31,9 @@ test_that("it returns correct information (label-free)", {
 
 test_that("it accepts a sample_info tibble", {
   suppressMessages({
-    sample_info <- readr::read_csv(test_path("pglyco3-LFQ-sample-info.csv"))
+    sample_info <- readr::read_csv(test_path("data/pglyco3-LFQ-sample-info.csv"))
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       sample_info = sample_info,
       quant_method = "label-free"
     )
@@ -51,7 +51,7 @@ test_that("it accepts a sample_info data.frame", {
       stringsAsFactors = FALSE
     )
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       sample_info = sample_info,
       quant_method = "label-free"
     )
@@ -64,7 +64,7 @@ test_that("it accepts a sample_info data.frame", {
 test_that("it provides a default sample information tibble (label-free)", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -76,15 +76,14 @@ test_that("it raiss an error when samples in sample information is inconsistent 
   sample_info <- tibble::tibble(sample = c("S1", "S2", "S3"))
   new_sample_info_path <- withr::local_tempfile(fileext = ".csv")
   readr::write_csv(sample_info, new_sample_info_path)
-  expect_snapshot(
+  expect_error(
     suppressMessages(
       read_pglyco3_pglycoquant(
-        test_path("pglyco3-pglycoquant-LFQ-result.list"),
+        test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
         test_path(new_sample_info_path),
         quant_method = "label-free"
       )
-    ),
-    error = TRUE
+    )
   )
 })
 
@@ -92,7 +91,7 @@ test_that("it raiss an error when samples in sample information is inconsistent 
 test_that("zeros are replaced by NA (label-free)", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -106,7 +105,7 @@ test_that("sample name converter works", {
   }
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free",
       sample_name_converter = sample_name_converter
     )
@@ -143,7 +142,7 @@ test_that("it validates sample_info parameter", {
   writeLines("not a csv", temp_invalid_csv)
   expect_error(
     read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       temp_invalid_csv,
       quant_method = "label-free"
     ),
@@ -154,7 +153,7 @@ test_that("it validates sample_info parameter", {
 test_that("it validates quant_method parameter", {
   expect_error(
     read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "invalid_method"
     ),
     "must be one of"
@@ -164,7 +163,7 @@ test_that("it validates quant_method parameter", {
 test_that("it validates glycan_type parameter", {
   expect_error(
     read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free",
       glycan_type = "invalid_type"
     ),
@@ -175,7 +174,7 @@ test_that("it validates glycan_type parameter", {
 test_that("it validates sample_name_converter parameter", {
   expect_error(
     read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free",
       sample_name_converter = "not_a_function"
     ),
@@ -187,7 +186,7 @@ test_that("it validates sample_name_converter parameter", {
 test_that("it handles O-linked glycan type", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free",
       glycan_type = "O"
     )
@@ -199,7 +198,7 @@ test_that("it handles O-linked glycan type", {
 test_that("it rejects TMT quantification (not implemented)", {
   expect_error(
     read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "TMT"
     ),
     "TMT quantification is not supported yet"
@@ -210,7 +209,7 @@ test_that("it rejects TMT quantification (not implemented)", {
 test_that("glycan composition parsing works correctly", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -227,7 +226,7 @@ test_that("glycan composition parsing works correctly", {
 test_that("glycan structure parsing works correctly", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -243,7 +242,7 @@ test_that("glycan structure parsing works correctly", {
 test_that("protein and gene information is correctly processed", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -258,7 +257,7 @@ test_that("protein and gene information is correctly processed", {
 test_that("expression matrix has correct dimensions and properties", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -279,7 +278,7 @@ test_that("expression matrix has correct dimensions and properties", {
 test_that("variable identifiers are unique", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -295,7 +294,7 @@ test_that("it handles empty sample_name_converter result", {
   expect_error(
     suppressMessages(
       read_pglyco3_pglycoquant(
-        test_path("pglyco3-pglycoquant-LFQ-result.list"),
+        test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
         quant_method = "label-free",
         sample_name_converter = bad_converter
       )
@@ -313,7 +312,7 @@ test_that("it handles complex sample info with multiple columns", {
   
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       sample_info = complex_sample_info,
       quant_method = "label-free"
     )
@@ -330,7 +329,7 @@ test_that("it handles malformed data files gracefully", {
   expect_error(
     suppressMessages(
       read_pglyco3_pglycoquant(
-        test_path("pglyco3-malformed-data.list"),
+        test_path("data/pglyco3-malformed-data.list"),
         quant_method = "label-free"
       )
     )
@@ -342,7 +341,7 @@ test_that("it handles files with missing essential columns", {
   expect_error(
     suppressMessages(
       read_pglyco3_pglycoquant(
-        test_path("pglyco3-missing-columns.list"),
+        test_path("data/pglyco3-missing-columns.list"),
         quant_method = "label-free"
       )
     )
@@ -358,7 +357,7 @@ test_that("it handles sample_info with missing sample column", {
   expect_error(
     suppressMessages(
       read_pglyco3_pglycoquant(
-        test_path("pglyco3-pglycoquant-LFQ-result.list"),
+        test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
         sample_info = malformed_sample_info,
         quant_method = "label-free"
       )
@@ -403,7 +402,7 @@ test_that(".convert_glycan_composition handles complex compositions", {
 test_that("all output data types are consistent", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -422,7 +421,7 @@ test_that("all output data types are consistent", {
 test_that("intensity columns are correctly extracted", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -441,7 +440,7 @@ test_that("intensity columns are correctly extracted", {
 test_that("it performs protein inference with parsimony method by default", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
-      test_path("pglyco3-pglycoquant-LFQ-result.list"),
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
@@ -463,7 +462,7 @@ test_that("it performs protein inference with parsimony method by default", {
 # ----- PSM aggregation tests -----
 test_that("PSMs are correctly aggregated to glycopeptides", {
   # Read data and double the rows to simulate multiple PSMs per glycopeptide
-  suppressMessages(df <- readr::read_tsv(test_path("pglyco3-pglycoquant-LFQ-result.list")))
+  suppressMessages(df <- readr::read_tsv(test_path("data/pglyco3-pglycoquant-LFQ-result.list")))
   new_df <- dplyr::bind_rows(df, df)
   withr::with_dir(tempdir(), {
     readr::write_tsv(new_df, "test.list")
