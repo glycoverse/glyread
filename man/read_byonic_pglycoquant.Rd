@@ -85,6 +85,15 @@ required for most downstream analyses
 }
 }
 
+\section{Aggregation}{
+pGlycoQuant performs quantification on the PSM level.
+This level of information is too detailed for most downstream analyses.
+This function aggregate PSMs into glycopeptides through summation.
+For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
+"gene", "glycan_composition", "glycan_structure"),
+we sum up the quantifications of all PSMs that belong to this glycopeptide.
+}
+
 \seealso{
 \code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}
 }

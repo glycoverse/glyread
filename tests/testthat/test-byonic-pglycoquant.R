@@ -126,7 +126,7 @@ test_that("variables are correctly named with PSM prefix", {
   )
   
   variables <- res$var_info$variable
-  expect_true(all(stringr::str_starts(variables, "PSM")))
+  expect_true(all(stringr::str_starts(variables, "GP")))
   expect_equal(length(variables), length(unique(variables)))  # All unique
 })
 
@@ -250,4 +250,12 @@ test_that("it validates glycan_type parameter", {
     ),
     "must be one of"
   )
+})
+
+# ----- PSM aggregation tests -----
+test_that("PSMs are correctly aggregated to glycopeptides", {
+  # Read data and double the rows to simulate multiple PSMs per glycopeptide
+  suppressMessages(res <- read_byonic_pglycoquant(test_path("byonic-pglycoquant-LFQ-result.list")))
+  # Check that aggregation worked correctly
+  expect_equal(nrow(res$var_info), 5)
 })

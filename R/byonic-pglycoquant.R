@@ -16,6 +16,7 @@
 #' Multisite glycopeptides will be removed.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
+#' @inheritSection read_pglyco3_pglycoquant Aggregation
 #'
 #' @section Output:
 #' This function returns a [glyexp::experiment()] object.
@@ -81,6 +82,12 @@ read_byonic_pglycoquant <- function(
   var_info <- .extract_var_info_from_byonic(df, bitr_db)
   colnames(expr_mat) <- sample_info$sample
   rownames(expr_mat) <- var_info$variable
+
+  # ---- Aggregate PSMs to glycopeptides -----
+  cli::cli_progress_step("Aggregating PSMs to glycopeptides")
+  aggregated_result <- .aggregate_psms_to_glycopeptides(var_info, expr_mat)
+  var_info <- aggregated_result$var_info
+  expr_mat <- aggregated_result$expr_mat
 
   # ----- Parse glycan compositions -----
   cli::cli_progress_step("Parsing glycan compositions")
