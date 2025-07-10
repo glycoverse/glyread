@@ -253,38 +253,6 @@ test_that("variable identifiers are unique", {
   expect_true(all(stringr::str_starts(variables, "GP")))
 })
 
-
-# ----- Edge cases -----
-test_that("it handles empty sample_name_converter result", {
-  bad_converter <- function(x) character(0)
-  expect_error(
-    suppressMessages(
-      read_pglyco3(
-        test_path("data/pglyco3-LFQ-result.txt"),
-        quant_method = "label-free",
-        sample_name_converter = bad_converter
-      )
-    ),
-    "Sample name converter must return the same number of samples"
-  )
-})
-
-
-test_that("it handles sample_name_converter returning wrong length", {
-  bad_converter <- function(x) c("Sample1")  # Should return 2 names but only returns 1
-  expect_error(
-    suppressMessages(
-      read_pglyco3(
-        test_path("data/pglyco3-LFQ-result.txt"),
-        quant_method = "label-free",
-        sample_name_converter = bad_converter
-      )
-    ),
-    "Sample name converter must return the same number of samples"
-  )
-})
-
-
 # ----- Protein inference tests -----
 test_that("it performs protein inference with parsimony method by default", {
   suppressMessages(

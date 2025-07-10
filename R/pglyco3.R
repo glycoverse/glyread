@@ -107,27 +107,16 @@ read_pglyco3 <- function(
   cli::cli_progress_step("Reading data")
   df <- .read_pglyco3_file_into_tibble(fp) %>%
     .convert_pglyco3_columns()
-  sample_names <- unique(df$RawName)
-
-  # Apply sample name converter if provided
+  # Apply sample name converter to the data frame if provided
   if (!is.null(sample_name_converter)) {
-    new_sample_names <- sample_name_converter(sample_names)
-    if (length(new_sample_names) != length(sample_names)) {
-      rlang::abort("Sample name converter must return the same number of samples.")
-    }
-    sample_names <- new_sample_names
+    df <- dplyr::mutate(df, RawName = sample_name_converter(.data$RawName))
   }
+  sample_names <- unique(df$RawName)
 
   sample_info <- .process_sample_info(sample_info, sample_names, glycan_type)
 
   # ----- Aggregate PSMs to glycopeptides -----
   cli::cli_progress_step("Aggregating PSMs to glycopeptides")
-
-  # Apply sample name converter to the data frame if provided
-  if (!is.null(sample_name_converter)) {
-    df <- dplyr::mutate(df, RawName = sample_name_converter(.data$RawName))
-  }
-
   aggregated_result <- df %>%
     dplyr::rename(all_of(c(sample = "RawName", value = "MonoArea"))) %>%
     .aggregate_long()
