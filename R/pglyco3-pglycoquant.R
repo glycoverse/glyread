@@ -150,6 +150,17 @@ read_pglyco3_pglycoquant <- function(
 # Glycan composition and structure are not parsed here
 # A "variable" column is added to the tibble
 .extract_var_info_from_pglyco3 <- function(df) {
+  var_info_cols <- c(
+    "peptide", "peptide_site", "proteins", "protein_sites", "genes",
+    "glycan_composition", "glycan_structure"
+  )
+  df %>%
+    .convert_pglyco3_columns() %>%
+    dplyr::select(all_of(var_info_cols)) %>%
+    dplyr::mutate(variable = stringr::str_c("PSM", dplyr::row_number()), .before = 1)
+}
+
+.convert_pglyco3_columns <- function(df) {
   new_names <- c(
     peptide = "Peptide",
     proteins = "Proteins",
@@ -160,14 +171,12 @@ read_pglyco3_pglycoquant <- function(
     protein_sites = "ProSites"
   )
   df %>%
-    dplyr::select(all_of(new_names)) %>%
+    dplyr::rename(all_of(new_names)) %>%
     dplyr::mutate(
       genes = stringr::str_remove(.data$genes, ";$"),
       proteins = stringr::str_replace_all(.data$proteins, "sp\\|(\\w+)\\|\\w+", "\\1")
-    ) %>%
-    dplyr::mutate(variable = stringr::str_c("PSM", dplyr::row_number()), .before = 1)
+    )
 }
-
 
 .read_pglyco3_file_into_tibble <- function(fp) {
   col_types <- readr::cols(

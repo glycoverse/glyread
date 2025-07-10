@@ -6,7 +6,8 @@
 .aggregate_long <- function(df) {
   aggr_cols <- c(
     "peptide", "peptide_site", "protein", "protein_site",
-    "gene", "glycan_composition", "glycan_structure"
+    "gene", "glycan_composition", "glycan_structure",
+    "proteins", "genes", "protein_sites"  # This three is for pGlyco3
   )
   sample_names <- unique(df$sample)
   res_df <- df %>%
