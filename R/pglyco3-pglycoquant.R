@@ -238,9 +238,10 @@ read_pglyco3_pglycoquant <- function(
 # ----- Internal protein inference functions -----
 .infer_proteins <- function(var_info) {
   # Parse the proteins, genes, and protein_sites columns
-  proteins_list <- stringr::str_split(var_info$proteins, ";")
-  genes_list <- stringr::str_split(var_info$genes, ";")
-  protein_sites_list <- stringr::str_split(var_info$protein_sites, ";")
+  pep_df <- dplyr::distinct(var_info, .data$peptide, .data$proteins, .data$genes, .data$protein_sites)
+  proteins_list <- stringr::str_split(pep_df$proteins, ";")
+  genes_list <- stringr::str_split(pep_df$genes, ";")
+  protein_sites_list <- stringr::str_split(pep_df$protein_sites, ";")
 
   # Create a mapping from protein to glycopeptide indices
   protein_to_gp <- proteins_list %>%
@@ -251,7 +252,7 @@ read_pglyco3_pglycoquant <- function(
     (function(x) stats::setNames(x$gp_indices, x$protein))
   
   # Greedy set cover algorithm
-  uncovered_gps <- seq_len(nrow(var_info))
+  uncovered_gps <- seq_len(nrow(pep_df))
   selected_proteins <- character(0)
   
   while (length(uncovered_gps) > 0) {
@@ -314,13 +315,15 @@ read_pglyco3_pglycoquant <- function(
   assigned_site <- purrr::map_chr(assignments, ~ .x$site)
   
   # Update var_info with protein inference results
-  new_var_info <- var_info %>%
-    dplyr::select(-tidyselect::all_of(c("proteins", "genes", "protein_sites"))) %>%
+  new_old_map <- pep_df %>%
     dplyr::mutate(
       protein = assigned_protein,
       gene = assigned_gene,
       protein_site = as.integer(assigned_site)
     )
+  new_var_info <- var_info %>%
+    dplyr::left_join(new_old_map, by = c("peptide", "proteins", "genes", "protein_sites")) %>%
+    dplyr::select(-tidyselect::all_of(c("proteins", "genes", "protein_sites")))
 
   new_var_info
 }
