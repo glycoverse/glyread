@@ -123,7 +123,7 @@ read_pglyco3_pglycoquant <- function(
 
   # ----- Aggregate PSMs to glycopeptides -----
   cli::cli_progress_step("Aggregating PSMs to glycopeptides")
-  aggregated_result <- .aggregate_psms_to_glycopeptides(var_info, expr_mat)
+  aggregated_result <- .aggregate_wide(var_info, expr_mat)
   var_info <- aggregated_result$var_info
   expr_mat <- aggregated_result$expr_mat
 
