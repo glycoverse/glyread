@@ -75,7 +75,7 @@ read_byonic_pglycoquant <- function(
 .tidy_byonic_pglycoquant <- function(df, orgdb) {
   df %>%
     .remove_multisite_byonic() %>%
-    .refine_byonic_columns() %>%
+    .refine_byonic_pglycoquant_columns() %>%
     .add_gene_symbols(orgdb) %>%
     .pivot_longer_pglycoquant()
 }
@@ -101,8 +101,14 @@ read_byonic_pglycoquant <- function(
   new_df
 }
 
-.refine_byonic_columns <- function(df) {
+.refine_byonic_pglycoquant_columns <- function(df) {
   var_cols <- c("peptide", "peptide_site", "protein", "protein_site", "glycan_composition")
+  df %>%
+    .convert_byonic_columns() %>%
+    dplyr::select(all_of(var_cols), tidyselect::starts_with("Intensity"))
+}
+
+.convert_byonic_columns <- function(df) {
   df %>%
     dplyr::rename(
       peptide = "Peptide",
@@ -125,8 +131,7 @@ read_byonic_pglycoquant <- function(
       protein = stringr::str_extract(.data$protein, "(?:sp|tr)\\|(\\w+)\\|.*", group = 1),
       # HexNAc(4)Hex(4)Fuc(1)NeuAc(1) -> HexNAc(4)Hex(4)dHex(1)NeuAc(1)
       glycan_composition = stringr::str_replace(.data$glycan_composition, "Fuc", "dHex"),
-    ) %>%
-    dplyr::select(all_of(var_cols), tidyselect::starts_with("Intensity"))
+    )
 }
 
 .add_gene_symbols <- function(df, orgdb) {
@@ -173,8 +178,8 @@ read_byonic_pglycoquant <- function(
         dplyr::rename(gene = "SYMBOL")
 
       # Report conversion success
-      n_converted <- sum(!is.na(df$gene))
-      n_total <- nrow(df)
+      n_converted <- sum(!is.na(unique(df$gene)))
+      n_total <- length(unique(df$protein))
       perc_converted <- round(n_converted / n_total * 100, 1)
       cli::cli_alert_info(
         "Converted {.val {n_converted}} of {.val {n_total}} ({.val {perc_converted}}%) protein IDs to gene symbols."

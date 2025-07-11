@@ -27,6 +27,7 @@ Imports:
     glyexp (>= 0.5.1),
     glyparse (>= 0.2.0),
     glyrepr (>= 0.5.0),
+    janitor,
     magrittr,
     purrr,
     readr,
