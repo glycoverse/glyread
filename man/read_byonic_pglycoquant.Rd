@@ -10,7 +10,7 @@ read_byonic_pglycoquant(
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL,
-  bitr_db = "org.Hs.eg.db"
+  orgdb = "org.Hs.eg.db"
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ and return new sample names.
 Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
 
-\item{bitr_db}{name of the OrgDb package to use for UniProt to gene symbol conversion.
+\item{orgdb}{name of the OrgDb package to use for UniProt to gene symbol conversion.
 Default is "org.Hs.eg.db".}
 }
 \value{

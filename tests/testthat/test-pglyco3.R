@@ -11,8 +11,8 @@ test_that("it returns correct information (label-free)", {
   expect_equal(
     colnames(res$var_info),
     c(
-      "variable", "peptide", "peptide_site", "glycan_composition", "glycan_structure",
-      "protein", "gene", "protein_site"
+      "variable", "peptide", "peptide_site", "protein", "protein_site",
+      "gene", "glycan_composition", "glycan_structure"
     )
   )
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")

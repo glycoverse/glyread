@@ -10,7 +10,7 @@
 #' Files from Byonic result folder are not needed.
 #' For instructions on how to use Byonic and pGlycoQuant, please refer to
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
-#' 
+#'
 #' @section Multisite glycopeptides:
 #' Currently, only single-site glycopeptides are supported.
 #' Multisite glycopeptides will be removed.
@@ -30,7 +30,7 @@
 #' - `gene`: character, gene symbols
 #'
 #' @inheritParams read_pglyco3_pglycoquant
-#' @param bitr_db name of the OrgDb package to use for UniProt to gene symbol conversion.
+#' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.
 #'  Default is "org.Hs.eg.db".
 #'
 #' @returns An [glyexp::experiment()] object.
@@ -42,7 +42,7 @@ read_byonic_pglycoquant <- function(
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL,
-  bitr_db = "org.Hs.eg.db"
+  orgdb = "org.Hs.eg.db"
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
@@ -54,8 +54,16 @@ read_byonic_pglycoquant <- function(
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
   if (quant_method == "label-free") {
-    exp <- .read_byonic_pglycoquant_label_free(
-      fp, sample_info, glycan_type, sample_name_converter, bitr_db
+    cli::cli_progress_step("Reading data")
+    df <- .read_byonic_df(fp)
+    tidy_df <- .tidy_byonic_pglycoquant(df, orgdb)
+    exp <- .read_template(
+      tidy_df,
+      sample_info,
+      glycan_type,
+      quant_method,
+      sample_name_converter,
+      composition_parser = glyrepr::as_glycan_composition
     )
   } else {
     rlang::abort("TMT quantification is not supported yet.")
@@ -64,49 +72,15 @@ read_byonic_pglycoquant <- function(
   exp
 }
 
-
-.read_byonic_pglycoquant_label_free <- function(
-  fp,
-  sample_info,
-  glycan_type,
-  sample_name_converter,
-  bitr_db
-) {
-  # ----- Read data -----
-  cli::cli_progress_step("Reading data")
-  df <- .read_byonic_file_into_tibble(fp)
-  df <- .remove_multisite_byonic(df)
-  expr_mat <- .extract_expr_mat_from_pglycoquant(df)
-  samples <- .extract_sample_names_from_pglycoquant(df, sample_name_converter)
-  sample_info <- .process_sample_info(sample_info, samples, glycan_type)
-  var_info <- .extract_var_info_from_byonic(df, bitr_db)
-  colnames(expr_mat) <- sample_info$sample
-  rownames(expr_mat) <- var_info$variable
-
-  # ---- Aggregate PSMs to glycopeptides -----
-  cli::cli_progress_step("Aggregating PSMs to glycopeptides")
-  aggregated_result <- .aggregate_wide(var_info, expr_mat)
-  var_info <- aggregated_result$var_info
-  expr_mat <- aggregated_result$expr_mat
-
-  # ----- Parse glycan compositions -----
-  cli::cli_progress_step("Parsing glycan compositions")
-  var_info <- dplyr::mutate(var_info,
-    glycan_composition = glyrepr::as_glycan_composition(.data$glycan_composition)
-  )
-
-  # ----- Pack Experiment -----
-  cli::cli_progress_step("Packing experiment")
-  glyexp::experiment(
-    expr_mat, sample_info, var_info,
-    exp_type = "glycoproteomics",
-    glycan_type = glycan_type,
-    quant_method = "label-free"
-  )
+.tidy_byonic_pglycoquant <- function(df, orgdb) {
+  df %>%
+    .remove_multisite_byonic() %>%
+    .refine_byonic_columns() %>%
+    .add_gene_symbols(orgdb) %>%
+    .pivot_longer_pglycoquant()
 }
 
-
-.read_byonic_file_into_tibble <- function(fp) {
+.read_byonic_df <- function(fp) {
   col_types <- readr::cols(
     Peptide = readr::col_character(),
     `Protein Name` = readr::col_character(),
@@ -119,7 +93,6 @@ read_byonic_pglycoquant <- function(
   )
 }
 
-
 .remove_multisite_byonic <- function(df) {
   new_df <- dplyr::filter(df, !stringr::str_detect(.data$Composition, stringr::fixed(",")))
   n_removed <- nrow(df) - nrow(new_df)
@@ -128,17 +101,15 @@ read_byonic_pglycoquant <- function(
   new_df
 }
 
-
-.extract_var_info_from_byonic <- function(df, bitr_db) {
-  new_names <- c(
-    peptide = "Peptide",
-    protein = "Protein Name",
-    protein_site = "Position",
-    glycan_composition = "Composition"
-  )
-
-  var_info <- df %>%
-    dplyr::select(all_of(new_names)) %>%
+.refine_byonic_columns <- function(df) {
+  var_cols <- c("peptide", "peptide_site", "protein", "protein_site", "glycan_composition")
+  df %>%
+    dplyr::rename(
+      peptide = "Peptide",
+      protein = "Protein Name",
+      protein_site = "Position",
+      glycan_composition = "Composition"
+    ) %>%
     dplyr::mutate(
       # K.N[+203.07937]GTR.G -> K.nGTR.G (mark glycosylated N)
       peptide = stringr::str_replace(.data$peptide, "N\\[.+?\\]", "n"),
@@ -155,31 +126,28 @@ read_byonic_pglycoquant <- function(
       # HexNAc(4)Hex(4)Fuc(1)NeuAc(1) -> HexNAc(4)Hex(4)dHex(1)NeuAc(1)
       glycan_composition = stringr::str_replace(.data$glycan_composition, "Fuc", "dHex"),
     ) %>%
-    dplyr::mutate(variable = stringr::str_c("PSM", dplyr::row_number()), .before = 1) %>%
-    .add_gene_symbols(bitr_db)
-
-  var_info
+    dplyr::select(all_of(var_cols), tidyselect::starts_with("Intensity"))
 }
 
-.add_gene_symbols <- function(var_info, bitr_db) {
-  if (!requireNamespace(bitr_db, quietly = TRUE)) {
-    cli::cli_alert_info("Package `{bitr_db}` not installed. Skipping gene symbol conversion.")
-    return(var_info)
+.add_gene_symbols <- function(df, orgdb) {
+  if (!requireNamespace(orgdb, quietly = TRUE)) {
+    cli::cli_alert_info("Package `{orgdb}` not installed. Skipping gene symbol conversion.")
+    return(df)
   }
 
   # Get unique protein IDs (uniprot IDs)
-  unique_proteins <- unique(var_info$protein)
+  unique_proteins <- unique(df$protein)
   unique_proteins <- unique_proteins[!is.na(unique_proteins)]
 
   if (length(unique_proteins) == 0) {
     cli::cli_alert_info("No valid protein IDs found, skipping gene symbol conversion.")
-    return(var_info)
+    return(df)
   }
 
   # Try to convert uniprot IDs to gene symbols
   tryCatch(
     {
-      org_db <- utils::getFromNamespace(bitr_db, bitr_db)
+      org_db <- utils::getFromNamespace(orgdb, orgdb)
 
       # Use mapIds to convert UNIPROT to SYMBOL
       mapped_symbols <- suppressMessages(AnnotationDbi::mapIds(
@@ -197,16 +165,16 @@ read_byonic_pglycoquant <- function(
         tidyr::drop_na("SYMBOL")
 
       # Join with var_info to add gene symbols
-      var_info <- dplyr::left_join(
-        var_info,
+      df <- dplyr::left_join(
+        df,
         id_mapping,
         by = c("protein" = "UNIPROT")
       ) %>%
         dplyr::rename(gene = "SYMBOL")
 
       # Report conversion success
-      n_converted <- sum(!is.na(var_info$gene))
-      n_total <- nrow(var_info)
+      n_converted <- sum(!is.na(df$gene))
+      n_total <- nrow(df)
       perc_converted <- round(n_converted / n_total * 100, 1)
       cli::cli_alert_info(
         "Converted {.val {n_converted}} of {.val {n_total}} ({.val {perc_converted}}%) protein IDs to gene symbols."
@@ -219,5 +187,5 @@ read_byonic_pglycoquant <- function(
     }
   )
 
-  var_info
+  df
 }

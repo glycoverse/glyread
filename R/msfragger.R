@@ -30,11 +30,21 @@ read_msfragger <- function(
 
   # ----- Read data -----
   if (quant_method == "label-free") {
+    cli::cli_progress_step("Reading data")
     fps <- fs::dir_ls(dp, glob = "*/psm.tsv", recurse = TRUE)
     if (length(fps) == 0) {
       rlang::abort("No psm.tsv files found in the specified directory.")
     }
-    exp <- .read_msfragger_label_free(fps, sample_info, glycan_type, sample_name_converter)
+    df <- .read_msfragger_file(fps)
+    tidy_df <- .tidy_msfragger(df)
+    exp <- .read_template(
+      tidy_df,
+      sample_info,
+      glycan_type,
+      quant_method,
+      sample_name_converter,
+      composition_parser = .parse_msfragger_glycan_composition
+    )
   } else {
     rlang::abort("TMT quantification is not supported yet.")
   }
@@ -42,38 +52,7 @@ read_msfragger <- function(
   exp
 }
 
-.read_msfragger_label_free <- function(fps, sample_info, glycan_type, sample_name_converter) {
-  # ----- Read data -----
-  cli::cli_progress_step("Reading data")
-  df <- .read_msfragger_file(fps, sample_name_converter) %>%
-    .filter_unsure_msfragger_sites() %>%
-    .convert_msfragger_columns()
-
-  # ---- Aggregate PSMs to glycopeptides -----
-  cli::cli_progress_step("Aggregating PSMs to glycopeptides")
-  aggr_res <- .aggregate_long(df)
-  var_info <- aggr_res$var_info
-  expr_mat <- aggr_res$expr_mat
-  rownames(expr_mat) <- var_info$variable
-  sample_info <- .process_sample_info(sample_info, colnames(expr_mat), glycan_type)
-
-  # ----- Parse glycan compositions -----
-  cli::cli_progress_step("Parsing glycan compositions")
-  var_info <- dplyr::mutate(var_info,
-    glycan_composition = .parse_msfragger_glycan_composition(.data$glycan_composition),
-  )
-
-  # ----- Pack Experiment -----
-  cli::cli_progress_step("Packing experiment")
-  glyexp::experiment(
-    expr_mat, sample_info, var_info,
-    exp_type = "glycoproteomics",
-    glycan_type = glycan_type,
-    quant_method = "label-free"
-  )
-}
-
-.read_msfragger_file <- function(fps, sample_name_converter) {
+.read_msfragger_file <- function(fps) {
   col_types <- readr::cols(
     `Spectrum File` = readr::col_character(),
     `Peptide` = readr::col_character(),
@@ -94,10 +73,13 @@ read_msfragger <- function(
   )
 
   df <- dplyr::mutate(df, sample = basename(dirname(.data$file)))
-  if (!is.null(sample_name_converter)) {
-    df <- dplyr::mutate(df, sample = sample_name_converter(.data$sample))
-  }
   df
+}
+
+.tidy_msfragger <- function(df) {
+  df %>%
+    .filter_unsure_msfragger_sites() %>%
+    .convert_msfragger_columns()
 }
 
 # Some PSM does not have definite glycosite assignment,

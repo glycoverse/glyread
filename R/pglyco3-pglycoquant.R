@@ -87,11 +87,17 @@ read_pglyco3_pglycoquant <- function(
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
   if (quant_method == "label-free") {
-    exp <- .read_pglyco3_pglycoquant_label_free(
-      fp,
+    cli::cli_progress_step("Reading data")
+    df <- .read_pglyco3_df(fp)
+    tidy_df <- .tidy_pglyco3_pglycoquant(df)
+    exp <- .read_template(
+      tidy_df,
       sample_info,
       glycan_type,
-      sample_name_converter
+      quant_method,
+      sample_name_converter,
+      composition_parser = .convert_pglyco3_comp,
+      structure_parser = glyparse::parse_pglyco_struc
     )
   } else {
     rlang::abort("TMT quantification is not supported yet.")
@@ -100,230 +106,9 @@ read_pglyco3_pglycoquant <- function(
   exp
 }
 
-
-.read_pglyco3_pglycoquant_label_free <- function(
-  fp,
-  sample_info = NULL,
-  glycan_type,
-  sample_name_converter
-) {
-  # ----- Read data -----
-  cli::cli_progress_step("Reading data")
-  df <- .read_pglyco3_file_into_tibble(fp)
-  expr_mat <- .extract_expr_mat_from_pglycoquant(df)
-  samples <- .extract_sample_names_from_pglycoquant(df, sample_name_converter)
-  sample_info <- .process_sample_info(sample_info, samples, glycan_type)
-  var_info <- .extract_var_info_from_pglyco3(df)
-  colnames(expr_mat) <- sample_info$sample
-  rownames(expr_mat) <- var_info$variable
-
-  # ----- Protein inference -----
-  cli::cli_progress_step("Performing protein inference")
-  var_info <- .infer_proteins(var_info)
-
-  # ----- Aggregate PSMs to glycopeptides -----
-  cli::cli_progress_step("Aggregating PSMs to glycopeptides")
-  aggregated_result <- .aggregate_wide(var_info, expr_mat)
-  var_info <- aggregated_result$var_info
-  expr_mat <- aggregated_result$expr_mat
-
-  # ----- Parse glycan compositions and structures -----
-  cli::cli_progress_step("Parsing glycan compositions and structures")
-  var_info <- dplyr::mutate(
-    var_info,
-    glycan_composition = .convert_pglyco3_comp(.data$glycan_composition),
-    glycan_structure = glyparse::parse_pglyco_struc(.data$glycan_structure)
-  )
-
-  # ----- Pack Experiment -----
-  cli::cli_progress_step("Packing experiment")
-  glyexp::experiment(
-    expr_mat, sample_info, var_info,
-    exp_type = "glycoproteomics",
-    glycan_type = glycan_type,
-    quant_method = "label-free"
-  )
-}
-
-
-# Extract variable information from pGlyco3 result
-# Glycan composition and structure are not parsed here
-# A "variable" column is added to the tibble
-.extract_var_info_from_pglyco3 <- function(df) {
-  var_info_cols <- c(
-    "peptide", "peptide_site", "proteins", "protein_sites", "genes",
-    "glycan_composition", "glycan_structure"
-  )
+.tidy_pglyco3_pglycoquant <- function(df) {
   df %>%
     .convert_pglyco3_columns() %>%
-    dplyr::select(all_of(var_info_cols)) %>%
-    dplyr::mutate(variable = stringr::str_c("PSM", dplyr::row_number()), .before = 1)
-}
-
-.convert_pglyco3_columns <- function(df) {
-  new_names <- c(
-    peptide = "Peptide",
-    proteins = "Proteins",
-    genes = "Genes",
-    glycan_composition = "GlycanComposition",
-    glycan_structure = "PlausibleStruct",
-    peptide_site = "GlySite",
-    protein_sites = "ProSites"
-  )
-  df %>%
-    dplyr::rename(all_of(new_names)) %>%
-    dplyr::mutate(
-      genes = stringr::str_remove(.data$genes, ";$"),
-      proteins = stringr::str_replace_all(.data$proteins, "sp\\|(\\w+)\\|\\w+", "\\1")
-    )
-}
-
-.read_pglyco3_file_into_tibble <- function(fp) {
-  col_types <- readr::cols(
-    Peptide = readr::col_character(),
-    Proteins = readr::col_character(),
-    Genes = readr::col_character(),
-    GlycanComposition = readr::col_character(),
-    PlausibleStruct = readr::col_character(),
-    GlySite = readr::col_integer(),
-    ProSites = readr::col_character(),
-    Charge = readr::col_integer(),
-    Mod = readr::col_character()
-  )
-
-  # TODO: check column existence
-  suppressWarnings(
-    suppressMessages(readr::read_tsv(fp, col_types = col_types, progress = FALSE)),
-    classes = "vroom_mismatched_column_name"
-  )
-}
-
-
-.convert_pglyco3_comp <- function(x) {
-  # Define mapping from pGlyco3 notation to generic monosaccharides
-  pglyco_to_generic <- c(
-    "H" = "Hex",      # Hexose
-    "N" = "HexNAc",   # N-Acetylhexosamine  
-    "A" = "NeuAc",    # N-Acetylneuraminic acid
-    "G" = "HexA",     # Hexuronic acid
-    "F" = "dHex"      # Deoxyhexose (Fucose)
-  )
-  
-  extract_n_mono <- function(comp, mono) {
-    n <- stringr::str_extract(comp, paste0(mono, "\\((\\d+)\\)"), group = 1)
-    dplyr::if_else(is.na(n), 0L, as.integer(n))
-  }
-
-  unique_x <- unique(x)
-  comp_df <- purrr::map_dfc(names(pglyco_to_generic), ~ {
-    counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
-    tibble::tibble(!!pglyco_to_generic[[.x]] := counts)
-  })
-  
-  # Convert each row to a glyrepr_composition object for unique values
-  unique_compositions <- purrr::pmap(comp_df, function(...) {
-    counts <- c(...)
-    counts <- counts[counts > 0]
-    if (length(counts) == 0) {
-      return(glyrepr::as_glycan_composition(integer(0)))
-    }
-    glyrepr::as_glycan_composition(counts)
-  })
-
-  unique_compositions <- do.call(c, unique_compositions)
-  compositions <- unique_compositions[match(x, unique_x)]
-  compositions
-}
-
-# ----- Internal protein inference functions -----
-.infer_proteins <- function(var_info) {
-  # Parse the proteins, genes, and protein_sites columns
-  pep_df <- dplyr::distinct(var_info, .data$peptide, .data$proteins, .data$genes, .data$protein_sites)
-  proteins_list <- stringr::str_split(pep_df$proteins, ";")
-  genes_list <- stringr::str_split(pep_df$genes, ";")
-  protein_sites_list <- stringr::str_split(pep_df$protein_sites, ";")
-
-  # Create a mapping from protein to glycopeptide indices
-  protein_to_gp <- proteins_list %>%
-    purrr::imap(~ tibble::tibble(protein = .x, gp_idx = .y)) %>%
-    dplyr::bind_rows() %>%
-    dplyr::group_by(.data$protein) %>%
-    dplyr::summarise(gp_indices = list(.data$gp_idx), .groups = "drop") %>%
-    (function(x) stats::setNames(x$gp_indices, x$protein))
-  
-  # Greedy set cover algorithm
-  uncovered_gps <- seq_len(nrow(pep_df))
-  selected_proteins <- character(0)
-  
-  while (length(uncovered_gps) > 0) {
-    # Find the protein that covers the most uncovered glycopeptides
-    available_proteins <- setdiff(names(protein_to_gp), selected_proteins)
-    
-    if (length(available_proteins) == 0) break
-    
-    # Calculate coverage for all available proteins
-    coverages <- available_proteins %>%
-      purrr::map_int(~ length(intersect(protein_to_gp[[.x]], uncovered_gps))) %>%
-      purrr::set_names(available_proteins)
-    
-    # Find the protein with maximum coverage
-    max_coverage <- max(coverages)
-    if (max_coverage == 0) break
-    
-    best_protein <- names(coverages)[which.max(coverages)]
-    
-    # Add the best protein to the selected set
-    selected_proteins <- c(selected_proteins, best_protein)
-    
-    # Remove covered glycopeptides from uncovered set
-    uncovered_gps <- setdiff(uncovered_gps, protein_to_gp[[best_protein]])
-  }
-  
-  # Calculate coverage count for each selected protein
-  protein_coverage_count <- selected_proteins %>%
-    purrr::map_int(~ length(protein_to_gp[[.x]])) %>%
-    purrr::set_names(selected_proteins)
-  
-  # Assign each glycopeptide to the selected protein with most coverage
-  assignments <- purrr::pmap(
-    list(proteins_list, genes_list, protein_sites_list),
-    function(prots, genes, sites) {
-      # Find available selected proteins for this glycopeptide
-      available_selected <- intersect(prots, selected_proteins)
-      
-      if (length(available_selected) > 0) {
-        # Choose the protein with highest coverage count
-        # If tie, choose the first one
-        best_protein <- available_selected[which.max(protein_coverage_count[available_selected])]
-        
-        # Find the corresponding gene and site
-        best_idx <- which(prots == best_protein)[1]
-        
-        list(
-          protein = best_protein,
-          gene = genes[best_idx],
-          site = sites[best_idx]
-        )
-      } else {
-        list(protein = NA_character_, gene = NA_character_, site = NA_character_)
-      }
-    }
-  )
-  
-  assigned_protein <- purrr::map_chr(assignments, ~ .x$protein)
-  assigned_gene <- purrr::map_chr(assignments, ~ .x$gene) 
-  assigned_site <- purrr::map_chr(assignments, ~ .x$site)
-  
-  # Update var_info with protein inference results
-  new_old_map <- pep_df %>%
-    dplyr::mutate(
-      protein = assigned_protein,
-      gene = assigned_gene,
-      protein_site = as.integer(assigned_site)
-    )
-  new_var_info <- var_info %>%
-    dplyr::left_join(new_old_map, by = c("peptide", "proteins", "genes", "protein_sites")) %>%
-    dplyr::select(-tidyselect::all_of(c("proteins", "genes", "protein_sites")))
-
-  new_var_info
+    .infer_proteins() %>%
+    .pivot_longer_pglycoquant()
 }

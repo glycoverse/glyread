@@ -3,6 +3,7 @@
 export(read_byonic_pglycoquant)
 export(read_glyhunter)
 export(read_msfragger)
+export(read_pglyco3)
 export(read_pglyco3_pglycoquant)
 importFrom(magrittr,"%>%")
 importFrom(rlang,.data)
