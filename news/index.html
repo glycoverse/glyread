@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,23 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.0" id="glyread-040">glyread 0.4.0<a class="anchor" aria-label="anchor" href="#glyread-040"></a></h2>
+<div class="section level3">
+<h3 id="major-changes-0-4-0">Major changes<a class="anchor" aria-label="anchor" href="#major-changes-0-4-0"></a></h3>
+<p>This is a big update! In addition to several new workflows supported, we redesign the API to make <code>read_xxx()</code> functions behave more consistently. Now the <code>read_xxx()</code> functions will try to return experiments with similar variable information format. To ensure this, some functions perform protein inference automatically to resolve protein ambiguity, and some functions add a “gene” column by mapping protein accessions to gene symbols. Besides, all <code>read_xxx()</code> functions now aggregate quantification from PSM to the glycopeptide level.</p>
+<p>Detailed list:</p>
+<ul><li>Add <code><a href="../reference/read_pglyco3.html">read_pglyco3()</a></code> to read results from pGlyco3 (with built-in quantification).</li>
+<li>Add <code><a href="../reference/read_byonic_byologic.html">read_byonic_byologic()</a></code> to read results from Byonic with Byologic quantification.</li>
+<li>All functions now automatically perform PSM aggregation to ensure glycopeptide-level quantification.</li>
+<li>Redesign <code><a href="../reference/read_msfragger.html">read_msfragger()</a></code> to support multiple PSM files. No awkward manul post-processing is needed anymore.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-improvements-0-4-0">Minor improvements<a class="anchor" aria-label="anchor" href="#minor-improvements-0-4-0"></a></h3>
+<ul><li>Remove <code>protein_inference_method</code> parameter from <code><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code>. The function now performs the “parsimony” protein inference algorithm.</li>
+<li>Optimize the logic of protein inference. For ties, alphabetical order is used.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.2" id="glyread-032">glyread 0.3.2<a class="anchor" aria-label="anchor" href="#glyread-032"></a></h2>
 <div class="section level3">
