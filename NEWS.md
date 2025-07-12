@@ -1,3 +1,27 @@
+# glyread 0.4.0
+
+## Major changes
+
+This is a big update! In addition to several new workflows supported,
+we redesign the API to make `read_xxx()` functions behave more consistently.
+Now the `read_xxx()` functions will try to return experiments with similar variable information format.
+To ensure this, some functions perform protein inference automatically to resolve protein ambiguity,
+and some functions add a "gene" column by mapping protein accessions to gene symbols.
+Besides, all `read_xxx()` functions now aggregate quantification from PSM to the glycopeptide level.
+
+Detailed list:
+
+* Add `read_pglyco3()` to read results from pGlyco3 (with built-in quantification).
+* Add `read_byonic_byologic()` to read results from Byonic with Byologic quantification.
+* All functions now automatically perform PSM aggregation to ensure glycopeptide-level quantification.
+* Redesign `read_msfragger()` to support multiple PSM files. No awkward manul post-processing is needed anymore.
+
+## Minor improvements
+
+* Remove `protein_inference_method` parameter from `read_pglyco3_pglycoquant()`.
+  The function now performs the "parsimony" protein inference algorithm.
+* Optimize the logic of protein inference. For ties, alphabetical order is used.
+
 # glyread 0.3.2
 
 ## Minor improvements
