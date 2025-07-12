@@ -11,6 +11,8 @@ Description: This package reads and processes quantification results from
     for further analysis.
 License: MIT + file LICENSE
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3
@@ -40,3 +42,4 @@ Remotes:
     glycoverse/glyexp,
     glycoverse/glyparse,
     glycoverse/glyrepr
+VignetteBuilder: knitr
