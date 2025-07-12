@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="articles/glyread.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
@@ -54,7 +55,7 @@
 </div>
 <!-- badges: start -->
 
-<p>The goal of glyread is to read and process quantification results from common glycomics and glycoproteomics software, such as Byonic, StrucGP, or pGlyco, and convert them into a <code>glyexp_experiment</code> object (from the <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a> package) for further analysis.</p>
+<p>The goal of glyread is to read and process quantification results from common glycomics and glycoproteomics software, such as Byonic, StrucGP, or pGlyco, and convert them into a <code>glyexp::expriment()</code> object (from the <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a> package) for further analysis.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -62,6 +63,22 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"glycoverse/glyread"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<ul>
+<li>Getting started: <a href="https://glycoverse.github.io/glyread/articles/glyread.html">Here</a>
+</li>
+<li>Reference: <a href="https://glycoverse.github.io/glyread/reference/index.html">Here</a>
+</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="role-in-glycoverse">Role in <code>glycoverse</code>
+<a class="anchor" aria-label="anchor" href="#role-in-glycoverse"></a>
+</h2>
+<p><code>glyread</code> is the entry point for the <code>glycoverse</code> ecosystem. It provides a unified interface for reading and processing data from various glycomics and glycoproteomics software, and converting them into a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object for further analysis.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
