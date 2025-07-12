@@ -65,13 +65,13 @@ read_byonic_byologic <- function(
 .read_byonic_byologic_df <- function(fp) {
   selected_cols <- readr::cols_only(
     `Row#` = readr::col_character(),
-    `Protein\r\nname` = readr::col_character(),
+    `Protein\nname` = readr::col_character(),
     `Sequence` = readr::col_character(),
     `Glycans` = readr::col_character(),
-    `XIC area\r\nsummed` = readr::col_double(),
-    `MS\r\nAlias name` = readr::col_character(),
-    `Mod.\r\nSummary` = readr::col_character(),
-    `Start\r\nAA` = readr::col_integer()
+    `XIC area\nsummed` = readr::col_double(),
+    `MS\nAlias name` = readr::col_character(),
+    `Mod.\nSummary` = readr::col_character(),
+    `Start\nAA` = readr::col_integer()
   )
   df <- suppressWarnings(
     suppressMessages(readr::read_csv(fp, col_types = selected_cols, progress = FALSE)),
