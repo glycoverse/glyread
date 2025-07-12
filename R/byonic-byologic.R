@@ -63,23 +63,27 @@ read_byonic_byologic <- function(
 }
 
 .read_byonic_byologic_df <- function(fp) {
-  selected_cols <- readr::cols_only(
-    `Row#` = readr::col_character(),
-    `Protein\nname` = readr::col_character(),
-    `Sequence` = readr::col_character(),
-    `Glycans` = readr::col_character(),
-    `XIC area\nsummed` = readr::col_double(),
-    `MS\nAlias name` = readr::col_character(),
-    `Mod.\nSummary` = readr::col_character(),
-    `Start\nAA` = readr::col_integer()
+  df_raw <- readr::read_csv(fp, progress = FALSE, show_col_types = FALSE)
+  df_clean <- df_raw |> janitor::clean_names()
+
+  # Define expected column types based on cleaned names
+  expected_cols <- readr::cols(
+    row_number = readr::col_character(),      # Row#
+    protein_name = readr::col_character(),    # Protein\nname or Protein\r\nname
+    sequence = readr::col_character(),        # Sequence
+    glycans = readr::col_character(),         # Glycans
+    xic_area_summed = readr::col_double(),    # XIC area\nsummed or XIC area\r\nsummed
+    ms_alias_name = readr::col_character(),   # MS\nAlias name or MS\r\nAlias name
+    mod_summary = readr::col_character(),     # Mod.\nSummary or Mod.\r\nSummary
+    start_aa = readr::col_integer()           # Start\nAA or Start\r\nAA
   )
-  df <- suppressWarnings(
-    suppressMessages(readr::read_csv(fp, col_types = selected_cols, progress = FALSE)),
-    classes = "vroom_mismatched_column_name"
-  ) %>%
-  # The new column names: row_number, protein_name, sequence, glycans, mod_summary,
-  # xic_area_summed, ms_alias_name, start_aa
-  janitor::clean_names()
+
+  # Apply type conversion to the cleaned data
+  df_typed <- df_clean |>
+    dplyr::select(dplyr::any_of(names(expected_cols$cols))) |>
+    readr::type_convert(col_types = expected_cols)
+
+  return(df_typed)
 }
 
 .tidy_byonic_byologic <- function(df, orgdb) {
@@ -151,7 +155,7 @@ read_byonic_byologic <- function(
       peptide_site = stringr::str_extract(.data$mod_summary, "N(\\d+)\\(NGlycan", group = 1),
       peptide_site = as.integer(.data$peptide_site),
       # Add protein_site
-      protein_site = .data$start_aa + .data$peptide_site - 1L
+      protein_site = as.integer(.data$start_aa + .data$peptide_site - 1L)
     ) %>%
     dplyr::rename(all_of(c(sample = "ms_alias_name", value = "xic_area_summed"))) %>%
     dplyr::select(all_of(selected_cols))
