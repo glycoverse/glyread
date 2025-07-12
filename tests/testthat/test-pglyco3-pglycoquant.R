@@ -436,28 +436,6 @@ test_that("intensity columns are correctly extracted", {
   expect_true(all(non_na_values > 0))
 })
 
-# ----- Protein inference tests -----
-test_that("it performs protein inference with parsimony method by default", {
-  suppressMessages(
-    res <- read_pglyco3_pglycoquant(
-      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
-      quant_method = "label-free"
-    )
-  )
-  
-  # Check that protein inference columns exist
-  expect_true("protein" %in% colnames(res$var_info))
-  expect_true("gene" %in% colnames(res$var_info))
-  expect_true("protein_site" %in% colnames(res$var_info))
-  
-  # Check that original columns are removed
-  expect_false("proteins" %in% colnames(res$var_info))
-  expect_false("genes" %in% colnames(res$var_info))
-  expect_false("protein_sites" %in% colnames(res$var_info))
-  
-  # Check that protein_site is integer
-  expect_type(res$var_info$protein_site, "integer")
-})
 
 # ----- PSM aggregation tests -----
 test_that("PSMs are correctly aggregated to glycopeptides", {

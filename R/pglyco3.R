@@ -106,7 +106,7 @@ read_pglyco3 <- function(
 .tidy_pglyco3 <- function(df) {
   df %>%
     .convert_pglyco3_columns() %>%
-    .infer_proteins() %>%
+    .infer_proteins_df() %>%
     dplyr::rename(sample = "RawName", value = "MonoArea")
 }
 
@@ -179,98 +179,4 @@ read_pglyco3 <- function(
   unique_compositions <- do.call(c, unique_compositions)
   compositions <- unique_compositions[match(x, unique_x)]
   compositions
-}
-
-# ----- Internal protein inference functions -----
-.infer_proteins <- function(df) {
-  cli::cli_progress_step("Performing protein inference")
-  # Parse the proteins, genes, and protein_sites columns
-  pep_df <- dplyr::distinct(df, .data$peptide, .data$proteins, .data$genes, .data$protein_sites)
-  proteins_list <- stringr::str_split(pep_df$proteins, ";")
-  genes_list <- stringr::str_split(pep_df$genes, ";")
-  protein_sites_list <- stringr::str_split(pep_df$protein_sites, ";")
-
-  # Create a mapping from protein to glycopeptide indices
-  protein_to_gp <- proteins_list %>%
-    purrr::imap(~ tibble::tibble(protein = .x, gp_idx = .y)) %>%
-    dplyr::bind_rows() %>%
-    dplyr::group_by(.data$protein) %>%
-    dplyr::summarise(gp_indices = list(.data$gp_idx), .groups = "drop") %>%
-    (function(x) stats::setNames(x$gp_indices, x$protein))
-  
-  # Greedy set cover algorithm
-  uncovered_gps <- seq_len(nrow(pep_df))
-  selected_proteins <- character(0)
-  
-  while (length(uncovered_gps) > 0) {
-    # Find the protein that covers the most uncovered glycopeptides
-    available_proteins <- setdiff(names(protein_to_gp), selected_proteins)
-    
-    if (length(available_proteins) == 0) break
-    
-    # Calculate coverage for all available proteins
-    coverages <- available_proteins %>%
-      purrr::map_int(~ length(intersect(protein_to_gp[[.x]], uncovered_gps))) %>%
-      purrr::set_names(available_proteins)
-    
-    # Find the protein with maximum coverage
-    max_coverage <- max(coverages)
-    if (max_coverage == 0) break
-    
-    best_protein <- names(coverages)[which.max(coverages)]
-    
-    # Add the best protein to the selected set
-    selected_proteins <- c(selected_proteins, best_protein)
-    
-    # Remove covered glycopeptides from uncovered set
-    uncovered_gps <- setdiff(uncovered_gps, protein_to_gp[[best_protein]])
-  }
-  
-  # Calculate coverage count for each selected protein
-  protein_coverage_count <- selected_proteins %>%
-    purrr::map_int(~ length(protein_to_gp[[.x]])) %>%
-    purrr::set_names(selected_proteins)
-  
-  # Assign each glycopeptide to the selected protein with most coverage
-  assignments <- purrr::pmap(
-    list(proteins_list, genes_list, protein_sites_list),
-    function(prots, genes, sites) {
-      # Find available selected proteins for this glycopeptide
-      available_selected <- intersect(prots, selected_proteins)
-      
-      if (length(available_selected) > 0) {
-        # Choose the protein with highest coverage count
-        # If tie, choose the first one
-        best_protein <- available_selected[which.max(protein_coverage_count[available_selected])]
-        
-        # Find the corresponding gene and site
-        best_idx <- which(prots == best_protein)[1]
-        
-        list(
-          protein = best_protein,
-          gene = genes[best_idx],
-          site = sites[best_idx]
-        )
-      } else {
-        list(protein = NA_character_, gene = NA_character_, site = NA_character_)
-      }
-    }
-  )
-  
-  assigned_protein <- purrr::map_chr(assignments, ~ .x$protein)
-  assigned_gene <- purrr::map_chr(assignments, ~ .x$gene) 
-  assigned_site <- purrr::map_chr(assignments, ~ .x$site)
-  
-  # Update var_info with protein inference results
-  new_old_map <- pep_df %>%
-    dplyr::mutate(
-      protein = assigned_protein,
-      gene = assigned_gene,
-      protein_site = as.integer(assigned_site)
-    )
-  new_df <- df %>%
-    dplyr::left_join(new_old_map, by = c("peptide", "proteins", "genes", "protein_sites")) %>%
-    dplyr::select(-tidyselect::all_of(c("proteins", "genes", "protein_sites")))
-
-  new_df
 }

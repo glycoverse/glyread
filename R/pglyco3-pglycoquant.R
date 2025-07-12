@@ -109,6 +109,6 @@ read_pglyco3_pglycoquant <- function(
 .tidy_pglyco3_pglycoquant <- function(df) {
   df %>%
     .convert_pglyco3_columns() %>%
-    .infer_proteins() %>%
+    .infer_proteins_df() %>%
     .pivot_longer_pglycoquant()
 }
