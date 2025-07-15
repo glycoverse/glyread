@@ -1,4 +1,14 @@
+# glyread 0.4.2
+
+## Minor improvements
+
+* Remove redundant emoji in the "Getting Started" vignette.
+
 # glyread 0.4.1
+
+## Minor improvements
+
+* Add a "Getting Started" vignette.
 
 # glyread 0.4.0
 
