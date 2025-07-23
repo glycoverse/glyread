@@ -13,7 +13,7 @@ Currently only label-free quantification is supported."><meta property="og:image
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,7 +21,9 @@ Currently only label-free quantification is supported."><meta property="og:image
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/glyread.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -59,7 +61,7 @@ Currently only label-free quantification is supported.</p>
 
 
 <dl><dt id="arg-fp">fp<a class="anchor" aria-label="anchor" href="#arg-fp"></a></dt>
-<dd><p>File path of the pGlyco3 result file.</p></dd>
+<dd><p>File path of the pGlycoQuant result file.</p></dd>
 
 
 <dt id="arg-sample-info">sample_info<a class="anchor" aria-label="anchor" href="#arg-sample-info"></a></dt>
@@ -106,19 +108,31 @@ required for most downstream analyses</p></li>
 <li><p><code>batch</code>: batch information, required for batch effect correction</p></li>
 </ul></div>
     <div class="section level2">
+    <h2 id="protein-inference">Protein inference<a class="anchor" aria-label="anchor" href="#protein-inference"></a></h2>
+    <p>By default, this function automatically performs protein inference using the
+parsimony method to resolve shared glycopeptides. This converts the plural
+columns (<code>proteins</code>, <code>genes</code>, <code>protein_sites</code>) to singular equivalents
+(<code>protein</code>, <code>gene</code>, <code>protein_site</code>).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="aggregation">Aggregation<a class="anchor" aria-label="anchor" href="#aggregation"></a></h2>
+    <p>pGlycoQuant performs quantification on the PSM level.
+This level of information is too detailed for most downstream analyses.
+This function aggregate PSMs into glycopeptides through summation.
+For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
+"gene", "glycan_composition", "glycan_structure"),
+we sum up the quantifications of all PSMs that belong to this glycopeptide.</p>
+    </div>
+    <div class="section level2">
     <h2 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a></h2>
     <p>This function returns a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object.</p>
-<p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>charge</code>: integer, charge state</p></li>
-<li><p><code>peptide</code>: character, peptide sequence</p></li>
-<li><p><code>modifications</code>: character, modifications other than glycosylation,
-separated by semicolon, e.g. <code>5,Carbamidomethyl[C];10,Carbamidomethyl[C]</code></p></li>
+<p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
+<li><p><code>peptide_site</code>: integer, site of glycosylation on peptide</p></li>
+<li><p><code>protein</code>: character, protein accession (after protein inference)</p></li>
+<li><p><code>protein_site</code>: integer, site of glycosylation on protein (after protein inference)</p></li>
+<li><p><code>gene</code>: character, gene name (symbol) (after protein inference)</p></li>
 <li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>
 <li><p><code>glycan_structure</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_structure.html" class="external-link">glyrepr::glycan_structure()</a></code>, glycan structures.</p></li>
-<li><p><code>peptide_site</code>: integer, site of glycosylation on peptide</p></li>
-<li><p><code>proteins</code>: character, protein names, separated by semicolon</p></li>
-<li><p><code>genes</code>: character, gene names, separated by semicolon</p></li>
-<li><p><code>protein_sites</code>: character, site of glycosylation on protein,
-separated by semicolon</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
