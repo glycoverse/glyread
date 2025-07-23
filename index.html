@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,9 +32,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/glyread.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -55,7 +53,7 @@
 </div>
 <!-- badges: start -->
 
-<p>The goal of glyread is to read and process quantification results from common glycomics and glycoproteomics software, such as Byonic, StrucGP, or pGlyco, and convert them into a <code>glyexp::expriment()</code> object (from the <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a> package) for further analysis.</p>
+<p>The goal of glyread is to read and process quantification results from common glycomics and glycoproteomics software, such as Byonic, StrucGP, or pGlyco, and convert them into a <code>glyexp_experiment</code> object (from the <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a> package) for further analysis.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -65,34 +63,9 @@
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"glycoverse/glyread"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
-</h2>
-<ul>
-<li>Getting started: <a href="https://glycoverse.github.io/glyread/articles/glyread.html">Here</a>
-</li>
-<li>Reference: <a href="https://glycoverse.github.io/glyread/reference/index.html">Here</a>
-</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="role-in-glycoverse">Role in <code>glycoverse</code>
-<a class="anchor" aria-label="anchor" href="#role-in-glycoverse"></a>
-</h2>
-<p><code>glyread</code> is the entry point for the <code>glycoverse</code> ecosystem. It provides a unified interface for reading and processing data from various glycomics and glycoproteomics software, and converting them into a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object for further analysis.</p>
-</div>
-<div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>Used pGlyco3 and pGlycoQuant for glycopeptide identification and quantification? Try <code><a href="reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code>!</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://glycoverse.github.io/glyread/">glyread</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant</a></span><span class="op">(</span></span>
-<span>  <span class="st">"path/to/pGlyco3-pGlycoQuant/result/Quant.spectra.list"</span>,</span>
-<span>  sample_info <span class="op">=</span> <span class="st">"path/to/sample_info.csv"</span>,</span>
-<span>  quant_method <span class="op">=</span> <span class="st">"label-free"</span>,</span>
-<span>  glycan_type <span class="op">=</span> <span class="st">"N"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<p>Coming soon…</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
