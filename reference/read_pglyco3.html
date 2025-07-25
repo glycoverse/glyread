@@ -49,7 +49,8 @@ Currently only label-free quantification is supported.</p>
 <span>  sample_info <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  quant_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"label-free"</span>, <span class="st">"TMT"</span><span class="op">)</span>,</span>
 <span>  glycan_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"N"</span>, <span class="st">"O"</span><span class="op">)</span>,</span>
-<span>  sample_name_converter <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  sample_name_converter <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  parse_structure <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -81,6 +82,13 @@ and return new sample names.
 Note that sample names in <code>sample_info</code> should match the new names.
 If NULL, original names are kept.</p></dd>
 
+
+<dt id="arg-parse-structure">parse_structure<a class="anchor" aria-label="anchor" href="#arg-parse-structure"></a></dt>
+<dd><p>Logical. Whether to parse glycan structures.
+If <code>TRUE</code>, glycan structures are parsed and included in the
+<code>var_info</code> as <code>glycan_structure</code> column. If <code>FALSE</code> (default), structure parsing
+is skipped and structure-related columns are removed.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -105,10 +113,11 @@ required for most downstream analyses</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="protein-inference">Protein inference<a class="anchor" aria-label="anchor" href="#protein-inference"></a></h2>
-    <p>By default, this function automatically performs protein inference using the
-parsimony method to resolve shared glycopeptides. This converts the plural
-columns (<code>proteins</code>, <code>genes</code>, <code>protein_sites</code>) to singular equivalents
-(<code>protein</code>, <code>gene</code>, <code>protein_site</code>).</p>
+    <p>pGlyco3 reports protein groups.
+That is, shared glycopeptides are reported as a group of proteins separated by ";".
+This function automatically performs protein inference using the
+parsimony method to find the leader proteins.
+This ensures each glycopeptide is uniquely mapped to a single protein, gene, and glycosite.</p>
     </div>
     <div class="section level2">
     <h2 id="aggregation">Aggregation<a class="anchor" aria-label="anchor" href="#aggregation"></a></h2>
@@ -120,16 +129,23 @@ For each glycopeptide (unique combination of "peptide", "peptide_site", "protein
 we sum up the quantifications of all PSMs that belong to this glycopeptide.</p>
     </div>
     <div class="section level2">
-    <h2 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a></h2>
-    <p>This function returns a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object.</p>
-<p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
+    <h2 id="variable-information">Variable information<a class="anchor" aria-label="anchor" href="#variable-information"></a></h2>
+    <p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
 <li><p><code>peptide_site</code>: integer, site of glycosylation on peptide</p></li>
 <li><p><code>protein</code>: character, protein accession (after protein inference)</p></li>
 <li><p><code>protein_site</code>: integer, site of glycosylation on protein (after protein inference)</p></li>
 <li><p><code>gene</code>: character, gene name (symbol) (after protein inference)</p></li>
 <li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>
-<li><p><code>glycan_structure</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_structure.html" class="external-link">glyrepr::glycan_structure()</a></code>, glycan structures.</p></li>
+<li><p><code>glycan_structure</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_structure.html" class="external-link">glyrepr::glycan_structure()</a></code>, glycan structures (if <code>parse_structure = TRUE</code>).</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="glycan-structures">Glycan structures<a class="anchor" aria-label="anchor" href="#glycan-structures"></a></h2>
+    <p>pGlyco3 reports a "plausible structure" for each glycan.
+You can set <code>parse_structure = TRUE</code> to parse these structures into a "glycan_structure"
+column as a <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_structure.html" class="external-link">glyrepr::glycan_structure()</a></code> vector.
+However, please take caution with these structures,
+because pGlyco3 does not have strict quality control on glycan structure annotations.</p>
+    </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code>, <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>,

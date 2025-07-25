@@ -112,6 +112,17 @@ The exported .csv file is the file you should use.</p>
 Multisite glycopeptides will be removed.</p>
     </div>
     <div class="section level2">
+    <h2 id="variable-information">Variable information<a class="anchor" aria-label="anchor" href="#variable-information"></a></h2>
+
+
+<p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
+<li><p><code>peptide_site</code>: integer, site of glycosylation on peptide</p></li>
+<li><p><code>protein</code>: character, protein accession</p></li>
+<li><p><code>protein_site</code>: integer, site of glycosylation on protein</p></li>
+<li><p><code>gene</code>: character, gene name (symbol)</p></li>
+<li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>
+</ul></div>
+    <div class="section level2">
     <h2 id="sample-information">Sample information<a class="anchor" aria-label="anchor" href="#sample-information"></a></h2>
     <p>The sample information file should be a <code>csv</code> file with the first column
 named <code>sample</code>, and the rest of the columns being sample information.
@@ -124,25 +135,13 @@ required for most downstream analyses</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="aggregation">Aggregation<a class="anchor" aria-label="anchor" href="#aggregation"></a></h2>
-    <p>pGlycoQuant performs quantification on the PSM level.
+    <p>pGlyco3 performs quantification on the PSM level.
 This level of information is too detailed for most downstream analyses.
 This function aggregate PSMs into glycopeptides through summation.
 For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
 "gene", "glycan_composition", "glycan_structure"),
 we sum up the quantifications of all PSMs that belong to this glycopeptide.</p>
     </div>
-    <div class="section level2">
-    <h2 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a></h2>
-
-
-<p>This function returns a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object.</p>
-<p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
-<li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>
-<li><p><code>peptide_site</code>: integer, site of glycosylation on peptide</p></li>
-<li><p><code>protein</code>: character, protein accessions</p></li>
-<li><p><code>protein_site</code>: integer, site of glycosylation on protein</p></li>
-<li><p><code>gene</code>: character, gene symbols</p></li>
-</ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code>, <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code></p></div>

@@ -53,7 +53,8 @@ Currently only label-free quantification is supported.</p>
 <span>  quant_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"label-free"</span>, <span class="st">"TMT"</span><span class="op">)</span>,</span>
 <span>  glycan_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"N"</span>, <span class="st">"O"</span><span class="op">)</span>,</span>
 <span>  sample_name_converter <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  orgdb <span class="op">=</span> <span class="st">"org.Hs.eg.db"</span></span>
+<span>  orgdb <span class="op">=</span> <span class="st">"org.Hs.eg.db"</span>,</span>
+<span>  parse_structure <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -90,6 +91,13 @@ If NULL, original names are kept.</p></dd>
 <dd><p>name of the OrgDb package to use for UniProt to gene symbol conversion.
 Default is "org.Hs.eg.db".</p></dd>
 
+
+<dt id="arg-parse-structure">parse_structure<a class="anchor" aria-label="anchor" href="#arg-parse-structure"></a></dt>
+<dd><p>Logical. Whether to parse glycan structures.
+If <code>TRUE</code>, glycan structures are parsed and included in the
+<code>var_info</code> as <code>glycan_structure</code> column. If <code>FALSE</code> (default), structure parsing
+is skipped and structure-related columns are removed.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -112,16 +120,16 @@ the manual: <a href="https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual
 Multisite glycopeptides will be removed.</p>
     </div>
     <div class="section level2">
-    <h2 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a></h2>
+    <h2 id="variable-information">Variable information<a class="anchor" aria-label="anchor" href="#variable-information"></a></h2>
 
 
-<p>This function returns a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object.</p>
 <p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
-<li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>
 <li><p><code>peptide_site</code>: integer, site of glycosylation on peptide</p></li>
-<li><p><code>protein</code>: character, protein accessions</p></li>
+<li><p><code>protein</code>: character, protein accession</p></li>
 <li><p><code>protein_site</code>: integer, site of glycosylation on protein</p></li>
-<li><p><code>gene</code>: character, gene symbols</p></li>
+<li><p><code>gene</code>: character, gene name (symbol)</p></li>
+<li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>
+<li><p><code>glycan_structure</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_structure.html" class="external-link">glyrepr::glycan_structure()</a></code>, glycan structures (if <code>parse_structure = TRUE</code>).</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="sample-information">Sample information<a class="anchor" aria-label="anchor" href="#sample-information"></a></h2>
@@ -136,7 +144,7 @@ required for most downstream analyses</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="aggregation">Aggregation<a class="anchor" aria-label="anchor" href="#aggregation"></a></h2>
-    <p>pGlycoQuant performs quantification on the PSM level.
+    <p>pGlyco3 performs quantification on the PSM level.
 This level of information is too detailed for most downstream analyses.
 This function aggregate PSMs into glycopeptides through summation.
 For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
