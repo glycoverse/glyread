@@ -26,10 +26,11 @@
 #'
 #' # Protein inference
 #'
-#' By default, this function automatically performs protein inference using the
-#' parsimony method to resolve shared glycopeptides. This converts the plural
-#' columns (`proteins`, `genes`, `protein_sites`) to singular equivalents
-#' (`protein`, `gene`, `protein_site`).
+#' pGlyco3 reports protein groups.
+#' That is, shared glycopeptides are reported as a group of proteins separated by ";".
+#' This function automatically performs protein inference using the
+#' parsimony method to find the leader proteins.
+#' This ensures each glycopeptide is uniquely mapped to a single protein, gene, and glycosite.
 #'
 #' # Aggregation
 #'

@@ -126,7 +126,7 @@
 # Wrapper function for data frame input (for backward compatibility)
 # This function maintains the original interface for pglyco3 functions
 .infer_proteins_df <- function(df) {
-  cli::cli_progress_step("Performing protein inference")
+  cli::cli_progress_step("Finding leader proteins")
   # Parse the proteins, genes, and protein_sites columns
   pep_df <- dplyr::distinct(df, .data$peptide, .data$proteins, .data$genes, .data$protein_sites)
   
