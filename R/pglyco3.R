@@ -152,7 +152,8 @@ read_pglyco3 <- function(
     "N" = "HexNAc",   # N-Acetylhexosamine  
     "A" = "NeuAc",    # N-Acetylneuraminic acid
     "G" = "HexA",     # Hexuronic acid
-    "F" = "dHex"      # Deoxyhexose (Fucose)
+    "F" = "dHex",     # Deoxyhexose (Fucose)
+    "aH" = "HexN"     # Hexosamine
   )
   
   extract_n_mono <- function(comp, mono) {
@@ -165,6 +166,11 @@ read_pglyco3 <- function(
     counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
     tibble::tibble(!!pglyco_to_generic[[.x]] := counts)
   })
+
+  # Deal with "pH": a Hex with a phosphate group
+  n_ph <- extract_n_mono(unique_x, "pH")
+  comp_df$Hex <- comp_df$Hex + n_ph
+  comp_df$P <- n_ph
   
   # Convert each row to a glyrepr_composition object for unique values
   unique_compositions <- purrr::pmap(comp_df, function(...) {

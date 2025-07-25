@@ -270,3 +270,10 @@ test_that("PSMs are correctly aggregated to glycopeptides", {
   # The original data has 6 unique glycopeptides after aggregation
   expect_equal(nrow(res$var_info), 6)
 })
+
+# ----- Parse glycan compositions -----
+test_that("pH and aH are correctly parsed", {
+  comps <- c("H(1)pH(1)N(1)", "H(1)aH(1)N(1)")
+  result <- glyread:::.convert_pglyco3_comp(comps)
+  expect_equal(as.character(result), c("Hex(2)HexNAc(1)P(1)", "Hex(1)HexNAc(1)HexN(1)"))
+})
