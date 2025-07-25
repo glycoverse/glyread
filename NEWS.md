@@ -1,3 +1,16 @@
+# glyread 0.5.0
+
+## Breaking changes
+
+* Add a `parse_structure` parameter to `read_pglyco3()` and `read_pglyco3_pglycoquant()`. If `FALSE` (default), glycan structure strings are not parsed, and "glycan_structure" column will not be in the variable information tibble. This improves performance when structure-based analysis is not needed, and avoids implicitly implying that the structures given by pGlyco3 is accurate. Well, they are not.
+
+## Minor improvements and bug fixes
+
+* `read_pglyco3()` and `read_pglyco3_pglycoquant()` now correctly parse "pH" and "aH" monosaccharides in glycan compositions and glycan structures.
+* Messages about protein inference changes from "Performing protein inference" to "Finding leader proteins" to better illustrate what is actually happening. Relavent documentations are also updated.
+* Add a "Varaible information" section to documentations of all functions. This includes the descriptions of columns in the variable information tibble.
+* Fix a bug that Uniprot isomers ("O75882-2") could not be parsed correctly.
+
 # glyread 0.4.2
 
 ## Minor improvements
