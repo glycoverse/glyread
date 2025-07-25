@@ -151,8 +151,8 @@ read_byonic_byologic <- function(
   selected_cols <- c("peptide", "peptide_site", "protein", "protein_site", "glycan_composition", "sample", "value")
   df %>%
     dplyr::mutate(
-      # sp|P02765|FETUA_HUMAN... -> P02765
-      protein = stringr::str_split_i(.data$protein_name, stringr::fixed("|"), 2L),
+      # sp|P02765|FETUA_HUMAN... -> P02765, sp|P08185-1|CBG_HUMAN -> P08185-1
+      protein = .extract_uniprot_accession(.data$protein_name),
       # K.EHEGAIYPDnTTDFQR.A -> EHEGAIYPDnTTDFQR
       peptide = stringr::str_split_i(.data$sequence, stringr::fixed("."), 2L),
       # EHEGAIYPDnTTDFQR -> EHEGAIYPDNTTDFQR (n -> N)

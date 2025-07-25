@@ -155,7 +155,7 @@ read_pglyco3 <- function(
     dplyr::rename(all_of(new_names)) %>%
     dplyr::mutate(
       genes = stringr::str_remove(.data$genes, ";$"),
-      proteins = stringr::str_replace_all(.data$proteins, "sp\\|(\\w+)\\|\\w+", "\\1")
+      proteins = .extract_uniprot_accession(.data$proteins)
     )
 }
 

@@ -127,8 +127,8 @@ read_byonic_pglycoquant <- function(
       peptide_site = stringr::str_locate(.data$peptide, "n")[, "start"],
       # nGTR -> NGTR (restore N)
       peptide = stringr::str_replace(.data$peptide, "n", "N"),
-      # >sp|P19652|A1AG2_HUMAN -> P19652
-      protein = stringr::str_extract(.data$protein, "(?:sp|tr)\\|(\\w+)\\|.*", group = 1),
+      # >sp|P19652|A1AG2_HUMAN -> P19652, >sp|P08185-1|CBG_HUMAN -> P08185-1
+      protein = .extract_uniprot_accession(.data$protein),
       # HexNAc(4)Hex(4)Fuc(1)NeuAc(1) -> HexNAc(4)Hex(4)dHex(1)NeuAc(1)
       glycan_composition = stringr::str_replace(.data$glycan_composition, "Fuc", "dHex"),
     )
