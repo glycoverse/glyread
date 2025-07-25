@@ -65,6 +65,10 @@
 #'  and return new sample names.
 #'  Note that sample names in `sample_info` should match the new names.
 #'  If NULL, original names are kept.
+#' @param parse_structure Logical. Whether to parse glycan structures.
+#'  If `TRUE` (default), glycan structures are parsed and included in the
+#'  `var_info` as `glycan_structure` column. If `FALSE`, structure parsing
+#'  is skipped and structure-related columns remain as character strings.
 #'
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
@@ -75,7 +79,8 @@ read_pglyco3_pglycoquant <- function(
   sample_info = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
-  sample_name_converter = NULL
+  sample_name_converter = NULL,
+  parse_structure = TRUE
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
@@ -83,6 +88,7 @@ read_pglyco3_pglycoquant <- function(
   quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
   .check_sample_name_conv_arg(sample_name_converter)
   glycan_type <- rlang::arg_match(glycan_type)
+  checkmate::assert_logical(parse_structure, len = 1)
 
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
@@ -97,7 +103,8 @@ read_pglyco3_pglycoquant <- function(
       quant_method,
       sample_name_converter,
       composition_parser = .convert_pglyco3_comp,
-      structure_parser = glyparse::parse_pglyco_struc
+      structure_parser = glyparse::parse_pglyco_struc,
+      parse_structure = parse_structure
     )
   } else {
     rlang::abort("TMT quantification is not supported yet.")

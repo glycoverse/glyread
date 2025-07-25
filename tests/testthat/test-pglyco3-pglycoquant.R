@@ -239,6 +239,39 @@ test_that("glycan structure parsing works correctly", {
 
 
 
+test_that("parse_structure = TRUE includes glycan_structure column", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free",
+      parse_structure = TRUE
+    )
+  )
+
+  # Check that glycan_structure column exists and is parsed
+  expect_true("glycan_structure" %in% colnames(res$var_info))
+  expect_s3_class(res$var_info$glycan_structure, "glyrepr_structure")
+  expect_true(length(res$var_info$glycan_structure) > 0)
+})
+
+
+test_that("parse_structure = FALSE skips glycan structure parsing", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free",
+      parse_structure = FALSE
+    )
+  )
+
+  # Check that glycan_structure column does not exist
+  expect_false("glycan_structure" %in% colnames(res$var_info))
+  # But glycan_composition should still be parsed
+  expect_true("glycan_composition" %in% colnames(res$var_info))
+  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+})
+
+
 test_that("protein and gene information is correctly processed", {
   suppressMessages(
     res <- read_pglyco3_pglycoquant(
@@ -246,7 +279,7 @@ test_that("protein and gene information is correctly processed", {
       quant_method = "label-free"
     )
   )
-  
+
   genes <- res$var_info$gene
   # Check that gene names are properly processed (after protein inference)
   expect_true(all(nchar(genes) > 0))

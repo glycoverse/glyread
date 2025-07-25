@@ -10,7 +10,8 @@ read_byonic_pglycoquant(
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL,
-  orgdb = "org.Hs.eg.db"
+  orgdb = "org.Hs.eg.db",
+  parse_structure = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,11 @@ If NULL, original names are kept.}
 
 \item{orgdb}{name of the OrgDb package to use for UniProt to gene symbol conversion.
 Default is "org.Hs.eg.db".}
+
+\item{parse_structure}{Logical. Whether to parse glycan structures.
+If \code{TRUE} (default), glycan structures are parsed and included in the
+\code{var_info} as \code{glycan_structure} column. If \code{FALSE}, structure parsing
+is skipped and structure-related columns remain as character strings.}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.

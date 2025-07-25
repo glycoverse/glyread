@@ -15,7 +15,8 @@
   quant_method,
   sample_name_converter = NULL,
   composition_parser = NULL,
-  structure_parser = NULL
+  structure_parser = NULL,
+  parse_structure = TRUE
 ) {
   # ----- 1. Aggregate PSMs to glycopeptides -----
   tidy_df <- .aggregate_long(tidy_df)
@@ -44,11 +45,14 @@
     var_info,
     glycan_composition = composition_parser(.data$glycan_composition)
   )
-  if (!is.null(structure_parser)) {
+  if (parse_structure && !is.null(structure_parser)) {
     var_info <- dplyr::mutate(
       var_info,
       glycan_structure = structure_parser(.data$glycan_structure)
     )
+  } else if (!parse_structure && "glycan_structure" %in% colnames(var_info)) {
+    # Remove glycan_structure column if parse_structure is FALSE
+    var_info <- dplyr::select(var_info, -any_of("glycan_structure"))
   }
 
   # ----- 6. Packing Experiment -----

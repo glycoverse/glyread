@@ -9,7 +9,8 @@ read_pglyco3(
   sample_info = NULL,
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
-  sample_name_converter = NULL
+  sample_name_converter = NULL,
+  parse_structure = TRUE
 )
 }
 \arguments{
@@ -27,6 +28,11 @@ The function should take a character vector of old sample names
 and return new sample names.
 Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
+
+\item{parse_structure}{Logical. Whether to parse glycan structures.
+If \code{TRUE} (default), glycan structures are parsed and included in the
+\code{var_info} as \code{glycan_structure} column. If \code{FALSE}, structure parsing
+is skipped and structure-related columns remain as character strings.}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.

@@ -42,7 +42,8 @@ read_byonic_pglycoquant <- function(
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL,
-  orgdb = "org.Hs.eg.db"
+  orgdb = "org.Hs.eg.db",
+  parse_structure = TRUE
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")
