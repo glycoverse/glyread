@@ -16,8 +16,17 @@
 #' @inheritSection read_pglyco3 Sample information
 #' @inheritSection read_pglyco3 Protein inference
 #' @inheritSection read_pglyco3 Aggregation
-#' @inheritSection read_pglyco3 Output
 #' @inheritSection read_pglyco3 Glycan structures
+#'
+#' @section Variable information:
+#' The following columns could be found in the variable information tibble:
+#' - `peptide`: character, peptide sequence
+#' - `peptide_site`: integer, site of glycosylation on peptide
+#' - `protein`: character, protein accession (after protein inference)
+#' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
+#' - `gene`: character, gene name (symbol) (after protein inference)
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
 #'
 #' @param fp File path of the pGlycoQuant result file.
 #' @param sample_info File path of the sample information file (csv),

@@ -61,18 +61,17 @@ Currently, only single-site glycopeptides are supported.
 Multisite glycopeptides will be removed.
 }
 
-\section{Output}{
-
-This function returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+\section{Variable information}{
 
 The following columns could be found in the variable information tibble:
 \itemize{
 \item \code{peptide}: character, peptide sequence
-\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
 \item \code{peptide_site}: integer, site of glycosylation on peptide
-\item \code{protein}: character, protein accessions
+\item \code{protein}: character, protein accession
 \item \code{protein_site}: integer, site of glycosylation on protein
-\item \code{gene}: character, gene symbols
+\item \code{gene}: character, gene name (symbol)
+\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+\item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures (if \code{parse_structure = TRUE}).
 }
 }
 

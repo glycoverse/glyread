@@ -80,9 +80,7 @@ For each glycopeptide (unique combination of "peptide", "peptide_site", "protein
 we sum up the quantifications of all PSMs that belong to this glycopeptide.
 }
 
-\section{Output}{
-This function returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
-
+\section{Variable information}{
 The following columns could be found in the variable information tibble:
 \itemize{
 \item \code{peptide}: character, peptide sequence
@@ -91,6 +89,7 @@ The following columns could be found in the variable information tibble:
 \item \code{protein_site}: integer, site of glycosylation on protein (after protein inference)
 \item \code{gene}: character, gene name (symbol) (after protein inference)
 \item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+\item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures (if \code{parse_structure = TRUE}).
 }
 }
 

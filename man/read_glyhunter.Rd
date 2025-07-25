@@ -37,10 +37,11 @@ Use the "summary_area.csv" file in the GlyHunter result folder.
 No edit is necessary.
 }
 
-\section{Output}{
-This function returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
-The variable information tibble has one column: "glycan_composition" as
-a \code{glyrepr::glycan_composition()} object.
+\section{Variable information}{
+The following columns could be found in the variable information tibble:
+\itemize{
+\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+}
 }
 
 \section{Sample information}{

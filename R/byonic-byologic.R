@@ -17,7 +17,15 @@
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
-#' @inheritSection read_byonic_pglycoquant Output
+#'
+#' @section Variable information:
+#' The following columns could be found in the variable information tibble:
+#' - `peptide`: character, peptide sequence
+#' - `peptide_site`: integer, site of glycosylation on peptide
+#' - `protein`: character, protein accession
+#' - `protein_site`: integer, site of glycosylation on protein
+#' - `gene`: character, gene name (symbol)
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #'
 #' @inheritParams read_pglyco3_pglycoquant
 #' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.

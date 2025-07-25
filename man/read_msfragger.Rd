@@ -41,6 +41,19 @@ Sample names are extracted from the file paths.
 They are the parent of each "psm.tsv" file.
 For example, "msfragger_result/H1/psm.tsv" will be named "H1".
 }
+\section{Variable information}{
+
+The following columns could be found in the variable information tibble:
+\itemize{
+\item \code{peptide}: character, peptide sequence
+\item \code{peptide_site}: integer, site of glycosylation on peptide
+\item \code{protein}: character, protein accession
+\item \code{protein_site}: integer, site of glycosylation on protein
+\item \code{gene}: character, gene name (symbol)
+\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+}
+}
+
 \seealso{
 \code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}
 }

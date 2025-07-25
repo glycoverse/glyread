@@ -41,9 +41,7 @@
 #' "gene", "glycan_composition", "glycan_structure"),
 #' we sum up the quantifications of all PSMs that belong to this glycopeptide.
 #'
-#' # Output
-#'
-#' This function returns a [glyexp::experiment()] object.
+#' # Variable information
 #'
 #' The following columns could be found in the variable information tibble:
 #' - `peptide`: character, peptide sequence
@@ -52,6 +50,7 @@
 #' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
 #' - `gene`: character, gene name (symbol) (after protein inference)
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
 #'
 #' # Glycan structures
 #'

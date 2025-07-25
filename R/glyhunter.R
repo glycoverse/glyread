@@ -9,11 +9,10 @@
 #' Use the "summary_area.csv" file in the GlyHunter result folder.
 #' No edit is necessary.
 #' 
-#' # Output
-#' 
-#' This function returns a [glyexp::experiment()] object.
-#' The variable information tibble has one column: "glycan_composition" as 
-#' a `glyrepr::glycan_composition()` object.
+#' # Variable information
+#'
+#' The following columns could be found in the variable information tibble:
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #' 
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' 

@@ -50,6 +50,20 @@ For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%20for\%20pGlycoQuant_v202211.pdf}{pGlycoQuant}.
 }
 
+\section{Variable information}{
+
+The following columns could be found in the variable information tibble:
+\itemize{
+\item \code{peptide}: character, peptide sequence
+\item \code{peptide_site}: integer, site of glycosylation on peptide
+\item \code{protein}: character, protein accession (after protein inference)
+\item \code{protein_site}: integer, site of glycosylation on protein (after protein inference)
+\item \code{gene}: character, gene name (symbol) (after protein inference)
+\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+\item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures (if \code{parse_structure = TRUE}).
+}
+}
+
 \section{Sample information}{
 The sample information file should be a \code{csv} file with the first column
 named \code{sample}, and the rest of the columns being sample information.
@@ -80,20 +94,6 @@ This function aggregate PSMs into glycopeptides through summation.
 For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
 "gene", "glycan_composition", "glycan_structure"),
 we sum up the quantifications of all PSMs that belong to this glycopeptide.
-}
-
-\section{Output}{
-This function returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
-
-The following columns could be found in the variable information tibble:
-\itemize{
-\item \code{peptide}: character, peptide sequence
-\item \code{peptide_site}: integer, site of glycosylation on peptide
-\item \code{protein}: character, protein accession (after protein inference)
-\item \code{protein_site}: integer, site of glycosylation on protein (after protein inference)
-\item \code{gene}: character, gene name (symbol) (after protein inference)
-\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
-}
 }
 
 \section{Glycan structures}{

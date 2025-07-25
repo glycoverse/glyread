@@ -18,16 +18,15 @@
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
 #'
-#' @section Output:
-#' This function returns a [glyexp::experiment()] object.
-#'
+#' @section Variable information:
 #' The following columns could be found in the variable information tibble:
 #' - `peptide`: character, peptide sequence
-#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #' - `peptide_site`: integer, site of glycosylation on peptide
-#' - `protein`: character, protein accessions
+#' - `protein`: character, protein accession
 #' - `protein_site`: integer, site of glycosylation on protein
-#' - `gene`: character, gene symbols
+#' - `gene`: character, gene name (symbol)
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
 #'
 #' @inheritParams read_pglyco3_pglycoquant
 #' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.

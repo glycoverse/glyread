@@ -8,6 +8,15 @@
 #' They are the parent of each "psm.tsv" file.
 #' For example, "msfragger_result/H1/psm.tsv" will be named "H1".
 #'
+#' @section Variable information:
+#' The following columns could be found in the variable information tibble:
+#' - `peptide`: character, peptide sequence
+#' - `peptide_site`: integer, site of glycosylation on peptide
+#' - `protein`: character, protein accession
+#' - `protein_site`: integer, site of glycosylation on protein
+#' - `gene`: character, gene name (symbol)
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#'
 #' @param dp The directory path of the MSFragger-Glyco result folder.
 #' @inheritParams read_pglyco3_pglycoquant
 #'
