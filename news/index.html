@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,21 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.0" id="glyread-050">glyread 0.5.0<a class="anchor" aria-label="anchor" href="#glyread-050"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-0-5-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-5-0"></a></h3>
+<ul><li>Add a <code>parse_structure</code> parameter to <code><a href="../reference/read_pglyco3.html">read_pglyco3()</a></code> and <code><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code>. If <code>FALSE</code> (default), glycan structure strings are not parsed, and “glycan_structure” column will not be in the variable information tibble. This improves performance when structure-based analysis is not needed, and avoids implicitly implying that the structures given by pGlyco3 is accurate. Well, they are not.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-improvements-and-bug-fixes-0-5-0">Minor improvements and bug fixes<a class="anchor" aria-label="anchor" href="#minor-improvements-and-bug-fixes-0-5-0"></a></h3>
+<ul><li>
+<code><a href="../reference/read_pglyco3.html">read_pglyco3()</a></code> and <code><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code> now correctly parse “pH” and “aH” monosaccharides in glycan compositions and glycan structures.</li>
+<li>Messages about protein inference changes from “Performing protein inference” to “Finding leader proteins” to better illustrate what is actually happening. Relavent documentations are also updated.</li>
+<li>Add a “Varaible information” section to documentations of all functions. This includes the descriptions of columns in the variable information tibble.</li>
+<li>Fix a bug that Uniprot isomers (“O75882-2”) could not be parsed correctly.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.2" id="glyread-042">glyread 0.4.2<a class="anchor" aria-label="anchor" href="#glyread-042"></a></h2>
 <div class="section level3">
