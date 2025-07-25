@@ -13,47 +13,11 @@
 #' For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
-#' # Sample information
-#'
-#' The sample information file should be a `csv` file with the first column
-#' named `sample`, and the rest of the columns being sample information.
-#' The `sample` column must match the `RawName` column in the pGlyco3 result file,
-#' although the order can be different.
-#'
-#' You can put any useful information in the sample information file.
-#' Recommended columns are:
-#' - `group`: grouping or conditions, e.g. "control" or "tumor",
-#'   required for most downstream analyses
-#' - `batch`: batch information, required for batch effect correction
-#'
-#' # Protein inference
-#'
-#' By default, this function automatically performs protein inference using the
-#' parsimony method to resolve shared glycopeptides. This converts the plural
-#' columns (`proteins`, `genes`, `protein_sites`) to singular equivalents
-#' (`protein`, `gene`, `protein_site`).
-#' 
-#' # Aggregation
-#'
-#' pGlycoQuant performs quantification on the PSM level.
-#' This level of information is too detailed for most downstream analyses.
-#' This function aggregate PSMs into glycopeptides through summation.
-#' For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
-#' "gene", "glycan_composition", "glycan_structure"),
-#' we sum up the quantifications of all PSMs that belong to this glycopeptide.
-#'
-#' # Output
-#'
-#' This function returns a [glyexp::experiment()] object.
-#'
-#' The following columns could be found in the variable information tibble:
-#' - `peptide`: character, peptide sequence
-#' - `peptide_site`: integer, site of glycosylation on peptide
-#' - `protein`: character, protein accession (after protein inference)
-#' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
-#' - `gene`: character, gene name (symbol) (after protein inference)
-#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
-#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures.
+#' @inheritSection read_pglyco3 Sample information
+#' @inheritSection read_pglyco3 Protein inference
+#' @inheritSection read_pglyco3 Aggregation
+#' @inheritSection read_pglyco3 Output
+#' @inheritSection read_pglyco3 Glycan structures
 #'
 #' @param fp File path of the pGlycoQuant result file.
 #' @param sample_info File path of the sample information file (csv),
@@ -66,9 +30,9 @@
 #'  Note that sample names in `sample_info` should match the new names.
 #'  If NULL, original names are kept.
 #' @param parse_structure Logical. Whether to parse glycan structures.
-#'  If `TRUE` (default), glycan structures are parsed and included in the
-#'  `var_info` as `glycan_structure` column. If `FALSE`, structure parsing
-#'  is skipped and structure-related columns remain as character strings.
+#'  If `TRUE`, glycan structures are parsed and included in the
+#'  `var_info` as `glycan_structure` column. If `FALSE` (default), structure parsing
+#'  is skipped and structure-related columns are removed.
 #'
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
@@ -80,7 +44,7 @@ read_pglyco3_pglycoquant <- function(
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL,
-  parse_structure = TRUE
+  parse_structure = FALSE
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".list")

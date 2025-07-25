@@ -51,7 +51,14 @@
 #' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
 #' - `gene`: character, gene name (symbol) (after protein inference)
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
-#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures.
+#'
+#' # Glycan structures
+#'
+#' pGlyco3 reports a "plausible structure" for each glycan.
+#' You can set `parse_structure = TRUE` to parse these structures into a "glycan_structure"
+#' column as a [glyrepr::glycan_structure()] vector.
+#' However, please take caution with these structures,
+#' because pGlyco3 does not have strict quality control on glycan structure annotations.
 #'
 #' @param fp File path of the pGlyco3 result file.
 #' @param sample_info File path of the sample information file (csv),
@@ -64,9 +71,9 @@
 #'  Note that sample names in `sample_info` should match the new names.
 #'  If NULL, original names are kept.
 #' @param parse_structure Logical. Whether to parse glycan structures.
-#'  If `TRUE` (default), glycan structures are parsed and included in the
-#'  `var_info` as `glycan_structure` column. If `FALSE`, structure parsing
-#'  is skipped and structure-related columns remain as character strings.
+#'  If `TRUE`, glycan structures are parsed and included in the
+#'  `var_info` as `glycan_structure` column. If `FALSE` (default), structure parsing
+#'  is skipped and structure-related columns are removed.
 #'
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
@@ -78,7 +85,7 @@ read_pglyco3 <- function(
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL,
-  parse_structure = TRUE
+  parse_structure = FALSE
 ) {
   # ----- Check arguments -----
   checkmate::assert_file_exists(fp, access = "r", extension = ".txt")

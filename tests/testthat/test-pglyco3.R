@@ -12,11 +12,10 @@ test_that("it returns correct information (label-free)", {
     colnames(res$var_info),
     c(
       "variable", "peptide", "peptide_site", "protein", "protein_site",
-      "gene", "glycan_composition", "glycan_structure"
+      "gene", "glycan_composition"
     )
   )
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
-  expect_s3_class(res$var_info$glycan_structure, "glyrepr_structure")
   expect_type(res$var_info$protein_site, "integer")
   expect_equal(colnames(res$sample_info), c("sample", "group"))
   expect_equal(colnames(res$expr_mat), c("20250315_LiangYuying_GP09_1", "20250315_LiangYuying_GP09_2"))
@@ -196,10 +195,11 @@ test_that("glycan structure parsing works correctly", {
   suppressMessages(
     res <- read_pglyco3(
       test_path("data/pglyco3-LFQ-result.txt"),
-      quant_method = "label-free"
+      quant_method = "label-free",
+      parse_structure = TRUE
     )
   )
-  
+
   # Check that all glycan structures are parsed
   expect_s3_class(res$var_info$glycan_structure, "glyrepr_structure")
   structures <- res$var_info$glycan_structure
@@ -223,7 +223,23 @@ test_that("parse_structure = TRUE includes glycan_structure column", {
 })
 
 
-test_that("parse_structure = FALSE skips glycan structure parsing", {
+test_that("parse_structure = FALSE (default) skips glycan structure parsing", {
+  suppressMessages(
+    res <- read_pglyco3(
+      test_path("data/pglyco3-LFQ-result.txt"),
+      quant_method = "label-free"
+    )
+  )
+
+  # Check that glycan_structure column does not exist (default behavior)
+  expect_false("glycan_structure" %in% colnames(res$var_info))
+  # But glycan_composition should still be parsed
+  expect_true("glycan_composition" %in% colnames(res$var_info))
+  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+})
+
+
+test_that("parse_structure = FALSE explicitly skips glycan structure parsing", {
   suppressMessages(
     res <- read_pglyco3(
       test_path("data/pglyco3-LFQ-result.txt"),

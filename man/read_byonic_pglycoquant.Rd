@@ -34,9 +34,9 @@ If NULL, original names are kept.}
 Default is "org.Hs.eg.db".}
 
 \item{parse_structure}{Logical. Whether to parse glycan structures.
-If \code{TRUE} (default), glycan structures are parsed and included in the
-\code{var_info} as \code{glycan_structure} column. If \code{FALSE}, structure parsing
-is skipped and structure-related columns remain as character strings.}
+If \code{TRUE}, glycan structures are parsed and included in the
+\code{var_info} as \code{glycan_structure} column. If \code{FALSE} (default), structure parsing
+is skipped and structure-related columns are removed.}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -92,7 +92,7 @@ required for most downstream analyses
 }
 
 \section{Aggregation}{
-pGlycoQuant performs quantification on the PSM level.
+pGlyco3 performs quantification on the PSM level.
 This level of information is too detailed for most downstream analyses.
 This function aggregate PSMs into glycopeptides through summation.
 For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",

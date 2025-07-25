@@ -10,7 +10,7 @@ read_pglyco3_pglycoquant(
   quant_method = c("label-free", "TMT"),
   glycan_type = c("N", "O"),
   sample_name_converter = NULL,
-  parse_structure = TRUE
+  parse_structure = FALSE
 )
 }
 \arguments{
@@ -30,9 +30,9 @@ Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
 
 \item{parse_structure}{Logical. Whether to parse glycan structures.
-If \code{TRUE} (default), glycan structures are parsed and included in the
-\code{var_info} as \code{glycan_structure} column. If \code{FALSE}, structure parsing
-is skipped and structure-related columns remain as character strings.}
+If \code{TRUE}, glycan structures are parsed and included in the
+\code{var_info} as \code{glycan_structure} column. If \code{FALSE} (default), structure parsing
+is skipped and structure-related columns are removed.}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -73,7 +73,7 @@ columns (\code{proteins}, \code{genes}, \code{protein_sites}) to singular equiva
 }
 
 \section{Aggregation}{
-pGlycoQuant performs quantification on the PSM level.
+pGlyco3 performs quantification on the PSM level.
 This level of information is too detailed for most downstream analyses.
 This function aggregate PSMs into glycopeptides through summation.
 For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
@@ -92,8 +92,15 @@ The following columns could be found in the variable information tibble:
 \item \code{protein_site}: integer, site of glycosylation on protein (after protein inference)
 \item \code{gene}: character, gene name (symbol) (after protein inference)
 \item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
-\item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures.
 }
+}
+
+\section{Glycan structures}{
+pGlyco3 reports a "plausible structure" for each glycan.
+You can set \code{parse_structure = TRUE} to parse these structures into a "glycan_structure"
+column as a \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}} vector.
+However, please take caution with these structures,
+because pGlyco3 does not have strict quality control on glycan structure annotations.
 }
 
 \seealso{

@@ -71,7 +71,7 @@ required for most downstream analyses
 }
 
 \section{Aggregation}{
-pGlycoQuant performs quantification on the PSM level.
+pGlyco3 performs quantification on the PSM level.
 This level of information is too detailed for most downstream analyses.
 This function aggregate PSMs into glycopeptides through summation.
 For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
