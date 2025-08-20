@@ -1,3 +1,15 @@
+# glyread 0.6.0
+
+## New features
+
+* Add `read_strucgp()` to read results from StrucGP.
+* Add `read_glyco_decipher()` to read results from Glyco-Decipher.
+
+## Minor improvements
+
+* `read_byonic_byologic()` and `read_byonic_pglycoquant()` do not drop glycopeptides with uncertain sites anymore.
+  Instead, they fill the "protein_site" column with `NA` for these glycopeptides.
+
 # glyread 0.5.0
 
 ## Breaking changes
