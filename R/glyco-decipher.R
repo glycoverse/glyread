@@ -35,17 +35,21 @@
 read_glyco_decipher <- function(
   fp,
   sample_info = NULL,
-  quant_method = c("label-free", "TMT"),
-  glycan_type = c("N", "O"),
+  quant_method = "label-free",
+  glycan_type = "N",
   sample_name_converter = NULL,
   orgdb = "org.Hs.eg.db"
 ) {
   # ----- Check arguments -----
-  checkmate::assert_file_exists(fp, access = "r", extension = ".csv")
-  .check_sample_info_arg(sample_info)
-  quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
-  .check_sample_name_conv_arg(sample_name_converter)
-  glycan_type <- rlang::arg_match(glycan_type)
+  .validate_read_args(
+    fp = fp,
+    file_extensions = ".csv",
+    sample_info = sample_info,
+    quant_method = quant_method,
+    glycan_type = glycan_type,
+    sample_name_converter = sample_name_converter,
+    orgdb = orgdb
+  )
 
   # ----- Read data -----
   if (quant_method == "label-free") {

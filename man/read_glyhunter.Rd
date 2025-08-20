@@ -7,7 +7,7 @@
 read_glyhunter(
   fp,
   sample_info = NULL,
-  glycan_type = c("N", "O"),
+  glycan_type = "N",
   sample_name_converter = NULL
 )
 }

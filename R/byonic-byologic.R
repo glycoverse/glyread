@@ -37,17 +37,21 @@
 read_byonic_byologic <- function(
   fp,
   sample_info = NULL,
-  quant_method = c("label-free", "TMT"),
-  glycan_type = c("N", "O"),
+  quant_method = "label-free",
+  glycan_type = "N",
   sample_name_converter = NULL,
   orgdb = "org.Hs.eg.db"
 ) {
   # ----- Check arguments -----
-  checkmate::assert_file_exists(fp, access = "r", extension = ".csv")
-  .check_sample_info_arg(sample_info)
-  quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
-  .check_sample_name_conv_arg(sample_name_converter)
-  glycan_type <- rlang::arg_match(glycan_type)
+  .validate_read_args(
+    fp = fp,
+    file_extensions = ".csv",
+    sample_info = sample_info,
+    quant_method = quant_method,
+    glycan_type = glycan_type,
+    sample_name_converter = sample_name_converter,
+    orgdb = orgdb
+  )
 
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
@@ -156,7 +160,8 @@ read_byonic_byologic <- function(
 
 .refine_byonic_byologic_columns <- function(df) {
   selected_cols <- c("peptide", "peptide_site", "protein", "protein_site", "glycan_composition", "sample", "value")
-  df %>%
+  
+  result <- df %>%
     dplyr::mutate(
       # sp|P02765|FETUA_HUMAN... -> P02765, sp|P08185-1|CBG_HUMAN -> P08185-1
       protein = .extract_uniprot_accession(.data$protein_name),
@@ -168,14 +173,25 @@ read_byonic_byologic <- function(
       glycan_composition = stringr::str_replace(.data$glycans, "Fuc", "dHex"),
       # Add peptide_site
       peptide_site = stringr::str_extract(.data$mod_summary, "N(\\d+)\\(NGlycan", group = 1),
-      peptide_site = as.integer(.data$peptide_site),
-      # Add protein_site - set to NA for multisite glycopeptides
+      peptide_site = as.integer(.data$peptide_site)
+    )
+  
+  # Add protein_site - set to NA for multisite glycopeptides (if is_multisite column exists)
+  if ("is_multisite" %in% colnames(result)) {
+    result <- dplyr::mutate(result,
       protein_site = dplyr::if_else(
         .data$is_multisite,
         NA_integer_,
         as.integer(.data$start_aa + .data$peptide_site - 1L)
       )
-    ) %>%
+    )
+  } else {
+    result <- dplyr::mutate(result,
+      protein_site = as.integer(.data$start_aa + .data$peptide_site - 1L)
+    )
+  }
+  
+  result %>%
     dplyr::rename(all_of(c(sample = "ms_alias_name", value = "xic_area_summed"))) %>%
     dplyr::select(all_of(selected_cols))
 }

@@ -38,18 +38,22 @@
 read_byonic_pglycoquant <- function(
   fp,
   sample_info = NULL,
-  quant_method = c("label-free", "TMT"),
-  glycan_type = c("N", "O"),
+  quant_method = "label-free",
+  glycan_type = "N",
   sample_name_converter = NULL,
   orgdb = "org.Hs.eg.db",
   parse_structure = TRUE
 ) {
   # ----- Check arguments -----
-  checkmate::assert_file_exists(fp, access = "r", extension = ".list")
-  .check_sample_info_arg(sample_info)
-  quant_method <- rlang::arg_match(quant_method, c("label-free", "TMT"))
-  .check_sample_name_conv_arg(sample_name_converter)
-  glycan_type <- rlang::arg_match(glycan_type)
+  .validate_read_args(
+    fp = fp,
+    file_extensions = ".list",
+    sample_info = sample_info,
+    quant_method = quant_method,
+    glycan_type = glycan_type,
+    sample_name_converter = sample_name_converter,
+    orgdb = orgdb
+  )
 
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
@@ -116,7 +120,7 @@ read_byonic_pglycoquant <- function(
 }
 
 .convert_byonic_columns <- function(df) {
-  df %>%
+  result <- df %>%
     dplyr::rename(
       peptide = "Peptide",
       protein = "Protein Name",
@@ -137,8 +141,15 @@ read_byonic_pglycoquant <- function(
       # >sp|P19652|A1AG2_HUMAN -> P19652, >sp|P08185-1|CBG_HUMAN -> P08185-1
       protein = .extract_uniprot_accession(.data$protein),
       # HexNAc(4)Hex(4)Fuc(1)NeuAc(1) -> HexNAc(4)Hex(4)dHex(1)NeuAc(1)
-      glycan_composition = stringr::str_replace(.data$glycan_composition, "Fuc", "dHex"),
-      # Set protein_site to NA for multisite glycopeptides
+      glycan_composition = stringr::str_replace(.data$glycan_composition, "Fuc", "dHex")
+    )
+  
+  # Set protein_site to NA for multisite glycopeptides (if is_multisite column exists)
+  if ("is_multisite" %in% colnames(result)) {
+    result <- dplyr::mutate(result, 
       protein_site = dplyr::if_else(.data$is_multisite, NA_integer_, .data$protein_site)
     )
+  }
+  
+  result
 }

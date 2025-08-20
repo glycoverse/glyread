@@ -7,8 +7,8 @@
 read_pglyco3(
   fp,
   sample_info = NULL,
-  quant_method = c("label-free", "TMT"),
-  glycan_type = c("N", "O"),
+  quant_method = "label-free",
+  glycan_type = "N",
   sample_name_converter = NULL,
   parse_structure = FALSE
 )

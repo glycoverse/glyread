@@ -155,7 +155,7 @@ test_that("it validates quant_method parameter", {
       test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
       quant_method = "invalid_method"
     ),
-    "must be one of"
+    " Must be element of set"
   )
 })
 
@@ -166,7 +166,7 @@ test_that("it validates glycan_type parameter", {
       quant_method = "label-free",
       glycan_type = "invalid_type"
     ),
-    "must be one of"
+    " Must be element of set"
   )
 })
 

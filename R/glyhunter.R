@@ -25,14 +25,17 @@
 read_glyhunter <- function(
   fp,
   sample_info = NULL,
-  glycan_type = c("N", "O"),
+  glycan_type = "N",
   sample_name_converter = NULL
 ) {
   # ----- Check arguments -----
-  checkmate::assert_file_exists(fp, access = "r", extension = ".csv")
-  .check_sample_info_arg(sample_info)
-  glycan_type <- rlang::arg_match(glycan_type)
-  .check_sample_name_conv_arg(sample_name_converter)
+  .validate_read_args(
+    fp = fp,
+    file_extensions = ".csv",
+    sample_info = sample_info,
+    glycan_type = glycan_type,
+    sample_name_converter = sample_name_converter
+  )
 
   # ----- Read data -----
   df <- suppressMessages(readr::read_csv(fp))
