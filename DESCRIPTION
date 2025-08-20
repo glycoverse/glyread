@@ -33,6 +33,7 @@ Imports:
     magrittr,
     purrr,
     readr,
+    readxl,
     rlang,
     stringr,
     tibble,
