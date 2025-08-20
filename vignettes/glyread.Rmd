@@ -146,9 +146,11 @@ but there's so much more!
 - **`read_msfragger()`**: MSFragger-Glyco's all-in-one identification and quantification magic
 - **`read_pglyco3()`**: Pure pGlyco3 with its built-in quantification capabilities
 - **`read_pglyco3_pglycoquant()`**: The workflow we just explored—pGlyco3 + pGlycoQuant perfection
+- **`read_glyco_decipher()`**: Glyco-Decipher's identification and label-free quantification
+- **`read_strucgp()`**: StrucGP's identification
 
 **Coming Soon to a Package Near You:**
-We're actively working on supporting Glyco-Decipher, GPQuest, and other exciting tools.
+We're actively working on supporting GPQuest, GlycanFinder and other exciting tools.
 The glycoproteomics software landscape is evolving rapidly,
 and `glyread` is evolving right alongside it! 🚀
 
@@ -174,7 +176,8 @@ It's like having a universal translator that ensures everyone speaks the same la
 - **`glycan_composition`**: A `glyrepr::glycan_composition()` object - what's in your glycan
 - **`glycan_structure`**: A `glyrepr::glycan_structure()` object - how it's all connected
 
-**🎯 Special Note on Those Last Two:** The `glycan_composition` and `glycan_structure` columns aren't just plain text—they're sophisticated data types from the amazing [glyrepr](https://github.com/glycoverse/glyrepr) package.
+**🎯 Special Note on Those Last Two:** The `glycan_composition` and `glycan_structure` columns 
+aren't just plain text—they're sophisticated data types from the amazing [glyrepr](https://github.com/glycoverse/glyrepr) package.
 Think of them as smart objects that know how to do glycan math!
 
 **💡 Pro Tip:** Getting familiar with `glyrepr` objects is absolutely worth the investment.
