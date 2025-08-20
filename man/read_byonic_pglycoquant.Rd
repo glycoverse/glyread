@@ -57,8 +57,8 @@ the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%2
 
 \section{Multisite glycopeptides}{
 
-Currently, only single-site glycopeptides are supported.
-Multisite glycopeptides will be removed.
+Multisite glycopeptides are supported but their \code{protein_site} will be set to \code{NA}
+since the exact site of glycosylation cannot be determined unambiguously.
 }
 
 \section{Variable information}{

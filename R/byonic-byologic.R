@@ -12,8 +12,8 @@
 #' The exported .csv file is the file you should use.
 #'
 #' @section Multisite glycopeptides:
-#' Currently, only single-site glycopeptides are supported.
-#' Multisite glycopeptides will be removed.
+#' Multisite glycopeptides are supported but their `protein_site` will be set to `NA` 
+#' since the exact site of glycosylation cannot be determined unambiguously.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
@@ -105,15 +105,22 @@ read_byonic_byologic <- function(
   df %>%
     dplyr::filter(!is.na(.data$glycans)) %>%
     .collapse_byologic_rows() %>%
-    .remove_multisite_byologic()
+    .handle_multisite_byologic()
 }
 
-.remove_multisite_byologic <- function(df) {
-  new_df <- dplyr::filter(df, !stringr::str_detect(.data$glycans, stringr::fixed(",")))
-  n_removed <- nrow(df) - nrow(new_df)
-  perc_removed <- round(n_removed / nrow(df) * 100, 1)
-  cli::cli_alert_info("Removed {.val {n_removed}} of {.val {nrow(df)}} ({.val {perc_removed}}%) multisite glycopeptides.")
-  new_df
+.handle_multisite_byologic <- function(df) {
+  # Identify multisite glycopeptides (those with commas in glycans column)
+  is_multisite <- stringr::str_detect(df$glycans, stringr::fixed(","))
+  n_multisite <- sum(is_multisite)
+  
+  if (n_multisite > 0) {
+    perc_multisite <- round(n_multisite / nrow(df) * 100, 1)
+    cli::cli_alert_info("Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite glycopeptides. Setting protein_site to NA for these entries.")
+  }
+  
+  # Keep all rows but mark multisite ones for special handling
+  df$is_multisite <- is_multisite
+  df
 }
 
 # Collapse hierarchical search-result rows to peptide–sample abundances
@@ -162,8 +169,12 @@ read_byonic_byologic <- function(
       # Add peptide_site
       peptide_site = stringr::str_extract(.data$mod_summary, "N(\\d+)\\(NGlycan", group = 1),
       peptide_site = as.integer(.data$peptide_site),
-      # Add protein_site
-      protein_site = as.integer(.data$start_aa + .data$peptide_site - 1L)
+      # Add protein_site - set to NA for multisite glycopeptides
+      protein_site = dplyr::if_else(
+        .data$is_multisite,
+        NA_integer_,
+        as.integer(.data$start_aa + .data$peptide_site - 1L)
+      )
     ) %>%
     dplyr::rename(all_of(c(sample = "ms_alias_name", value = "xic_area_summed"))) %>%
     dplyr::select(all_of(selected_cols))

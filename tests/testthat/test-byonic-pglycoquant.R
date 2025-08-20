@@ -30,8 +30,8 @@ test_that("it returns correct information (label-free)", {
   ))
 })
 
-# ----- Multisite glycopeptide filtering -----
-test_that("multisite glycopeptides are filtered in full workflow", {
+# ----- Multisite glycopeptide handling -----
+test_that("multisite glycopeptides are handled correctly in full workflow", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
       test_path("data/byonic-pglycoquant-LFQ-result.list"),
@@ -39,14 +39,26 @@ test_that("multisite glycopeptides are filtered in full workflow", {
     )
   )
   
-  # Check that no glycan compositions contain commas (indicating multisite)
-  compositions <- as.character(res$var_info$glycan_composition)
-  expect_false(any(stringr::str_detect(compositions, ",")))
-  
-  # Verify that the function processes the data and removes multisite entries
-  # This is inferred from the fact that all returned compositions are single-site
+  # All entries should be present (multisite glycopeptides are no longer filtered out)
   expect_true(nrow(res$var_info) > 0)
-  expect_true(all(nchar(compositions) > 0))
+  
+  # If there were multisite glycopeptides (indicated by commas in compositions),
+  # their protein_site should be NA, but this test data doesn't contain any
+  compositions <- as.character(res$var_info$glycan_composition)
+  multisite_entries <- stringr::str_detect(compositions, ",")
+  
+  if (any(multisite_entries)) {
+    # For multisite entries, protein_site should be NA
+    multisite_protein_sites <- res$var_info$protein_site[multisite_entries]
+    expect_true(all(is.na(multisite_protein_sites)))
+  }
+  
+  # Single-site entries should have valid protein_site values
+  singlesite_entries <- !multisite_entries
+  if (any(singlesite_entries)) {
+    singlesite_protein_sites <- res$var_info$protein_site[singlesite_entries]
+    expect_true(all(!is.na(singlesite_protein_sites)))
+  }
 })
 
 # ----- Peptide site calculation -----

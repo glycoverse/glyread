@@ -12,8 +12,8 @@
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
 #' @section Multisite glycopeptides:
-#' Currently, only single-site glycopeptides are supported.
-#' Multisite glycopeptides will be removed.
+#' Multisite glycopeptides are supported but their `protein_site` will be set to `NA` 
+#' since the exact site of glycosylation cannot be determined unambiguously.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
@@ -74,7 +74,7 @@ read_byonic_pglycoquant <- function(
 
 .tidy_byonic_pglycoquant <- function(df, orgdb) {
   df %>%
-    .remove_multisite_byonic() %>%
+    .handle_multisite_byonic() %>%
     .refine_byonic_pglycoquant_columns() %>%
     .add_gene_symbols(orgdb) %>%
     .pivot_longer_pglycoquant()
@@ -93,12 +93,19 @@ read_byonic_pglycoquant <- function(
   )
 }
 
-.remove_multisite_byonic <- function(df) {
-  new_df <- dplyr::filter(df, !stringr::str_detect(.data$Composition, stringr::fixed(",")))
-  n_removed <- nrow(df) - nrow(new_df)
-  perc_removed <- round(n_removed / nrow(df) * 100, 1)
-  cli::cli_alert_info("Removed {.val {n_removed}} of {.val {nrow(df)}} ({.val {perc_removed}}%) multisite PSMs.")
-  new_df
+.handle_multisite_byonic <- function(df) {
+  # Identify multisite glycopeptides (those with commas in Composition column)
+  is_multisite <- stringr::str_detect(df$Composition, stringr::fixed(","))
+  n_multisite <- sum(is_multisite)
+  
+  if (n_multisite > 0) {
+    perc_multisite <- round(n_multisite / nrow(df) * 100, 1)
+    cli::cli_alert_info("Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite PSMs. Setting protein_site to NA for these entries.")
+  }
+  
+  # Keep all rows but mark multisite ones for special handling
+  df$is_multisite <- is_multisite
+  df
 }
 
 .refine_byonic_pglycoquant_columns <- function(df) {
@@ -131,5 +138,7 @@ read_byonic_pglycoquant <- function(
       protein = .extract_uniprot_accession(.data$protein),
       # HexNAc(4)Hex(4)Fuc(1)NeuAc(1) -> HexNAc(4)Hex(4)dHex(1)NeuAc(1)
       glycan_composition = stringr::str_replace(.data$glycan_composition, "Fuc", "dHex"),
+      # Set protein_site to NA for multisite glycopeptides
+      protein_site = dplyr::if_else(.data$is_multisite, NA_integer_, .data$protein_site)
     )
 }
