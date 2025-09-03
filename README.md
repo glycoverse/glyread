@@ -26,14 +26,14 @@ You can install the latest release of glyread from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("glycoverse/glyread@*release")
+# install.packages("devtools")
+devtools::install_github("glycoverse/glyread@*release")
 ```
 
 Or install the development version:
 
 ``` r
-pak::pak("glycoverse/glyread")
+devtools::install_github("glycoverse/glyread")
 ```
 
 ## Documentation
