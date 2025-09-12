@@ -33,14 +33,14 @@ for further analysis.
 You can install the latest release of glyread from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("glycoverse/glyread@*release")
+# install.packages("remotes")
+remotes::install_github("glycoverse/glyread@*release")
 ```
 
 Or install the development version:
 
 ``` r
-devtools::install_github("glycoverse/glyread")
+remotes::install_github("glycoverse/glyread")
 ```
 
 ## Documentation
