@@ -1,3 +1,9 @@
+# glyread 0.6.1
+
+## Minor improvements and bug fixes
+
+* Update dependencies to depend on release versions of glycoverse packages.
+
 # glyread 0.6.0
 
 ## New features
