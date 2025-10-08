@@ -349,7 +349,7 @@ test_that("it accepts a sample_info tibble", {
   )
 
   expect_equal(colnames(res$sample_info), c("sample", "group"))
-  expect_equal(res$sample_info$group, c("A", "B", "C"))
+  expect_equal(res$sample_info$group, factor(c("A", "B", "C")))
 })
 
 

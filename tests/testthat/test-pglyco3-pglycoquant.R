@@ -368,7 +368,7 @@ test_that("it handles complex sample info with multiple columns", {
   )
   
   expect_equal(colnames(res$sample_info), c("sample", "group", "batch", "bio_replicate"))
-  expect_equal(res$sample_info$batch, c(1, 2))
+  expect_equal(res$sample_info$batch, factor(c(1, 2)))
 })
 
 # ----- Error handling tests -----

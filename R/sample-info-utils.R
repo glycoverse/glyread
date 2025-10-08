@@ -18,7 +18,12 @@
     # Validate sample_info format by creating a dummy experiment
     # This passes the checking responsibility to `experiment()`.
     local({
-      fake_var_info <- tibble::tibble(variable = character(0))
+      fake_var_info <- tibble::tibble(
+        variable = character(0),
+        protein = character(0),
+        protein_site = integer(0),
+        glycan_composition = glyrepr::glycan_composition(),
+      )
       fake_expr_mat <- matrix(
         nrow = 0, ncol = length(samples),
         dimnames = list(NULL, samples)
