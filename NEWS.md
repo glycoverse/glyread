@@ -1,8 +1,8 @@
-# glyread (development version)
+# glyread 0.6.2
 
 ## Minor improvements and bug fixes
 
-* Fix bugs introduced by the breaking changes in `glyexp` 0.9.0.9000.
+* Fix bugs introduced by the breaking changes in `glyexp` 0.10.0.
 
 # glyread 0.6.1
 
