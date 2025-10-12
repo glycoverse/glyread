@@ -1,3 +1,5 @@
+# glyread (development version)
+
 # glyread 0.6.3
 
 ## Minor improvements and bug fixes
