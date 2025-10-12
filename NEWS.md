@@ -1,4 +1,10 @@
-# glyread (development version)
+# glyread 0.6.3
+
+## Minor improvements and bug fixes
+
+* Fix the bug in `read_strucgp()` that glycan compositions with "NeuGc" could not be parsed.
+* Fix the bug in `read_strucgp()` that glycan structures with additional modifications (e.g. "+Ammonium(+17)") could not be parsed.
+* Fix the bug in `read_strucgp()` that sample information was not included in result tibble.
 
 # glyread 0.6.2
 
