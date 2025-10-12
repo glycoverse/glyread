@@ -13,8 +13,9 @@ read_strucgp <- function(fp) {
   df <- readxl::read_excel(fp)
   df %>%
     janitor::clean_names() %>%
-    dplyr::select(c("peptide", "protein_id", "gene_name", "glycosite_position", "glycan_composition", "structure_coding")) %>%
+    dplyr::select(c("file_name", "peptide", "protein_id", "gene_name", "glycosite_position", "glycan_composition", "structure_coding")) %>%
     dplyr::rename(c(
+      sample = "file_name",
       protein = "protein_id",
       gene = "gene_name",
       protein_site = "glycosite_position",
@@ -22,7 +23,7 @@ read_strucgp <- function(fp) {
     )) %>%
     dplyr::mutate(
       glycan_composition = .parse_strucgp_comp(.data$glycan_composition),
-      glycan_structure = glyparse::parse_strucgp_struc(.data$glycan_structure)
+      glycan_structure = .parse_strucgp_struc(.data$glycan_structure)
     ) %>%
     dplyr::distinct()
 }
@@ -33,7 +34,14 @@ read_strucgp <- function(fp) {
     stringr::str_replace("H", "Hex") %>%
     stringr::str_replace("N", "HexNAc") %>%
     stringr::str_replace("S", "NeuAc") %>%
+    stringr::str_replace("G", "NeuGc") %>%
     stringr::str_replace("F", "dHex") %>%
     stringr::str_replace_all("(\\d+)", "\\(\\1\\)") %>%
     glyrepr::as_glycan_composition()
+}
+
+.parse_strucgp_struc <- function(struc) {
+  struc %>%
+    stringr::str_remove("\\+.*") %>%
+    glyparse::parse_strucgp_struc()
 }
