@@ -28,13 +28,25 @@
     dplyr::summarise(entry_indices = list(.data$entry_idx), .groups = "drop") %>%
     (function(x) stats::setNames(x$entry_indices, x$protein))
 
+  # Map proteins to integer IDs for faster comparisons
+  protein_names <- names(protein_to_entries)
+  protein_entry_list <- protein_to_entries
+  protein_entry_list <- lapply(protein_entry_list, unique)
+  protein_entry_list <- unname(protein_entry_list)
+  protein_id_lookup <- stats::setNames(seq_along(protein_names), protein_names)
+  protein_rank <- integer(length(protein_names))
+  protein_rank[order(protein_names)] <- seq_along(protein_names)
+
   # Greedy set cover algorithm
-  entry_to_proteins <- lapply(proteins_list, unique)
+  entry_to_proteins <- lapply(proteins_list, function(prots) {
+    ids <- protein_id_lookup[prots]
+    ids <- ids[!is.na(ids)]
+    unique(unname(ids))
+  })
   uncovered <- rep_len(TRUE, length(proteins_vec))
-  selected_proteins <- character(0)
-  cover <- lengths(protein_to_entries)
+  selected_protein_ids <- integer(0)
+  cover <- lengths(protein_entry_list)
   storage.mode(cover) <- "double"
-  cover_names <- names(cover)
   
   while (any(uncovered)) {
     # Find the protein that covers the most uncovered entries
@@ -42,25 +54,24 @@
     if (!is.finite(max_coverage) || max_coverage <= 0) break
     
     # Find the protein with maximum coverage
-    best_proteins <- names(cover)[cover == max_coverage]
-    best_proteins <- best_proteins[!is.na(best_proteins)]
-    if (length(best_proteins) == 0) break
-    best_protein <- sort(best_proteins)[1]
+    candidate_ids <- which(cover == max_coverage)
+    if (length(candidate_ids) == 0) break
+    best_protein_id <- candidate_ids[which.min(protein_rank[candidate_ids])]
     
-    newly_covered <- protein_to_entries[[best_protein]]
+    newly_covered <- protein_entry_list[[best_protein_id]]
     if (is.null(newly_covered) || length(newly_covered) == 0) {
-      cover[best_protein] <- -Inf
+      cover[best_protein_id] <- -Inf
       next
     }
     
     newly_covered <- newly_covered[uncovered[newly_covered]]
     if (length(newly_covered) == 0) {
-      cover[best_protein] <- -Inf
+      cover[best_protein_id] <- -Inf
       next
     }
     
     # Add the best protein to the selected set
-    selected_proteins <- c(selected_proteins, best_protein)
+    selected_protein_ids <- c(selected_protein_ids, best_protein_id)
     
     # Remove covered entries from uncovered set
     uncovered[newly_covered] <- FALSE
@@ -69,20 +80,17 @@
     for (entry_idx in newly_covered) {
       entry_proteins <- entry_to_proteins[[entry_idx]]
       if (length(entry_proteins) == 0) next
-      entry_proteins <- entry_proteins[!is.na(entry_proteins)]
-      if (length(entry_proteins) == 0) next
-      entry_proteins <- entry_proteins[entry_proteins %in% cover_names]
-      if (length(entry_proteins) == 0) next
       cover[entry_proteins] <- cover[entry_proteins] - 1
     }
     
     cover[cover < 0 & is.finite(cover)] <- 0
-    cover[best_protein] <- -Inf
+    cover[best_protein_id] <- -Inf
   }
 
   # Calculate coverage count for each selected protein
-  protein_coverage_count <- selected_proteins %>%
-    purrr::map_int(~ length(protein_to_entries[[.x]])) %>%
+  selected_proteins <- protein_names[selected_protein_ids]
+  protein_coverage_count <- selected_protein_ids %>%
+    purrr::map_int(~ length(protein_entry_list[[.x]])) %>%
     purrr::set_names(selected_proteins)
 
   # Assign each entry to the selected protein with most coverage
