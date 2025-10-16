@@ -112,13 +112,22 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
       protein_site = "glycosite_position",
       glycan_structure = "structure_coding"
     )) %>%
-    dplyr::mutate(
-      protein_site = as.integer(.data$protein_site),
-      glycan_composition = .parse_strucgp_comp(.data$glycan_composition)
-    )
+    dplyr::mutate(glycan_composition = .parse_strucgp_comp(.data$glycan_composition))
+
+  # Protein inference
+  cli::cli_progress_step("Finding leader proteins")
+  protein_vectors <- list(protein = result$protein, gene = result$gene, protein_site = result$protein_site)
+  protein_vectors <- .infer_proteins(protein_vectors)
+  result <- dplyr::mutate(
+    result,
+    protein = protein_vectors$protein,
+    gene = protein_vectors$gene,
+    protein_site = as.integer(protein_vectors$protein_site)
+  )
 
   # Parse structure only if requested
   if (parse_structure) {
+    cli::cli_progress_step("Parsing glycan structures")
     result <- dplyr::mutate(
       result,
       glycan_structure = .parse_strucgp_struc(.data$glycan_structure)
