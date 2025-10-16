@@ -1,15 +1,16 @@
 # ----- Internal protein inference functions -----
 
-# Internal function for protein inference using parsimony method
-#
-# This function takes a character vector of proteins (with multiple proteins
-# separated by ";") and finds the minimal set of proteins that can explain
-# all observed entries using a greedy set cover algorithm.
-#
-# proteins_vec: A character vector where each element contains one or more
-#   proteins separated by ";"
-# Returns: An integer vector indicating the index of the selected protein for
-#   each entry in the input vector
+#' Internal function for protein inference using parsimony method
+#'
+#' This function takes a character vector of proteins (with multiple proteins
+#' separated by ";") and finds the minimal set of proteins that can explain
+#' all observed entries using a greedy set cover algorithm.
+#'
+#' @param proteins_vec A character vector where each element contains one or more
+#'   proteins separated by ";"
+#' @returns An integer vector indicating the index of the selected protein for
+#'   each entry in the input vector
+#' @noRd
 .infer_proteins_internal <- function(proteins_vec) {
   # Handle empty input
   if (length(proteins_vec) == 0) {
@@ -85,15 +86,16 @@
   assignments
 }
 
-# Perform protein inference on a list of vectors
-#
-# This function takes a list of vectors (proteins, genes, protein_sites) and
-# performs protein inference on the first vector (proteins), then applies the
-# same selection to all other vectors in the list.
-#
-# protein_vectors: A named list containing vectors for proteins, genes,
-#   and protein_sites
-# Returns: A named list with the same structure but with inferred selections
+#' Perform protein inference on a list of vectors
+#'
+#' This function takes a list of vectors (proteins, genes, protein_sites) and
+#' performs protein inference on the first vector (proteins), then applies the
+#' same selection to all other vectors in the list.
+#'
+#' @param protein_vectors A named list containing vectors for proteins, genes,
+#'   and protein_sites
+#' @returns A named list with the same structure but with inferred selections
+#' @noRd
 .infer_proteins <- function(protein_vectors) {
   # Handle empty list
   if (length(protein_vectors) == 0) {
@@ -123,8 +125,14 @@
   result
 }
 
-# Wrapper function for data frame input (for backward compatibility)
-# This function maintains the original interface for pglyco3 functions
+#' Wrapper function for data frame input (for backward compatibility)
+#'
+#' This function maintains the original interface for pglyco3 functions
+#'
+#' @param df A data frame containing the columns "peptide", "proteins", "genes",
+#'   and "protein_sites"
+#' @returns A data frame with the same structure but with inferred selections
+#' @noRd
 .infer_proteins_df <- function(df) {
   cli::cli_progress_step("Finding leader proteins")
   # Parse the proteins, genes, and protein_sites columns
