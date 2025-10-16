@@ -27,22 +27,22 @@
     dplyr::group_by(.data$protein) %>%
     dplyr::summarise(entry_indices = list(.data$entry_idx), .groups = "drop") %>%
     (function(x) stats::setNames(x$entry_indices, x$protein))
-  
+
   # Greedy set cover algorithm
-  uncovered_entries <- seq_len(length(proteins_vec))
+  uncovered <- rep_len(TRUE, length(proteins_vec))
   selected_proteins <- character(0)
-  
-  while (length(uncovered_entries) > 0) {
+
+  while (any(uncovered)) {
     # Find the protein that covers the most uncovered entries
     available_proteins <- setdiff(names(protein_to_entries), selected_proteins)
-    
+
     if (length(available_proteins) == 0) break
-    
+
     # Calculate coverage for all available proteins
     coverages <- available_proteins %>%
-      purrr::map_int(~ length(intersect(protein_to_entries[[.x]], uncovered_entries))) %>%
+      purrr::map_int(~ sum(uncovered[protein_to_entries[[.x]]])) %>%
       purrr::set_names(available_proteins)
-    
+
     # Find the protein with maximum coverage
     max_coverage <- max(coverages)
     if (max_coverage == 0) break
@@ -50,31 +50,31 @@
     # If tie, choose the first one in alphabetical order
     best_proteins <- names(coverages)[coverages == max_coverage]
     best_protein <- sort(best_proteins)[1]
-    
+
     # Add the best protein to the selected set
     selected_proteins <- c(selected_proteins, best_protein)
-    
+
     # Remove covered entries from uncovered set
-    uncovered_entries <- setdiff(uncovered_entries, protein_to_entries[[best_protein]])
+    uncovered[protein_to_entries[[best_protein]]] <- FALSE
   }
-  
+
   # Calculate coverage count for each selected protein
   protein_coverage_count <- selected_proteins %>%
     purrr::map_int(~ length(protein_to_entries[[.x]])) %>%
     purrr::set_names(selected_proteins)
-  
+
   # Assign each entry to the selected protein with most coverage
   assignments <- purrr::map_int(proteins_list, function(prots) {
     # Find available selected proteins for this entry
     available_selected <- intersect(prots, selected_proteins)
-    
+
     if (length(available_selected) > 0) {
       # Choose the protein with highest coverage count
       # If tie, choose the first one in alphabetical order
       max_count <- max(protein_coverage_count[available_selected])
       best_candidates <- available_selected[protein_coverage_count[available_selected] == max_count]
       best_protein <- sort(best_candidates)[1]
-      
+
       # Find the index of the best protein in this entry's protein list
       which(prots == best_protein)[1]
     } else {
@@ -82,7 +82,7 @@
       NA_integer_
     }
   })
-  
+
   assignments
 }
 
