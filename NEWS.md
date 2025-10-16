@@ -1,4 +1,13 @@
-# glyread (development version)
+# glyread 0.8.0
+
+## New features
+
+* `read_strucgp()` now has a 0/1 expression matrix, indicating whether each glycopeptide was identified in each sample.
+* `read_strucgp()` now performs protein inference automatically to resolve protein ambiguity.
+
+## Minor improvements and bug fixes
+
+* Protein inference algorithm is optimized for performance.
 
 # glyread 0.7.0
 
