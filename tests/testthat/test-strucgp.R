@@ -23,9 +23,12 @@ test_that("read_strucgp works", {
   # Check that var_info has data
   expect_gt(nrow(result$var_info), 0)
   
-  # Check that expr_mat is filled with NA
-  expect_true(all(is.na(result$expr_mat)))
+  # Check that expr_mat is a binary (0/1) matrix
+  expect_true(all(result$expr_mat %in% c(0, 1)))
   expect_equal(nrow(result$expr_mat), nrow(result$var_info))
+  
+  # Check that at least some glycopeptides were identified (have 1s)
+  expect_true(any(result$expr_mat == 1))
   
   # Check that sample_info exists
   expect_s3_class(result$sample_info, "tbl_df")

@@ -2,8 +2,8 @@
 #'
 #' StrucGP is a software for intact glycopeptide identification.
 #' As StrucGP doesn't support quantification,
-#' this function returns an [glyexp::experiment()] object with an expression matrix
-#' filled with `NA` values.
+#' this function returns an [glyexp::experiment()] object with a binary (0/1) expression matrix
+#' indicating whether each glycopeptide was identified in each sample.
 #'
 #' @details
 #' # Variable information
@@ -39,7 +39,8 @@
 #'  `var_info` as `glycan_structure` column. If `FALSE`, structure parsing
 #'  is skipped and the structure column is removed.
 #'
-#' @returns An [glyexp::experiment()] object with an expression matrix filled with `NA` values.
+#' @returns An [glyexp::experiment()] object with a binary (0/1) expression matrix,
+#'  where 1 indicates the glycopeptide was identified in that sample and 0 indicates it was not.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
 #'   [glyrepr::glycan_structure()]
 #' @export
@@ -71,13 +72,24 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
     dplyr::distinct() %>%
     dplyr::mutate(variable = paste0("GP", dplyr::row_number()), .before = 1)
   
-  # ----- Create expression matrix with NA values -----
+  # ----- Create expression matrix (0/1 matrix for identification) -----
+  # Initialize with 0
   expr_mat <- matrix(
-    NA_real_,
+    0,
     nrow = nrow(var_info),
     ncol = length(samples),
     dimnames = list(var_info$variable, samples)
   )
+  
+  # Mark identified glycopeptides as 1
+  tidy_df_with_var <- tidy_df %>%
+    dplyr::left_join(var_info, by = setdiff(names(var_info), c("variable")))
+  
+  for (i in seq_len(nrow(tidy_df_with_var))) {
+    var_id <- tidy_df_with_var$variable[i]
+    sample_id <- tidy_df_with_var$sample[i]
+    expr_mat[var_id, sample_id] <- 1
+  }
   
   # ----- Pack experiment -----
   cli::cli_progress_step("Creating experiment object")
