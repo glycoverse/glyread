@@ -1,4 +1,8 @@
-# glyread (development version)
+# glyread 0.7.0
+
+## Breaking changes
+
+* `read_strucgp()` has been redesigned with a new API. It now returns an [glyexp::experiment()] object instead of a tibble, to be consistent with other `read_xxx()` functions. As StrucGP doesn't support quantification, the expression matrix is filled with `NA` values.
 
 # glyread 0.6.3
 
