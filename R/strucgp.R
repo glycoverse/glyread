@@ -58,20 +58,20 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
   cli::cli_progress_step("Reading data")
   df <- readxl::read_excel(fp)
   tidy_df <- .tidy_strucgp(df, parse_structure)
-  
+
   # ----- Extract unique samples -----
   samples <- unique(tidy_df$sample)
-  
+
   # ----- Process sample information -----
   sample_info <- .process_sample_info(sample_info, samples, glycan_type)
-  
+
   # ----- Create variable information -----
   cli::cli_progress_step("Creating variable information")
   var_info <- tidy_df %>%
     dplyr::select(-"sample") %>%
     dplyr::distinct() %>%
     dplyr::mutate(variable = paste0("GP", dplyr::row_number()), .before = 1)
-  
+
   # ----- Create expression matrix (0/1 matrix for identification) -----
   # Initialize with 0
   expr_mat <- matrix(
@@ -80,17 +80,17 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
     ncol = length(samples),
     dimnames = list(var_info$variable, samples)
   )
-  
+
   # Mark identified glycopeptides as 1
   tidy_df_with_var <- tidy_df %>%
     dplyr::left_join(var_info, by = setdiff(names(var_info), c("variable")))
-  
+
   for (i in seq_len(nrow(tidy_df_with_var))) {
     var_id <- tidy_df_with_var$variable[i]
     sample_id <- tidy_df_with_var$sample[i]
     expr_mat[var_id, sample_id] <- 1
   }
-  
+
   # ----- Pack experiment -----
   cli::cli_progress_step("Creating experiment object")
   glyexp::experiment(
@@ -116,7 +116,7 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
       protein_site = as.integer(.data$protein_site),
       glycan_composition = .parse_strucgp_comp(.data$glycan_composition)
     )
-  
+
   # Parse structure only if requested
   if (parse_structure) {
     result <- dplyr::mutate(
@@ -127,7 +127,7 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
     # Remove glycan_structure column if not parsing
     result <- dplyr::select(result, -"glycan_structure")
   }
-  
+
   result
 }
 
