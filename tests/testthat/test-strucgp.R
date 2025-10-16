@@ -1,29 +1,70 @@
 test_that("read_strucgp works", {
-  result <- read_strucgp(test_path("data/strucgp-result.xlsx"))
+  suppressMessages(result <- read_strucgp(test_path("data/strucgp-result.xlsx")))
   
-  # Check that result is a tibble
-  expect_s3_class(result, "tbl_df")
+  # Check that result is an experiment object
+  expect_s3_class(result, "glyexp_experiment")
   
-  # Check expected columns are present
+  # Check var_info has expected columns
   expected_cols <- c(
-    "peptide", "protein", "gene", "protein_site", 
+    "variable", "peptide", "protein", "gene", "protein_site", 
     "glycan_composition", "glycan_structure"
   )
-  expect_true(all(expected_cols %in% colnames(result)))
+  expect_true(all(expected_cols %in% colnames(result$var_info)))
   
-  # Check column types
-  expect_type(result$peptide, "character")
-  expect_type(result$protein, "character") 
-  expect_type(result$gene, "character")
-  expect_type(result$protein_site, "character")
-  expect_s3_class(result$glycan_composition, "glyrepr_composition")
-  expect_s3_class(result$glycan_structure, "glyrepr_structure")
+  # Check column types in var_info
+  expect_type(result$var_info$variable, "character")
+  expect_type(result$var_info$peptide, "character")
+  expect_type(result$var_info$protein, "character") 
+  expect_type(result$var_info$gene, "character")
+  expect_type(result$var_info$protein_site, "integer")
+  expect_s3_class(result$var_info$glycan_composition, "glyrepr_composition")
+  expect_s3_class(result$var_info$glycan_structure, "glyrepr_structure")
   
-  # Check that result has data
-  expect_gt(nrow(result), 0)
+  # Check that var_info has data
+  expect_gt(nrow(result$var_info), 0)
   
-  # Check that duplicates are removed (distinct() is applied)
-  expect_equal(nrow(result), nrow(dplyr::distinct(result)))
+  # Check that expr_mat is filled with NA
+  expect_true(all(is.na(result$expr_mat)))
+  expect_equal(nrow(result$expr_mat), nrow(result$var_info))
+  
+  # Check that sample_info exists
+  expect_s3_class(result$sample_info, "tbl_df")
+  expect_true("sample" %in% colnames(result$sample_info))
+  expect_gt(nrow(result$sample_info), 0)
+  
+  # Check dimensions match
+  expect_equal(ncol(result$expr_mat), nrow(result$sample_info))
+})
+
+test_that("read_strucgp works with parse_structure = FALSE", {
+  suppressMessages(result <- read_strucgp(test_path("data/strucgp-result.xlsx"), parse_structure = FALSE))
+  
+  # Check that result is an experiment object
+  expect_s3_class(result, "glyexp_experiment")
+  
+  # Check var_info does NOT have glycan_structure column
+  expect_false("glycan_structure" %in% colnames(result$var_info))
+  
+  # Check that glycan_composition is still present
+  expect_true("glycan_composition" %in% colnames(result$var_info))
+  expect_s3_class(result$var_info$glycan_composition, "glyrepr_composition")
+})
+
+test_that("read_strucgp works with custom sample_info", {
+  # Create a simple sample_info with the actual sample name from the test file
+  sample_info <- data.frame(
+    sample = c("20250403-LZE-NGlyco5_3"),
+    group = c("treatment")
+  )
+  
+  suppressMessages(result <- read_strucgp(
+    test_path("data/strucgp-result.xlsx"),
+    sample_info = sample_info
+  ))
+  
+  # Check that sample_info is included
+  expect_true("group" %in% colnames(result$sample_info))
+  expect_equal(as.character(result$sample_info$group), c("treatment"))
 })
 
 test_that(".parse_strucgp_comp works correctly", {

@@ -4,17 +4,59 @@
 \alias{read_strucgp}
 \title{Read the result from StrucGP}
 \usage{
-read_strucgp(fp)
+read_strucgp(fp, sample_info = NULL, glycan_type = "N", parse_structure = TRUE)
 }
 \arguments{
 \item{fp}{File path of the StrucGP result file.}
+
+\item{sample_info}{File path of the sample information file (csv),
+or a sample information data.frame/tibble. If \code{NULL} (default),
+a simple sample information tibble will be created.}
+
+\item{glycan_type}{Glycan type. Either "N" or "O". Default is "N".}
+
+\item{parse_structure}{Logical. Whether to parse glycan structures.
+If \code{TRUE} (default), glycan structures are parsed and included in the
+\code{var_info} as \code{glycan_structure} column. If \code{FALSE}, structure parsing
+is skipped and the structure column is removed.}
 }
 \value{
-A tibble with the processed variable information.
+An \code{\link[glyexp:experiment]{glyexp::experiment()}} object with an expression matrix filled with \code{NA} values.
 }
 \description{
 StrucGP is a software for intact glycopeptide identification.
 As StrucGP doesn't support quantification,
-this function only returns the processed variable information tibble,
-instead of an \code{\link[glyexp:experiment]{glyexp::experiment()}} object like other \code{glyread} functions.
+this function returns an \code{\link[glyexp:experiment]{glyexp::experiment()}} object with an expression matrix
+filled with \code{NA} values.
+}
+\section{Variable information}{
+The following columns could be found in the variable information tibble:
+\itemize{
+\item \code{peptide}: character, peptide sequence
+\item \code{protein}: character, protein accession
+\item \code{gene}: character, gene name (symbol)
+\item \code{protein_site}: integer, site of glycosylation on protein
+\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+\item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures (if \code{parse_structure = TRUE}).
+}
+}
+
+\section{Sample information}{
+The sample information file should be a \code{csv} file with the first column
+named \code{sample}, and the rest of the columns being sample information.
+The \code{sample} column must match the \code{file_name} column in the StrucGP result file,
+although the order can be different.
+
+You can put any useful information in the sample information file.
+Recommended columns are:
+\itemize{
+\item \code{group}: grouping or conditions, e.g. "control" or "tumor",
+required for most downstream analyses
+\item \code{batch}: batch information, required for batch effect correction
+}
+}
+
+\seealso{
+\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
+\code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}
 }
