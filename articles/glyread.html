@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -156,12 +156,12 @@ friend:</p>
 <code class="sourceCode R"><span><span class="va">exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant</a></span><span class="op">(</span><span class="st">"glycopeptides.list"</span>, sample_info <span class="op">=</span> <span class="st">"sample_info.csv"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Reading data</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Finding leader proteins</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Finding leader proteins <span style="color: #B2B2B2;">[148ms]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Finding leader proteins <span style="color: #B2B2B2;">[81ms]</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Reading dataColumn <span style="color: #00BB00;">group</span> converted to <span style="color: #0000BB;">&lt;factor&gt;</span>.<span style="color: #00BBBB;">ℹ</span> Parsing glycan compositions and structures</span></span>
-<span><span class="co">#&gt; Column <span style="color: #00BB00;">group</span> converted to <span style="color: #0000BB;">&lt;factor&gt;</span>.<span style="color: #00BB00;">✔</span> Parsing glycan compositions and structures <span style="color: #B2B2B2;">[274ms]</span></span></span>
+<span><span class="co">#&gt; Column <span style="color: #00BB00;">group</span> converted to <span style="color: #0000BB;">&lt;factor&gt;</span>.<span style="color: #00BB00;">✔</span> Parsing glycan compositions and structures <span style="color: #B2B2B2;">[278ms]</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Reading data<span style="color: #00BB00;">✔</span> Reading data <span style="color: #B2B2B2;">[716ms]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Reading data<span style="color: #00BB00;">✔</span> Reading data <span style="color: #B2B2B2;">[660ms]</span></span></span>
 <span><span class="va">exp</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Glycoproteomics Experiment</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────</span></span></span>
@@ -178,16 +178,16 @@ Glycopeptides:</strong></p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 298 × 7</span></span></span>
 <span><span class="co">#&gt;    variable peptide   peptide_site protein protein_site gene  glycan_composition</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;comp&gt;</span>            </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> GP1      JKTQGK               1 P08185           176 SERP… Hex(5)HexNAc(4)Ne…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> GP2      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> GP3      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> GP4      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> GP5      HJSTGCLR             2 P10909           291 CLU   Hex(6)HexNAc(5)   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> GP6      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> GP7      HSHNJJSS…            6 P04196           345 HRG   Hex(5)HexNAc(4)   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> GP8      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)dH…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> GP9      HSHNJJSS…            5 P04196           344 HRG   Hex(4)HexNAc(3)   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> GP10     HSHNJJSS…            5 P04196           344 HRG   Hex(4)HexNAc(4)Ne…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> GP1      JKTQGK               1 P08185           176 SERP… <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> GP2      HSHNJJSS…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> GP3      HSHNJJSS…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> GP4      HSHNJJSS…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> GP5      HJSTGCLR             2 P10909           291 CLU   <span style="color: #000000;">Hex</span>(6)<span style="color: #000000;">HexNAc</span>(5)   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> GP6      HSHNJJSS…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> GP7      HSHNJJSS…            6 P04196           345 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> GP8      HSHNJJSS…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">dH</span>…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> GP9      HSHNJJSS…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(4)<span style="color: #000000;">HexNAc</span>(3)   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> GP10     HSHNJJSS…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(4)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 288 more rows</span></span></span></code></pre></div>
 <p><strong>📋 Sample Information - Know Your Experiments:</strong></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
