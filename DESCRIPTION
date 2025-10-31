@@ -45,6 +45,7 @@ Imports:
     tidyselect
 Remotes: 
     glycoverse/glyexp@*release,
-    glycoverse/glyparse@*release,
-    glycoverse/glyrepr@*release
+    glycoverse/glyparse@*release
+Depends: 
+    R (>= 4.1)
 VignetteBuilder: knitr
