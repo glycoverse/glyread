@@ -1,4 +1,8 @@
-# glyread (development version)
+# glyread 0.8.1
+
+## Minor improvements and fixes
+
+* glyread now depends on the CRAN version of glyrepr.
 
 # glyread 0.8.0
 
