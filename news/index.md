@@ -1,7 +1,5 @@
 # Changelog
 
-## glyread (development version)
-
 ## glyread 0.8.2
 
 ### Minor improvements and fixes
