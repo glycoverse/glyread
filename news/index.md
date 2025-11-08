@@ -2,6 +2,12 @@
 
 ## glyread (development version)
 
+## glyread 0.8.2
+
+### Minor improvements and fixes
+
+- glyread now depends on the CRAN version of glyparse.
+
 ## glyread 0.8.1
 
 ### Minor improvements and fixes
