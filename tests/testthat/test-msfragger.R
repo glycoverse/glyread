@@ -86,10 +86,10 @@ test_that("it handles O-linked glycan type", {
     res <- read_msfragger(
       test_path("data/msfragger_result"),
       quant_method = "label-free",
-      glycan_type = "O"
+      glycan_type = "O-GalNAc"
     )
   )
-  expect_equal(res$meta_data$glycan_type, "O")
+  expect_equal(res$meta_data$glycan_type, "O-GalNAc")
 })
 
 # ----- Parameter validation tests -----

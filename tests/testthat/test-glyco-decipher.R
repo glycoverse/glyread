@@ -183,10 +183,10 @@ test_that("it handles different glycan types and orgdb parameters", {
     res1 <- read_glyco_decipher(
       test_path("data/glyco-decipher-result.csv"),
       quant_method = "label-free",
-      glycan_type = "O"
+      glycan_type = "O-GalNAc"
     )
   )
-  expect_equal(res1$meta_data$glycan_type, "O")
+  expect_equal(res1$meta_data$glycan_type, "O-GalNAc")
 
   # Custom orgdb (should work even if package not available)
   suppressMessages(

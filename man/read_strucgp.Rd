@@ -13,7 +13,8 @@ read_strucgp(fp, sample_info = NULL, glycan_type = "N", parse_structure = TRUE)
 or a sample information data.frame/tibble. If \code{NULL} (default),
 a simple sample information tibble will be created.}
 
-\item{glycan_type}{Glycan type. Either "N" or "O". Default is "N".}
+\item{glycan_type}{Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or "O-Glc".
+Default is "N".}
 
 \item{parse_structure}{Logical. Whether to parse glycan structures.
 If \code{TRUE} (default), glycan structures are parsed and included in the

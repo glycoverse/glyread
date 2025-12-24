@@ -91,10 +91,10 @@ test_that("it works with O-glycan type", {
     res <- read_pglyco3(
       test_path("data/pglyco3-LFQ-result.txt"),
       quant_method = "label-free",
-      glycan_type = "O"
+      glycan_type = "O-GalNAc"
     )
   )
-  expect_equal(res$meta_data$glycan_type, "O")
+  expect_equal(res$meta_data$glycan_type, "O-GalNAc")
 })
 
 

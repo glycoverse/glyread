@@ -194,10 +194,10 @@ test_that("it handles O-linked glycan type", {
     res <- read_byonic_pglycoquant(
       test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free",
-      glycan_type = "O"
+      glycan_type = "O-GalNAc"
     )
   )
-  expect_equal(res$meta_data$glycan_type, "O")
+  expect_equal(res$meta_data$glycan_type, "O-GalNAc")
 })
 
 # ----- Data consistency -----

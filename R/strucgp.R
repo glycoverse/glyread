@@ -33,7 +33,8 @@
 #' @param sample_info File path of the sample information file (csv),
 #'  or a sample information data.frame/tibble. If `NULL` (default),
 #'  a simple sample information tibble will be created.
-#' @param glycan_type Glycan type. Either "N" or "O". Default is "N".
+#' @param glycan_type Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or "O-Glc".
+#'  Default is "N".
 #' @param parse_structure Logical. Whether to parse glycan structures.
 #'  If `TRUE` (default), glycan structures are parsed and included in the
 #'  `var_info` as `glycan_structure` column. If `FALSE`, structure parsing

@@ -32,7 +32,8 @@
 #' @param sample_info File path of the sample information file (csv),
 #'  or a sample information data.frame/tibble.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".
-#' @param glycan_type Glycan type. Either "N" or "O". Default is "N".
+#' @param glycan_type Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or "O-Glc".
+#'  Default is "N".
 #' @param sample_name_converter A function to convert sample names from file paths.
 #'  The function should take a character vector of old sample names
 #'  and return new sample names.

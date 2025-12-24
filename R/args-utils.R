@@ -52,7 +52,7 @@
   checkmate::assert_choice(quant_method, c("label-free", "TMT"))
   
   # Validate and match glycan_type
-  checkmate::assert_choice(glycan_type, c("N", "O"))
+  checkmate::assert_choice(glycan_type, c("N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", "O-Glc"))
   
   # Validate sample_name_converter
   checkmate::assert(

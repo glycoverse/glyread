@@ -17,7 +17,8 @@ read_glyhunter(
 \item{sample_info}{File path of the sample information file (csv),
 or a sample information data.frame/tibble.}
 
-\item{glycan_type}{Glycan type. Either "N" or "O". Default is "N".}
+\item{glycan_type}{Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or "O-Glc".
+Default is "N".}
 
 \item{sample_name_converter}{A function to convert sample names from file paths.
 The function should take a character vector of old sample names
