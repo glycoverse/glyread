@@ -36,7 +36,8 @@ read_pglyco3_pglycoquant(
 
 - glycan_type:
 
-  Glycan type. Either "N" or "O". Default is "N".
+  Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or
+  "O-Glc". Default is "N".
 
 - sample_name_converter:
 

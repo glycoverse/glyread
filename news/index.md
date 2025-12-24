@@ -1,5 +1,15 @@
 # Changelog
 
+## glyread (development version)
+
+## glyread 0.8.3
+
+### Minor improvements
+
+- `glycan_type` parameter now supports “O-GalNAc”, “O-GlcNAc”, “O-Man”,
+  “O-Fuc”, and “O-Glc”. “O” is not a valid value anymore. This is to be
+  in consistent with the update introduced in `glyexp` 0.10.2.
+
 ## glyread 0.8.2
 
 ### Minor improvements and fixes

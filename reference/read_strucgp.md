@@ -26,7 +26,8 @@ read_strucgp(fp, sample_info = NULL, glycan_type = "N", parse_structure = TRUE)
 
 - glycan_type:
 
-  Glycan type. Either "N" or "O". Default is "N".
+  Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or
+  "O-Glc". Default is "N".
 
 - parse_structure:
 
