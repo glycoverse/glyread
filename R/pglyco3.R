@@ -158,6 +158,8 @@ read_pglyco3 <- function(
   df %>%
     dplyr::rename(all_of(new_names)) %>%
     dplyr::mutate(
+      # Convert J (pGlyco3 notation for glycosylated Asn) back to N
+      peptide = stringr::str_replace(.data$peptide, "J", "N"),
       genes = stringr::str_remove(.data$genes, ";$"),
       proteins = .extract_uniprot_accession(.data$proteins)
     )

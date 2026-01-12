@@ -501,3 +501,25 @@ test_that("PSMs are correctly aggregated to glycopeptides", {
   # Check that aggregation worked correctly
   expect_equal(nrow(res$var_info), nrow(df))
 })
+
+# ----- Peptide sequence tests -----
+test_that("J is converted to N in peptide column", {
+  suppressMessages(
+    res <- read_pglyco3_pglycoquant(
+      test_path("data/pglyco3-pglycoquant-LFQ-result.list"),
+      quant_method = "label-free"
+    )
+  )
+
+  # J is pGlyco3's notation for glycosylated Asn, should be converted back to N
+  expect_false(any(stringr::str_detect(res$var_info$peptide, "J")))
+
+  # Check that N is present in peptides (since all are N-glycopeptides)
+  expect_true(any(stringr::str_detect(res$var_info$peptide, "N")))
+
+  # Verify no invalid amino acids in peptides (20 standard amino acids)
+  valid_aa <- c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y")
+  all_peptides <- paste(res$var_info$peptide, collapse = "")
+  invalid_chars <- stringr::str_remove_all(all_peptides, paste(valid_aa, collapse = "|"))
+  expect_equal(nchar(invalid_chars), 0L)
+})
