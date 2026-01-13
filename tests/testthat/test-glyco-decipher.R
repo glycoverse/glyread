@@ -84,7 +84,12 @@ test_that("expression matrix and variables are correctly processed", {
 
   # Check variable naming
   variables <- res$var_info$variable
-  expect_true(all(stringr::str_starts(variables, "GP")))
+  # Variables should be meaningful: protein-site-glycan pattern
+  # Note: glyco-decipher may have uncertain sites (e.g., "NNA") so use .+ instead of \\d+
+  expect_true(all(stringr::str_detect(variables, ".+?-N.+-.+")))
+  # And contain glycan composition info
+  expect_true(all(stringr::str_detect(variables, "Hex")))
+  expect_true(all(stringr::str_detect(variables, "HexNAc")))
   expect_equal(length(variables), length(unique(variables)))
 })
 

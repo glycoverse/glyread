@@ -170,7 +170,7 @@ test_that("peptide and protein sites are correctly calculated", {
 
 
 # ----- Variable naming -----
-test_that("variables are correctly named with GP prefix", {
+test_that("variables are correctly named with meaningful IDs", {
   suppressMessages(
     res <- read_byonic_byologic(
       test_path("data/byonic-byologic-LFQ-result.csv"),
@@ -179,7 +179,11 @@ test_that("variables are correctly named with GP prefix", {
   )
 
   variables <- res$var_info$variable
-  expect_true(all(stringr::str_starts(variables, "GP")))
+  # Variables should be meaningful: protein-site-glycan pattern
+  expect_true(all(stringr::str_detect(variables, ".+?-N\\d+-.+")))
+  # And contain glycan composition info
+  expect_true(all(stringr::str_detect(variables, "Hex")))
+  expect_true(all(stringr::str_detect(variables, "HexNAc")))
   expect_equal(length(variables), length(unique(variables)))  # All unique
 })
 

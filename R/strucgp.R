@@ -94,12 +94,21 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
 
   # ----- Pack experiment -----
   cli::cli_progress_step("Creating experiment object")
-  glyexp::experiment(
+  exp <- glyexp::experiment(
     expr_mat, sample_info, var_info,
     exp_type = "glycoproteomics",
     glycan_type = glycan_type,
     quant_method = "label-free"
   )
+
+  # ----- Standardize variable IDs -----
+  # standardize_variable returns a modified copy
+  exp <- glyexp::standardize_variable(exp)
+
+  # Remove placeholder columns so they don't appear in final var_info
+  exp$var_info <- dplyr::select(exp$var_info, -"peptide", -"peptide_site")
+
+  exp
 }
 
 .tidy_strucgp <- function(df, parse_structure) {
@@ -125,6 +134,14 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
     gene = protein_vectors$gene,
     protein_site = as.integer(protein_vectors$protein_site)
   )
+
+  # Add peptide and peptide_site for standardize_variable()
+  # StrucGP only works with N-glycans, so use "N" as placeholder
+  result <- result %>%
+    dplyr::mutate(
+      peptide = "N",  # Placeholder for N-glycosylation
+      peptide_site = 1L
+    )
 
   # Parse structure only if requested
   if (parse_structure) {

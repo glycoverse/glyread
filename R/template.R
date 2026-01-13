@@ -56,10 +56,14 @@
   }
 
   # ----- 6. Packing Experiment -----
-  glyexp::experiment(
+  exp <- glyexp::experiment(
     expr_mat, sample_info, var_info,
     exp_type = "glycoproteomics",
     glycan_type = glycan_type,
     quant_method = quant_method
   )
+
+  # ----- 7. Standardize variable IDs -----
+  # standardize_variable returns a modified copy
+  glyexp::standardize_variable(exp)
 }

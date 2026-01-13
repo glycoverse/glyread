@@ -129,16 +129,20 @@ test_that("glycan compositions are correctly processed and parsed", {
 })
 
 # ----- Variable naming -----
-test_that("variables are correctly named with PSM prefix", {
+test_that("variables are correctly named with meaningful IDs", {
   suppressMessages(
     res <- read_byonic_pglycoquant(
       test_path("data/byonic-pglycoquant-LFQ-result.list"),
       quant_method = "label-free"
     )
   )
-  
+
   variables <- res$var_info$variable
-  expect_true(all(stringr::str_starts(variables, "GP")))
+  # Variables should be meaningful: protein-site-glycan pattern
+  expect_true(all(stringr::str_detect(variables, ".+?-N\\d+-.+")))
+  # And contain glycan composition info
+  expect_true(all(stringr::str_detect(variables, "Hex")))
+  expect_true(all(stringr::str_detect(variables, "HexNAc")))
   expect_equal(length(variables), length(unique(variables)))  # All unique
 })
 

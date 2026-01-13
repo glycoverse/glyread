@@ -334,7 +334,11 @@ test_that("variable identifiers are unique", {
   
   variables <- res$var_info$variable
   expect_equal(length(variables), length(unique(variables)))
-  expect_true(all(stringr::str_starts(variables, "GP")))
+  # Variables should be meaningful: protein-site-glycan pattern
+  expect_true(all(stringr::str_detect(variables, ".+?-N\\d+-.+")))
+  # And contain glycan composition info
+  expect_true(all(stringr::str_detect(variables, "Hex")))
+  expect_true(all(stringr::str_detect(variables, "HexNAc")))
 })
 
 # ----- Edge cases -----

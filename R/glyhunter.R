@@ -58,9 +58,12 @@ read_glyhunter <- function(
     as.matrix()
 
   # Pack experiment
-  glyexp::experiment(
+  exp <- glyexp::experiment(
     expr_mat, sample_info, var_info,
     exp_type = "glycomics",
     glycan_type = glycan_type
   )
+
+  # Standardize variable IDs
+  glyexp::standardize_variable(exp)
 }

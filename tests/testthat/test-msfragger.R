@@ -248,7 +248,11 @@ test_that("it correctly extracts variable information", {
   expect_true(all(is.numeric(var_info$protein_site)))
 
   # Check that variable names are unique and properly formatted
-  expect_true(all(grepl("^GP\\d+$", var_info$variable)))
+  # Variables should be meaningful: protein-site-glycan pattern
+  expect_true(all(stringr::str_detect(var_info$variable, ".+?-N\\d+-.+")))
+  # And contain glycan composition info
+  expect_true(all(stringr::str_detect(var_info$variable, "Hex")))
+  expect_true(all(stringr::str_detect(var_info$variable, "HexNAc")))
   expect_equal(length(unique(var_info$variable)), nrow(var_info))
 
   # Check that peptide sites and protein sites are reasonable

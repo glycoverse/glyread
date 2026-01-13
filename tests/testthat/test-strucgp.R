@@ -1,40 +1,39 @@
 test_that("read_strucgp works", {
   suppressMessages(result <- read_strucgp(test_path("data/strucgp-result.xlsx")))
-  
+
   # Check that result is an experiment object
   expect_s3_class(result, "glyexp_experiment")
-  
-  # Check var_info has expected columns
+
+  # Check var_info has expected columns (peptide is removed after standardization)
   expected_cols <- c(
-    "variable", "peptide", "protein", "gene", "protein_site", 
+    "variable", "protein", "gene", "protein_site",
     "glycan_composition", "glycan_structure"
   )
   expect_true(all(expected_cols %in% colnames(result$var_info)))
-  
+
   # Check column types in var_info
   expect_type(result$var_info$variable, "character")
-  expect_type(result$var_info$peptide, "character")
-  expect_type(result$var_info$protein, "character") 
+  expect_type(result$var_info$protein, "character")
   expect_type(result$var_info$gene, "character")
   expect_type(result$var_info$protein_site, "integer")
   expect_s3_class(result$var_info$glycan_composition, "glyrepr_composition")
   expect_s3_class(result$var_info$glycan_structure, "glyrepr_structure")
-  
+
   # Check that var_info has data
   expect_gt(nrow(result$var_info), 0)
-  
+
   # Check that expr_mat is a binary (0/1) matrix
   expect_true(all(result$expr_mat %in% c(0, 1)))
   expect_equal(nrow(result$expr_mat), nrow(result$var_info))
-  
+
   # Check that at least some glycopeptides were identified (have 1s)
   expect_true(any(result$expr_mat == 1))
-  
+
   # Check that sample_info exists
   expect_s3_class(result$sample_info, "tbl_df")
   expect_true("sample" %in% colnames(result$sample_info))
   expect_gt(nrow(result$sample_info), 0)
-  
+
   # Check dimensions match
   expect_equal(ncol(result$expr_mat), nrow(result$sample_info))
 })
