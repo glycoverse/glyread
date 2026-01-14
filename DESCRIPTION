@@ -30,7 +30,7 @@ Imports:
     cli,
     dplyr,
     fs,
-    glyexp (>= 0.12.0),
+    glyexp (>= 0.12.1),
     glyparse (>= 0.5.3),
     glyrepr (>= 0.7.4),
     janitor,
