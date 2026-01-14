@@ -1,4 +1,9 @@
-# glyread (development version)
+# glyread 0.8.4
+
+## Minor improvements and bug fixes
+
+* Variable IDs in all `read_xxx()` functions are now standardized using meaningful names (e.g., `P13674-N259-Hex(4)HexNAc(4)dHex(3)NeuAc(1)`) instead of generic IDs (e.g., `GP1`).
+* `read_pglyco3()` now correctly converts "J" to "N" in the peptide column for pGlyco3 output.
 
 # glyread 0.8.3
 
