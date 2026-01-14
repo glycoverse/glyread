@@ -7,13 +7,13 @@
 
 ## Citation
 
-Fu B (2025). *glyread: Read and process glycomics and glycoproteomics
-data*. R package version 0.8.3, <https://glycoverse.github.io/glyread/>.
+Fu B (2026). *glyread: Read and process glycomics and glycoproteomics
+data*. R package version 0.8.4, <https://glycoverse.github.io/glyread/>.
 
     @Manual{,
       title = {glyread: Read and process glycomics and glycoproteomics data},
       author = {Bin Fu},
-      year = {2025},
-      note = {R package version 0.8.3},
+      year = {2026},
+      note = {R package version 0.8.4},
       url = {https://glycoverse.github.io/glyread/},
     }

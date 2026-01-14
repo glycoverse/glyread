@@ -5,6 +5,11 @@ quantification. This function reads in the result file and returns a
 [`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
 object. Currently only label-free quantification is supported.
 
+Use this function if you only use pGlyco3. If you also use pGlycoQuant
+for quantification, use
+[`read_pglyco3_pglycoquant()`](https://glycoverse.github.io/glyread/reference/read_pglyco3_pglycoquant.md)
+instead.
+
 ## Usage
 
 ``` r
@@ -60,10 +65,10 @@ object.
 
 ## Which file to use?
 
-You should use the result file from pGlyco3 that contains quantification
-information. The file should have columns including `RawName`,
-`MonoArea`, `Peptide`, `Proteins`, `Genes`, `GlycanComposition`,
-`PlausibleStruct`, `GlySite`, and `ProSites`.
+You should use the file with "-Pro-Quant" suffix that contains
+quantification information. The file should have columns including
+`RawName`, `MonoArea`, `Peptide`, `Proteins`, `Genes`,
+`GlycanComposition`, `PlausibleStruct`, `GlySite`, and `ProSites`.
 
 ## Sample information
 

@@ -111,12 +111,12 @@ new best friend:
 exp <- read_pglyco3_pglycoquant("glycopeptides.list", sample_info = "sample_info.csv")
 #> ℹ Reading data
 #> ℹ Finding leader proteins
-#> ✔ Finding leader proteins [99ms]
+#> ✔ Finding leader proteins [118ms]
 #> 
 #> ℹ Reading dataColumn group converted to <factor>.ℹ Parsing glycan compositions and structures
-#> Column group converted to <factor>.✔ Parsing glycan compositions and structures [271ms]
+#> Column group converted to <factor>.✔ Parsing glycan compositions and structures [344ms]
 #> 
-#> ℹ Reading data✔ Reading data [654ms]
+#> ℹ Reading data✔ Reading data [765ms]
 exp
 #> 
 #> ── Glycoproteomics Experiment ──────────────────────────────────────────────────
@@ -135,18 +135,18 @@ Let’s peek at what treasures we’ve extracted:
 ``` r
 get_var_info(exp)
 #> # A tibble: 298 × 7
-#>    variable peptide   peptide_site protein protein_site gene  glycan_composition
-#>    <chr>    <chr>            <int> <chr>          <int> <chr> <comp>            
-#>  1 GP1      JKTQGK               1 P08185           176 SERP… Hex(5)HexNAc(4)Ne…
-#>  2 GP2      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…
-#>  3 GP3      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)   
-#>  4 GP4      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…
-#>  5 GP5      HJSTGCLR             2 P10909           291 CLU   Hex(6)HexNAc(5)   
-#>  6 GP6      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…
-#>  7 GP7      HSHNJJSS…            6 P04196           345 HRG   Hex(5)HexNAc(4)   
-#>  8 GP8      HSHNJJSS…            5 P04196           344 HRG   Hex(5)HexNAc(4)dH…
-#>  9 GP9      HSHNJJSS…            5 P04196           344 HRG   Hex(4)HexNAc(3)   
-#> 10 GP10     HSHNJJSS…            5 P04196           344 HRG   Hex(4)HexNAc(4)Ne…
+#>    variable   peptide peptide_site protein protein_site gene  glycan_composition
+#>    <chr>      <chr>          <int> <chr>          <int> <chr> <comp>            
+#>  1 P08185-N1… NKTQGK             1 P08185           176 SERP… Hex(5)HexNAc(4)Ne…
+#>  2 P04196-N3… HSHNNJ…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…
+#>  3 P04196-N3… HSHNNJ…            5 P04196           344 HRG   Hex(5)HexNAc(4)   
+#>  4 P04196-N3… HSHNNJ…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…
+#>  5 P10909-N2… HNSTGC…            2 P10909           291 CLU   Hex(6)HexNAc(5)   
+#>  6 P04196-N3… HSHNNJ…            5 P04196           344 HRG   Hex(5)HexNAc(4)Ne…
+#>  7 P04196-J3… HSHNNJ…            6 P04196           345 HRG   Hex(5)HexNAc(4)   
+#>  8 P04196-N3… HSHNNJ…            5 P04196           344 HRG   Hex(5)HexNAc(4)dH…
+#>  9 P04196-N3… HSHNNJ…            5 P04196           344 HRG   Hex(4)HexNAc(3)   
+#> 10 P04196-N3… HSHNNJ…            5 P04196           344 HRG   Hex(4)HexNAc(4)Ne…
 #> # ℹ 288 more rows
 ```
 
@@ -175,30 +175,78 @@ get_sample_info(exp)
 
 ``` r
 get_expr_mat(exp)[1:5, ]
-#>     20241224-LXJ-Nglyco-H_1 20241224-LXJ-Nglyco-H_2 20241224-LXJ-Nglyco-H_3
-#> GP1                31054.12                      NA                457398.3
-#> GP2                      NA               136556.05                      NA
-#> GP3                      NA                15717.87                427312.0
-#> GP4               285613.66               268250.71               2621248.6
-#> GP5             27588555.39             19527065.26              32930089.6
-#>     20241224-LXJ-Nglyco-M_1 20241224-LXJ-Nglyco-M_2 20241224-LXJ-Nglyco-M_3
-#> GP1                 7616346                 7391049                 6267864
-#> GP2                22675686                16675442               114423292
-#> GP3                10813133                 9746325                25348175
-#> GP4               993255511              1099069766              1106268049
-#> GP5                32500720                      NA                26346060
-#>     20241224-LXJ-Nglyco-Y_1 20241224-LXJ-Nglyco-Y_2 20241224-LXJ-Nglyco-Y_3
-#> GP1                23059718                15010885                  740942
-#> GP2               115717950                90594397                55977605
-#> GP3                33607210                21284262                28608146
-#> GP4               547660361               753702172               556784303
-#> GP5                21780632                19862189                12764805
-#>     20241224-LXJ-Nglyco-C_1 20241224-LXJ-Nglyco-C_2 20241224-LXJ-Nglyco-C_3
-#> GP1                      NA                      NA                10655.62
-#> GP2               305840564               428631806             16064212.10
-#> GP3                32885077                35418588              6372648.51
-#> GP4               669332806               696696106            112287653.59
-#> GP5                25946392                18860878              4316119.03
+#>                                       20241224-LXJ-Nglyco-H_1
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  31054.12
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                      NA
+#> P04196-N344-Hex(5)HexNAc(4)                                NA
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               285613.66
+#> P10909-N291-Hex(6)HexNAc(5)                       27588555.39
+#>                                       20241224-LXJ-Nglyco-H_2
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                        NA
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               136556.05
+#> P04196-N344-Hex(5)HexNAc(4)                          15717.87
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               268250.71
+#> P10909-N291-Hex(6)HexNAc(5)                       19527065.26
+#>                                       20241224-LXJ-Nglyco-H_3
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  457398.3
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                      NA
+#> P04196-N344-Hex(5)HexNAc(4)                          427312.0
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               2621248.6
+#> P10909-N291-Hex(6)HexNAc(5)                        32930089.6
+#>                                       20241224-LXJ-Nglyco-M_1
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                   7616346
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                22675686
+#> P04196-N344-Hex(5)HexNAc(4)                          10813133
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               993255511
+#> P10909-N291-Hex(6)HexNAc(5)                          32500720
+#>                                       20241224-LXJ-Nglyco-M_2
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                   7391049
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                16675442
+#> P04196-N344-Hex(5)HexNAc(4)                           9746325
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2              1099069766
+#> P10909-N291-Hex(6)HexNAc(5)                                NA
+#>                                       20241224-LXJ-Nglyco-M_3
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                   6267864
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               114423292
+#> P04196-N344-Hex(5)HexNAc(4)                          25348175
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2              1106268049
+#> P10909-N291-Hex(6)HexNAc(5)                          26346060
+#>                                       20241224-LXJ-Nglyco-Y_1
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  23059718
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               115717950
+#> P04196-N344-Hex(5)HexNAc(4)                          33607210
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               547660361
+#> P10909-N291-Hex(6)HexNAc(5)                          21780632
+#>                                       20241224-LXJ-Nglyco-Y_2
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  15010885
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                90594397
+#> P04196-N344-Hex(5)HexNAc(4)                          21284262
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               753702172
+#> P10909-N291-Hex(6)HexNAc(5)                          19862189
+#>                                       20241224-LXJ-Nglyco-Y_3
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                    740942
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                55977605
+#> P04196-N344-Hex(5)HexNAc(4)                          28608146
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               556784303
+#> P10909-N291-Hex(6)HexNAc(5)                          12764805
+#>                                       20241224-LXJ-Nglyco-C_1
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                        NA
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               305840564
+#> P04196-N344-Hex(5)HexNAc(4)                          32885077
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               669332806
+#> P10909-N291-Hex(6)HexNAc(5)                          25946392
+#>                                       20241224-LXJ-Nglyco-C_2
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                        NA
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               428631806
+#> P04196-N344-Hex(5)HexNAc(4)                          35418588
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               696696106
+#> P10909-N291-Hex(6)HexNAc(5)                          18860878
+#>                                       20241224-LXJ-Nglyco-C_3
+#> P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  10655.62
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1             16064212.10
+#> P04196-N344-Hex(5)HexNAc(4)                        6372648.51
+#> P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2            112287653.59
+#> P10909-N291-Hex(6)HexNAc(5)                        4316119.03
 ```
 
 **The magic?** All the essential information for downstream analysis has
