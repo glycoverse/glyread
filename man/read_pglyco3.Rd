@@ -42,9 +42,12 @@ An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 pGlyco3 is a software for intact glycopeptide identification and quantification.
 This function reads in the result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 Currently only label-free quantification is supported.
+
+Use this function if you only use pGlyco3.
+If you also use pGlycoQuant for quantification, use \code{\link[=read_pglyco3_pglycoquant]{read_pglyco3_pglycoquant()}} instead.
 }
 \section{Which file to use?}{
-You should use the result file from pGlyco3 that contains quantification information.
+You should use the file with "-Pro-Quant" suffix that contains quantification information.
 The file should have columns including \code{RawName}, \code{MonoArea}, \code{Peptide}, \code{Proteins},
 \code{Genes}, \code{GlycanComposition}, \code{PlausibleStruct}, \code{GlySite}, and \code{ProSites}.
 }

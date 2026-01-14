@@ -1,13 +1,17 @@
 #' Read pGlyco3 result
 #'
+#' @description
 #' pGlyco3 is a software for intact glycopeptide identification and quantification.
 #' This function reads in the result file and returns a [glyexp::experiment()] object.
 #' Currently only label-free quantification is supported.
 #'
+#' Use this function if you only use pGlyco3.
+#' If you also use pGlycoQuant for quantification, use [read_pglyco3_pglycoquant()] instead.
+#'
 #' @details
 #' # Which file to use?
 #'
-#' You should use the result file from pGlyco3 that contains quantification information.
+#' You should use the file with "-Pro-Quant" suffix that contains quantification information.
 #' The file should have columns including `RawName`, `MonoArea`, `Peptide`, `Proteins`,
 #' `Genes`, `GlycanComposition`, `PlausibleStruct`, `GlySite`, and `ProSites`.
 #'
