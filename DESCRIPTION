@@ -30,9 +30,9 @@ Imports:
     cli,
     dplyr,
     fs,
-    glyexp (>= 0.12.1),
-    glyparse (>= 0.5.3),
-    glyrepr (>= 0.7.4),
+    glyexp (>= 0.12.3.9000),
+    glyparse (>= 0.5.3.9000),
+    glyrepr (>= 0.9.0.9000),
     janitor,
     magrittr,
     purrr,
@@ -44,7 +44,9 @@ Imports:
     tidyr,
     tidyselect
 Remotes: 
-    glycoverse/glyexp@*release
+    glycoverse/glyexp,
+    glycoverse/glyparse,
+    glycoverse/glyrepr
 Depends: 
     R (>= 4.1)
 VignetteBuilder: knitr
