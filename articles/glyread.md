@@ -111,12 +111,12 @@ new best friend:
 exp <- read_pglyco3_pglycoquant("glycopeptides.list", sample_info = "sample_info.csv")
 #> ℹ Reading data
 #> ℹ Finding leader proteins
-#> ✔ Finding leader proteins [205ms]
+#> ✔ Finding leader proteins [84ms]
 #> 
 #> ℹ Reading dataColumn group converted to <factor>.ℹ Parsing glycan compositions and structures
-#> Column group converted to <factor>.✔ Parsing glycan compositions and structures [329ms]
+#> Column group converted to <factor>.✔ Parsing glycan compositions and structures [412ms]
 #> 
-#> ℹ Reading data✔ Reading data [877ms]
+#> ℹ Reading data✔ Reading data [824ms]
 exp
 #> 
 #> ── Glycoproteomics Experiment ──────────────────────────────────────────────────
