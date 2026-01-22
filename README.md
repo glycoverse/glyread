@@ -23,7 +23,13 @@ analysis.
 ## Installation
 
 You can install the latest release of glyread from
-[GitHub](https://github.com/) with:
+[r-universe](https://glycoverse.r-universe.dev/glyread):
+
+``` r
+install.packages('glyread', repos = c('https://glycoverse.r-universe.dev', 'https://cloud.r-project.org'))
+```
+
+Or from [GitHub](https://github.com/glycoverse/glyread):
 
 ``` r
 # install.packages("remotes")
