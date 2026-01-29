@@ -53,15 +53,16 @@ read_glycan_finder <- function(
   # Create variable info (before parsing compositions to preserve join keys)
   cli::cli_progress_step("Creating variable information")
   var_info <- tidy_df %>%
-    dplyr::select(-"sample", -"value") %>%
+    dplyr::select(-"sample", -"value", -dplyr::any_of(c("glycan_type", "end"))) %>%
     dplyr::distinct() %>%
     dplyr::mutate(variable = paste0("GP", dplyr::row_number()), .before = 1)
 
   # Join tidy_df with var_info to get variable IDs for expression matrix
-  # Exclude columns that are in tidy_df but not in var_info (like protein_site and end)
-  join_by <- setdiff(names(tidy_df), c("sample", "value", "protein_site", "end"))
+  # Exclude columns that are in tidy_df but not in var_info (like glycan_type, end)
+  join_by <- setdiff(names(tidy_df), c("sample", "value", "glycan_type", "end", "gene", "peptide_site"))
   # Conditionally select glycan_structure only if it exists
-  select_cols <- c("variable", "glycan_composition", "peptide", "protein", "glycan_type")
+  select_cols <- c("variable", "glycan_composition", "peptide", "protein",
+                   "gene", "peptide_site", "protein_site")
   if ("glycan_structure" %in% names(var_info)) {
     select_cols <- c(select_cols, "glycan_structure")
   }
@@ -117,7 +118,7 @@ read_glycan_finder <- function(
   long_df <- tidy_df %>%
     dplyr::select(dplyr::all_of(c(
       "glycan", "structure", "glycan_type", "peptide",
-      "protein_accession", "start", "end", area_cols
+      "protein_accession", "start", area_cols
     ))) %>%
     tidyr::pivot_longer(
       cols = dplyr::all_of(area_cols),
@@ -140,15 +141,19 @@ read_glycan_finder <- function(
       glycan_composition = "glycan",
       glycan_structure = "structure",
       protein = "protein_accession",
-      protein_site = "start"
-    )
+      peptide_site = "start"
+    ) %>%
+    dplyr::mutate(protein_site = .data$peptide_site)
 
   # Clean protein accession (remove isoform info after "|")
-  long_df <- dplyr::mutate(
-    long_df,
-    protein = stringr::str_split(.data$protein, "[|]") %>%
-      purrr::map_chr(1)
-  )
+  long_df <- long_df %>%
+    dplyr::mutate(
+      protein = stringr::str_split(.data$protein, "[|]") %>%
+        purrr::map_chr(1, .default = NA_character_),
+      # Extract gene from protein accession (format: P09871|C1S_HUMAN)
+      gene = stringr::str_split(.data$protein, "[|]") %>%
+        purrr::map_chr(2, .default = NA_character_)
+    )
 
   # Parse structures if requested
   if (parse_structure) {
