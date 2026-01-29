@@ -27,9 +27,42 @@ read_glycan_finder(
 \item{parse_structure}{Whether to parse structures.}
 }
 \value{
-glyexp::experiment object
+An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
 }
 \description{
 Peaks GlycanFinder is software for intact glycopeptide identification.
 This function reads the result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+}
+\section{Which file to use?}{
+
+Open the result file exported from GlycanFinder.
+The file should have columns including \code{Glycan}, \code{Structure}, \code{GlycanType},
+\code{Peptide}, \code{ProteinAccession}, \code{Start}, and \verb{Area_*} columns for each sample.
+}
+
+\section{Gene extraction}{
+
+Gene names are extracted from the protein accession column.
+The format is expected to be \code{ACCESSION|GENE_HUMAN} (e.g., \code{P09871|C1S_HUMAN}).
+The gene name is extracted from the part after the pipe symbol.
+}
+
+\section{Variable information}{
+
+The following columns could be found in the variable information tibble:
+\itemize{
+\item \code{peptide}: character, peptide sequence
+\item \code{peptide_site}: integer, site of glycosylation on peptide
+\item \code{protein}: character, protein accession
+\item \code{protein_site}: integer, site of glycosylation on protein
+\item \code{gene}: character, gene name (symbol)
+\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+\item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures
+(if \code{parse_structure = TRUE}).
+}
+}
+
+\seealso{
+\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
+\code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}
 }

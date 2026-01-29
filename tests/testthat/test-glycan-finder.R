@@ -50,3 +50,41 @@ test_that("read_glycan_finder applies sample_name_converter", {
 
   expect_true(all(stringr::str_starts(colnames(exp$expr_mat), "sample_")))
 })
+
+test_that("read_glycan_finder extracts gene from protein accession", {
+  fp <- test_path("data/glycan-finder-result.csv")
+  exp <- read_glycan_finder(fp, glycan_type = "N")
+
+  # Gene should be extracted (format: P09871|C1S_HUMAN -> C1S_HUMAN)
+  expect_true("gene" %in% names(exp$var_info))
+  expect_true(all(stringr::str_detect(exp$var_info$gene, "^[A-Z0-9_]+$")))
+})
+
+test_that("read_glycan_finder extracts protein correctly", {
+  fp <- test_path("data/glycan-finder-result.csv")
+  exp <- read_glycan_finder(fp, glycan_type = "N")
+
+  # Protein should not contain the pipe symbol (isoform info removed)
+  expect_false(any(stringr::str_detect(exp$var_info$protein, "[|]")))
+})
+
+test_that("read_glycan_finder extracts peptide_site correctly", {
+  fp <- test_path("data/glycan-finder-result.csv")
+  exp <- read_glycan_finder(fp, glycan_type = "N")
+
+  # peptide_site should be integer or numeric
+  expect_true(is.integer(exp$var_info$peptide_site) || is.numeric(exp$var_info$peptide_site))
+  # All values should be positive (site positions)
+  expect_true(all(exp$var_info$peptide_site > 0, na.rm = TRUE))
+})
+
+test_that("read_glycan_finder filters by glycan_type correctly", {
+  fp <- test_path("data/glycan-finder-result.csv")
+  exp_n <- read_glycan_finder(fp, glycan_type = "N")
+  exp_o <- read_glycan_finder(fp, glycan_type = "O-GalNAc")
+
+  # N-type should have different results from O-type
+  expect_true(nrow(exp_n$var_info) > 0)
+  # O-type should have fewer or equal rows
+  expect_lte(nrow(exp_o$var_info), nrow(exp_n$var_info))
+})

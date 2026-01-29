@@ -4,6 +4,27 @@
 #' Peaks GlycanFinder is software for intact glycopeptide identification.
 #' This function reads the result file and returns a [glyexp::experiment()] object.
 #'
+#' @section Which file to use?:
+#' Open the result file exported from GlycanFinder.
+#' The file should have columns including `Glycan`, `Structure`, `GlycanType`,
+#' `Peptide`, `ProteinAccession`, `Start`, and `Area_*` columns for each sample.
+#'
+#' @section Gene extraction:
+#' Gene names are extracted from the protein accession column.
+#' The format is expected to be `ACCESSION|GENE_HUMAN` (e.g., `P09871|C1S_HUMAN`).
+#' The gene name is extracted from the part after the pipe symbol.
+#'
+#' @section Variable information:
+#' The following columns could be found in the variable information tibble:
+#' - `peptide`: character, peptide sequence
+#' - `peptide_site`: integer, site of glycosylation on peptide
+#' - `protein`: character, protein accession
+#' - `protein_site`: integer, site of glycosylation on protein
+#' - `gene`: character, gene name (symbol)
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures
+#'   (if `parse_structure = TRUE`).
+#'
 #' @param fp File path of the GlycanFinder result CSV file.
 #' @param sample_info File path of sample info or NULL for default.
 #' @param quant_method Quantification method (currently only "label-free").
@@ -11,7 +32,9 @@
 #' @param sample_name_converter Function to convert sample names.
 #' @param parse_structure Whether to parse structures.
 #'
-#' @returns glyexp::experiment object
+#' @returns An [glyexp::experiment()] object.
+#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
+#'   [glyrepr::glycan_structure()]
 #' @export
 read_glycan_finder <- function(
   fp,
@@ -21,6 +44,7 @@ read_glycan_finder <- function(
   sample_name_converter = NULL,
   parse_structure = TRUE
 ) {
+  # ----- Check arguments -----
   # Validate arguments
   .validate_read_args(
     fp = fp,
@@ -32,6 +56,7 @@ read_glycan_finder <- function(
     parse_structure = parse_structure
   )
 
+  # ----- Read data -----
   # Read data
   cli::cli_progress_step("Reading GlycanFinder data")
   df <- suppressMessages(readr::read_csv(fp, progress = FALSE))
@@ -53,13 +78,13 @@ read_glycan_finder <- function(
   # Create variable info (before parsing compositions to preserve join keys)
   cli::cli_progress_step("Creating variable information")
   var_info <- tidy_df %>%
-    dplyr::select(-"sample", -"value", -dplyr::any_of(c("glycan_type", "end"))) %>%
+    dplyr::select(-c("sample", "value", dplyr::any_of(c("glycan_type", "end")))) %>%
     dplyr::distinct() %>%
     dplyr::mutate(variable = paste0("GP", dplyr::row_number()), .before = 1)
 
   # Join tidy_df with var_info to get variable IDs for expression matrix
   # Exclude columns that are in tidy_df but not in var_info (like glycan_type, end)
-  join_by <- setdiff(names(tidy_df), c("sample", "value", "glycan_type", "end", "gene", "peptide_site"))
+  join_by <- setdiff(names(tidy_df), c("sample", "value", "glycan_type", "end"))
   # Conditionally select glycan_structure only if it exists
   select_cols <- c("variable", "glycan_composition", "peptide", "protein",
                    "gene", "peptide_site", "protein_site")
@@ -152,15 +177,18 @@ read_glycan_finder <- function(
     ) %>%
     dplyr::mutate(protein_site = .data$peptide_site)
 
-  # Clean protein accession (remove isoform info after "|")
+  # Clean protein accession (remove isoform info after "|") and extract gene
+  # Must extract gene from original protein value before modifying it
   long_df <- long_df %>%
     dplyr::mutate(
+      protein_original = .data$protein,
       protein = stringr::str_split(.data$protein, "[|]") %>%
         purrr::map_chr(1, .default = NA_character_),
       # Extract gene from protein accession (format: P09871|C1S_HUMAN)
-      gene = stringr::str_split(.data$protein, "[|]") %>%
+      gene = stringr::str_split(.data$protein_original, "[|]") %>%
         purrr::map_chr(2, .default = NA_character_)
-    )
+    ) %>%
+    dplyr::select(-"protein_original")
 
   # Parse structures if requested
   if (parse_structure) {
@@ -210,6 +238,6 @@ read_glycan_finder <- function(
   comp %>%
     stringr::str_remove_all("[()]") %>%
     stringr::str_replace_all("([A-Za-z]+)([0-9]+)", "\\1(\\2)") %>%
-    stringr::str_replace("Fuc", "dHex") %>%
+    stringr::str_replace_all("Fuc", "dHex") %>%
     glyrepr::as_glycan_composition()
 }
