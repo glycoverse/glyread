@@ -94,6 +94,13 @@ read_glycan_finder <- function(
     expr_mat[var_id, sample_id] <- val
   }
 
+  # Convert protein_site and peptide_site to integer explicitly
+  var_info <- dplyr::mutate(
+    var_info,
+    protein_site = as.integer(.data$protein_site),
+    peptide_site = as.integer(.data$peptide_site)
+  )
+
   # Pack experiment
   cli::cli_progress_step("Creating experiment object")
   exp <- glyexp::experiment(
