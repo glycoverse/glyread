@@ -2,6 +2,7 @@
 
 export(read_byonic_byologic)
 export(read_byonic_pglycoquant)
+export(read_glycan_finder)
 export(read_glyco_decipher)
 export(read_glyhunter)
 export(read_msfragger)
