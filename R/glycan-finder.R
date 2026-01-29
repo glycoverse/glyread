@@ -177,6 +177,12 @@ read_glycan_finder <- function(
     ) %>%
     dplyr::mutate(protein_site = .data$peptide_site)
 
+  # Clean peptide sequence (remove modification masses like "+57.02")
+  long_df <- long_df %>%
+    dplyr::mutate(
+      peptide = stringr::str_remove_all(.data$peptide, "\\([+-]?[0-9.]+\\)")
+    )
+
   # Clean protein accession (remove isoform info after "|") and extract gene
   # Must extract gene from original protein value before modifying it
   long_df <- long_df %>%
