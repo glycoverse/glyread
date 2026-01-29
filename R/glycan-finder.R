@@ -64,7 +64,7 @@ read_glycan_finder <- function(
     cli::cli_progress_step("Parsing glycan structures")
     long_df <- dplyr::mutate(
       long_df,
-      glycan_structure = glyparse::parse_strucgp(.data$glycan_structure)
+      glycan_structure = glyparse::parse_strucgp_struc(.data$glycan_structure)
     )
   } else {
     long_df <- dplyr::select(long_df, -"glycan_structure")
