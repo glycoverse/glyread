@@ -70,12 +70,18 @@ test_that("read_glycan_finder extracts protein correctly", {
 
 test_that("read_glycan_finder extracts peptide_site correctly", {
   fp <- test_path("data/glycan-finder-result.csv")
-  exp <- suppressMessages(read_glycan_finder(fp, glycan_type = "N"))
+  exp_n <- suppressMessages(read_glycan_finder(fp, glycan_type = "N"))
+  exp_o <- suppressMessages(read_glycan_finder(fp, glycan_type = "O-GalNAc"))
 
-  # peptide_site should be integer or numeric
-  expect_true(is.integer(exp$var_info$peptide_site) || is.numeric(exp$var_info$peptide_site))
+  # peptide_site should be integer
+  expect_true(is.integer(exp_n$var_info$peptide_site))
+  expect_true(is.integer(exp_o$var_info$peptide_site))
+  # For N-glycosylation, site is at position 2 (N in NXS/T motif)
+  expect_equal(unique(exp_n$var_info$peptide_site), 2L)
+  # For O-glycosylation, site is at position 1 (default)
+  expect_equal(unique(exp_o$var_info$peptide_site), 1L)
   # All values should be positive (site positions)
-  expect_true(all(exp$var_info$peptide_site > 0, na.rm = TRUE))
+  expect_true(all(exp_n$var_info$peptide_site > 0, na.rm = TRUE))
 })
 
 test_that("read_glycan_finder filters by glycan_type correctly", {

@@ -167,21 +167,33 @@ read_glycan_finder <- function(
   # Filter by glycan type
   long_df <- .filter_glycan_type(long_df, glycan_type)
 
+  # Clean peptide sequence (remove modification masses like "+57.02")
+  # Do this before extracting peptide_site so we can count positions accurately
+  long_df <- long_df %>%
+    dplyr::mutate(
+      peptide = stringr::str_remove_all(.data$peptide, "\\([+-]?[0-9.]+\\)")
+    )
+
+  # Calculate peptide_site and protein_site
+  # For N-glycosylation, the site is always at position 2 (the N in NXS/T motif)
+  # For O-glycosylation, we use position 1 as default (first amino acid)
+  # protein_site = start + peptide_site - 1
+  # Use the glycan_type parameter to determine site position
+  is_n_glycan <- glycan_type == "N"
+  long_df <- long_df %>%
+    dplyr::mutate(
+      peptide_site = ifelse(is_n_glycan, 2L, 1L),
+      protein_site = .data$start + .data$peptide_site - 1
+    )
+
   # Rename columns
   long_df <- long_df %>%
     dplyr::rename(
       glycan_composition = "glycan",
       glycan_structure = "structure",
-      protein = "protein_accession",
-      peptide_site = "start"
+      protein = "protein_accession"
     ) %>%
-    dplyr::mutate(protein_site = .data$peptide_site)
-
-  # Clean peptide sequence (remove modification masses like "+57.02")
-  long_df <- long_df %>%
-    dplyr::mutate(
-      peptide = stringr::str_remove_all(.data$peptide, "\\([+-]?[0-9.]+\\)")
-    )
+    dplyr::select(-"start")
 
   # Clean protein accession (remove isoform info after "|") and extract gene
   # Must extract gene from original protein value before modifying it
