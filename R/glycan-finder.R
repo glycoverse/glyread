@@ -60,10 +60,14 @@ read_glycan_finder <- function(
   # Join tidy_df with var_info to get variable IDs for expression matrix
   # Exclude columns that are in tidy_df but not in var_info (like protein_site and end)
   join_by <- setdiff(names(tidy_df), c("sample", "value", "protein_site", "end"))
+  # Conditionally select glycan_structure only if it exists
+  select_cols <- c("variable", "glycan_composition", "peptide", "protein", "glycan_type")
+  if ("glycan_structure" %in% names(var_info)) {
+    select_cols <- c(select_cols, "glycan_structure")
+  }
   tidy_df_with_var <- dplyr::left_join(
     tidy_df,
-    dplyr::select(var_info, "variable", "glycan_composition", "glycan_structure",
-                  "peptide", "protein", "glycan_type"),
+    dplyr::select(var_info, dplyr::all_of(select_cols)),
     by = join_by
   )
 
