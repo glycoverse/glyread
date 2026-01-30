@@ -1,5 +1,5 @@
 test_that("read_glycan_finder() returns a glyexp experiment object", {
-  result <- read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N")
+  result <- suppressMessages(read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N"))
   expect_s3_class(result, "glyexp_experiment")
 })
 
@@ -107,7 +107,7 @@ test_that("PTM-based detection correctly identifies small glycans like O-GlcNAc"
 
 test_that("sample columns exclude summary columns like Area C3 and Area H", {
   # Use full pipeline to get processed data
-  result <- read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N")
+  result <- suppressMessages(read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N"))
 
   # Get sample info and check columns
   sample_info <- glyexp::get_sample_info(result)
@@ -125,8 +125,8 @@ test_that("sample columns exclude summary columns like Area C3 and Area H", {
 test_that("end-to-end with mixed glycan types does not confuse N and O glycans", {
   # Read the test data - it contains mixed type rows like:
   # "N-Link;O-Link" with Glycan "(HexNAc)4(Hex)5(NeuAc)4;(HexNAc)3(Fuc)1"
-  result_n <- read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N")
-  result_o <- read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "O-GalNAc")
+  result_n <- suppressMessages(read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N"))
+  result_o <- suppressMessages(read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "O-GalNAc"))
 
   var_info_n <- glyexp::get_var_info(result_n)
   var_info_o <- glyexp::get_var_info(result_o)
