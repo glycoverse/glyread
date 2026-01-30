@@ -8,3 +8,15 @@ test_that(".parse_glycan_finder_peptide() removes modifications", {
   result <- glyread:::.parse_glycan_finder_peptide(peptide)
   expect_equal(result, "NCGVNCSGDVF")
 })
+
+test_that(".extract_glycan_finder_peptide_site() extracts N-glycan site", {
+  peptide <- "NC(+57.02)GVN(+1913.68)C(+57.02)SGDVF"
+  result <- glyread:::.extract_glycan_finder_peptide_site(peptide, "N")
+  expect_equal(result, 5L)  # N at position 5 has the glycan modification
+})
+
+test_that(".extract_glycan_finder_peptide_site() extracts O-glycan site", {
+  peptide <- "LGN(+2786.96)WSAMPS(+755.30)C(+57.02)K"
+  result <- glyread:::.extract_glycan_finder_peptide_site(peptide, "O-GalNAc")
+  expect_equal(result, 9L)  # S at position 9 has the glycan modification
+})
