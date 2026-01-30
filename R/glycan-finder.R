@@ -198,7 +198,7 @@ read_glycan_finder <- function(
     dplyr::mutate(
       peptide = .parse_glycan_finder_peptide(.data$Peptide),
       protein = .parse_glycan_finder_protein(.data$`Protein Accession`),
-      peptide_site = purrr::map_int(.data$Peptide, .extract_glycan_finder_peptide_site, glycan_type = glycan_type),
+      peptide_site = purrr::map2_int(.data$Peptide, .data$PTM, .extract_glycan_finder_peptide_site, glycan_type = glycan_type),
       protein_site = .data$peptide_site + .data$Start - 1L,
       glycan_composition = .select_glycan_element(.data$`Glycan Type`, .data$Glycan, glycan_type),
       glycan_structure = .select_glycan_element(.data$`Glycan Type`, .data$Structure, glycan_type)
@@ -248,9 +248,20 @@ read_glycan_finder <- function(
     )
 }
 
-.extract_glycan_finder_peptide_site <- function(peptide, glycan_type) {
+.extract_glycan_finder_peptide_site <- function(peptide, glycan_type, ptm = NULL) {
   # Determine which residue to look for
   target_residue <- if (glycan_type == "N") "N" else "[ST]"
+
+  # Get expected glycan masses from PTM column if available
+  expected_glycan_masses <- NULL
+  if (!is.null(ptm) && !is.na(ptm)) {
+    # Extract glycan compositions from PTM (e.g., "(HexNAc)4(Hex)5(NeuAc)1")
+    glycan_pattern <- "\\(HexNAc\\)\\d+(\\(Hex\\)\\d+)?(\\(Fuc\\)\\d+)?(\\(NeuAc\\)\\d+)?(\\(NeuGc\\)\\d+)?(\\(HexA\\)\\d+)?"
+    ptm_glycans <- stringr::str_extract_all(ptm, glycan_pattern)[[1]]
+    if (length(ptm_glycans) > 0) {
+      expected_glycan_masses <- purrr::map_dbl(ptm_glycans, .calculate_glycan_mass)
+    }
+  }
 
   # Iterate through the peptide to find modifications
   # Pattern: X(+YYYY.YY) where X is an amino acid
@@ -275,10 +286,9 @@ read_glycan_finder <- function(
       residue <- stringr::str_sub(mods[mod_idx], 1, 1)
       pos <- pos + 1
 
-      # Check if this is a target residue with a glycan modification
-      # Glycan modifications are large (>500 Da), while small mods like carbamidomethylation (+57.02) are not
+      # Check if this is a glycan modification
       mod_mass <- as.numeric(stringr::str_extract(mods[mod_idx], "\\d+\\.\\d+"))
-      is_glycan <- mod_mass > 500
+      is_glycan <- .is_glycan_modification(mod_mass, expected_glycan_masses)
 
       if (is_glycan && stringr::str_detect(residue, target_residue)) {
         return(as.integer(pos))
@@ -306,4 +316,42 @@ read_glycan_finder <- function(
   }
 
   as.integer(positions[1, "start"])
+}
+
+# Helper function to calculate glycan mass from composition string
+# Uses average monosaccharide masses
+.calculate_glycan_mass <- function(comp) {
+  # Monosaccharide masses (average)
+  mono_masses <- c(
+    Hex = 162.14,
+    HexNAc = 203.19,
+    Fuc = 146.14,
+    NeuAc = 291.26,
+    NeuGc = 307.26,
+    HexA = 176.13
+  )
+
+  total_mass <- 0
+  for (mono in names(mono_masses)) {
+    pattern <- paste0("\\(", mono, "\\)\\(?(\\d+)")
+    count <- stringr::str_extract(comp, pattern, group = 1)
+    if (!is.na(count)) {
+      total_mass <- total_mass + (as.numeric(count) * mono_masses[mono])
+    }
+  }
+
+  total_mass
+}
+
+# Helper function to determine if a modification is a glycan
+.is_glycan_modification <- function(mod_mass, expected_masses, tolerance = 5) {
+  # If we have expected masses from PTM, use those
+  if (!is.null(expected_masses) && length(expected_masses) > 0) {
+    return(any(abs(mod_mass - expected_masses) <= tolerance))
+  }
+
+  # Fallback: use mass ranges based on glycan type
+  # N-glycans: typically > 800 Da (at least 2 HexNAc + 3 Hex = ~890 Da)
+  # O-glycans: can be as small as ~200 Da (single HexNAc)
+  mod_mass > 200
 }
