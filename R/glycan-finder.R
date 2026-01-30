@@ -1,3 +1,8 @@
+.parse_glycan_finder_peptide <- function(peptide) {
+  stringr::str_remove_all(peptide, "\\(\\+\\d+\\.\\d+\\)")
+}
+
+
 #' Read GlycanFinder result
 #'
 #' @export
