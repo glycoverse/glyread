@@ -60,6 +60,49 @@
     dplyr::filter(stringr::str_detect(.data$`Glycan Type`, stringr::fixed(target_type)))
 }
 
+.tidy_glycan_finder <- function(df, glycan_type, orgdb = "org.Hs.eg.db") {
+  df %>%
+    .filter_glycan_finder_by_type(glycan_type) %>%
+    .convert_glycan_finder_columns(glycan_type) %>%
+    .pivot_glycan_finder_long() %>%
+    .add_gene_symbols(orgdb)
+}
+
+.convert_glycan_finder_columns <- function(df, glycan_type) {
+  df %>%
+    dplyr::mutate(
+      peptide = .parse_glycan_finder_peptide(.data$Peptide),
+      protein = .parse_glycan_finder_protein(.data$`Protein Accession`),
+      peptide_site = purrr::map_int(.data$Peptide, .extract_glycan_finder_peptide_site, glycan_type = glycan_type),
+      protein_site = .data$peptide_site + .data$Start - 1L,
+      glycan_composition = .data$Glycan,
+      glycan_structure = .data$Structure
+    )
+}
+
+.pivot_glycan_finder_long <- function(df) {
+  # Find Area columns (sample abundance columns)
+  area_cols <- colnames(df)[stringr::str_detect(colnames(df), "^Area ")]
+  sample_names <- stringr::str_remove(area_cols, "^Area ")
+
+  # Pivot to long format
+  df %>%
+    dplyr::select(
+      "peptide", "peptide_site", "protein", "protein_site",
+      "glycan_composition", "glycan_structure",
+      dplyr::all_of(area_cols)
+    ) %>%
+    tidyr::pivot_longer(
+      cols = dplyr::all_of(area_cols),
+      names_to = "sample",
+      values_to = "value"
+    ) %>%
+    dplyr::mutate(
+      sample = stringr::str_remove(.data$sample, "^Area "),
+      value = dplyr::if_else(.data$value == 0, NA_real_, .data$value)
+    )
+}
+
 .extract_glycan_finder_peptide_site <- function(peptide, glycan_type) {
   # Determine which residue to look for
   target_residue <- if (glycan_type == "N") "N" else "[ST]"

@@ -57,3 +57,18 @@ test_that(".filter_glycan_finder_by_type() filters correctly", {
   result_o <- glyread:::.filter_glycan_finder_by_type(df, "O-GalNAc")
   expect_equal(nrow(result_o), 2)  # O-Link and N-Link;O-Link
 })
+
+test_that(".tidy_glycan_finder() transforms data correctly", {
+  df <- glyread:::.read_glycan_finder_df("data/glycan-finder-result.csv")
+  result <- glyread:::.tidy_glycan_finder(df, "N")
+
+  expect_s3_class(result, "tbl_df")
+  expect_true("peptide" %in% colnames(result))
+  expect_true("protein" %in% colnames(result))
+  expect_true("peptide_site" %in% colnames(result))
+  expect_true("protein_site" %in% colnames(result))
+  expect_true("glycan_composition" %in% colnames(result))
+  expect_true("glycan_structure" %in% colnames(result))
+  expect_true("sample" %in% colnames(result))
+  expect_true("value" %in% colnames(result))
+})
