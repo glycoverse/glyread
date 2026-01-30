@@ -6,17 +6,50 @@
   stringr::str_split_i(protein, stringr::fixed("|"), 1L)
 }
 
+.parse_glycan_finder_structure <- function(x) {
+  # Wrapper around glyparse::parse_pglyco_struc that handles semicolon-separated structures
+  # Some GlycanFinder structures contain multiple structures separated by ';'
+  # We parse only the first structure in such cases
+  parse_single <- function(struc) {
+    if (is.na(struc) || struc == "") {
+      return(NA)
+    }
+    # If structure contains semicolon, take only the first part
+    if (stringr::str_detect(struc, ";")) {
+      struc <- stringr::str_split_i(struc, ";", 1L)
+    }
+    # Parse using glyparse
+    tryCatch(
+      glyparse::parse_pglyco_struc(struc),
+      error = function(e) NA
+    )
+  }
+
+  unique_x <- unique(x)
+  unique_structures <- purrr::map(unique_x, parse_single)
+  unique_structures <- do.call(c, unique_structures)
+  structures <- unique_structures[match(x, unique_x)]
+  structures
+}
+
 .parse_glycan_finder_composition <- function(x) {
   # Extract monosaccharide counts from format like "(HexNAc)4(Hex)5(NeuAc)1"
+  # Note: We map Fuc -> dHex and Pent -> Pen to match glyrepr's naming conventions
   extract_n_mono <- function(comp, mono) {
     n <- stringr::str_extract(comp, paste0("\\(", mono, "\\)\\(?(\\d+)"), group = 1)
     dplyr::if_else(is.na(n), 0L, as.integer(n))
   }
 
   unique_x <- unique(x)
-  comp_df <- purrr::map_dfc(c("HexNAc", "Hex", "NeuAc", "Fuc", "dHex", "HexA", "NeuGc", "Pent", "S", "P"), ~ {
+  # Use dHex instead of Fuc to avoid mixing generic and concrete monosaccharide types
+  # Use Pen instead of Pent (glyrepr uses "Pen" for pentose)
+  # S and P are substituents, not monosaccharides - we skip them for now
+  mono_names <- c("HexNAc", "Hex", "NeuAc", "dHex", "HexA", "NeuGc", "Pen")
+  search_names <- c("HexNAc", "Hex", "NeuAc", "Fuc", "HexA", "NeuGc", "Pent")
+
+  comp_df <- purrr::map2_dfc(search_names, mono_names, ~ {
     counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
-    tibble::tibble(!!.x := counts)
+    tibble::tibble(!!.y := counts)
   })
 
   # Convert each row to a glyrepr_composition object for unique values
@@ -166,6 +199,52 @@
 
 #' Read GlycanFinder result
 #'
+#' @description
+#' GlycanFinder is a software for intact glycopeptide identification.
+#' This function reads in the result file and returns a [glyexp::experiment()] object.
+#' Currently only label-free quantification is supported.
+#'
+#' @section Which file to use?:
+#' You should use the `lfq/lfq.protein-glycopeptides.csv` file from the GlycanFinder
+#' result folder. This file contains the quantification information for glycopeptides.
+#'
+#' @section Sample information:
+#' The sample information file should be a `csv` file with the first column
+#' named `sample`, and the rest of the columns being sample information.
+#' The `sample` column must match the sample names in the Area columns of the
+#' GlycanFinder result file (e.g., "C_3", "H_3"), although the order can be different.
+#'
+#' @section Variable information:
+#' The following columns could be found in the variable information tibble:
+#' - `peptide`: character, peptide sequence
+#' - `peptide_site`: integer, site of glycosylation on peptide
+#' - `protein`: character, protein accession
+#' - `protein_site`: integer, site of glycosylation on protein
+#' - `gene`: character, gene name (symbol)
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
+#'
+#' @param fp File path of the GlycanFinder result file.
+#' @param sample_info File path of the sample information file (csv),
+#'  or a sample information data.frame/tibble.
+#' @param quant_method Quantification method. Either "label-free" or "TMT".
+#' @param glycan_type Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or "O-Glc".
+#'  Default is "N".
+#' @param sample_name_converter A function to convert sample names from file paths.
+#'  The function should take a character vector of old sample names
+#'  and return new sample names.
+#'  Note that sample names in `sample_info` should match the new names.
+#'  If NULL, original names are kept.
+#' @param orgdb Name of the OrgDb package to use for UniProt to gene symbol conversion.
+#'  Default is "org.Hs.eg.db".
+#' @param parse_structure Logical. Whether to parse glycan structures.
+#'  If `TRUE` (default), glycan structures are parsed and included in the
+#'  `var_info` as `glycan_structure` column. If `FALSE`, structure parsing
+#'  is skipped and structure-related columns are removed.
+#'
+#' @returns An [glyexp::experiment()] object.
+#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
+#'   [glyrepr::glycan_structure()]
 #' @export
 read_glycan_finder <- function(
   fp,
@@ -176,5 +255,36 @@ read_glycan_finder <- function(
   orgdb = "org.Hs.eg.db",
   parse_structure = TRUE
 ) {
-  stop("Not implemented")
+  # ----- Check arguments -----
+  .validate_read_args(
+    fp = fp,
+    file_extensions = ".csv",
+    sample_info = sample_info,
+    quant_method = quant_method,
+    glycan_type = glycan_type,
+    sample_name_converter = sample_name_converter,
+    parse_structure = parse_structure,
+    orgdb = orgdb
+  )
+
+  # ----- Read data -----
+  if (quant_method == "label-free") {
+    cli::cli_progress_step("Reading data")
+    df <- .read_glycan_finder_df(fp)
+    tidy_df <- .tidy_glycan_finder(df, glycan_type, orgdb)
+    exp <- .read_template(
+      tidy_df,
+      sample_info,
+      glycan_type,
+      quant_method,
+      sample_name_converter,
+      composition_parser = .parse_glycan_finder_composition,
+      structure_parser = .parse_glycan_finder_structure,
+      parse_structure = parse_structure
+    )
+  } else {
+    rlang::abort("TMT quantification is not supported yet.")
+  }
+
+  exp
 }
