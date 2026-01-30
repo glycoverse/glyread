@@ -68,6 +68,8 @@ exp <- read_pglyco3_pglycoquant(
   : Read Byonic-Byologic result
 - [`read_byonic_pglycoquant()`](https://glycoverse.github.io/glyread/reference/read_byonic_pglycoquant.md)
   : Read Byonic-pGlycoQuant result
+- [`read_glycan_finder()`](https://glycoverse.github.io/glyread/reference/read_glycan_finder.md)
+  : Read GlycanFinder result
 - [`read_glyco_decipher()`](https://glycoverse.github.io/glyread/reference/read_glyco_decipher.md)
   : Read glyco-decipher output
 - [`read_glyhunter()`](https://glycoverse.github.io/glyread/reference/read_glyhunter.md)
