@@ -20,3 +20,9 @@ test_that(".extract_glycan_finder_peptide_site() extracts O-glycan site", {
   result <- glyread:::.extract_glycan_finder_peptide_site(peptide, "O-GalNAc")
   expect_equal(result, 9L)  # S at position 9 has the glycan modification
 })
+
+test_that(".parse_glycan_finder_protein() extracts first accession", {
+  protein <- "P09871|C1S_HUMAN"
+  result <- glyread:::.parse_glycan_finder_protein(protein)
+  expect_equal(result, "P09871")
+})

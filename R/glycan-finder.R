@@ -2,6 +2,10 @@
   stringr::str_remove_all(peptide, "\\(\\+\\d+\\.\\d+\\)")
 }
 
+.parse_glycan_finder_protein <- function(protein) {
+  stringr::str_split_i(protein, stringr::fixed("|"), 1L)
+}
+
 .extract_glycan_finder_peptide_site <- function(peptide, glycan_type) {
   # Determine which residue to look for
   target_residue <- if (glycan_type == "N") "N" else "[ST]"
