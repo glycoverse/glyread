@@ -198,7 +198,7 @@ read_glycan_finder <- function(
     dplyr::mutate(
       peptide = .parse_glycan_finder_peptide(.data$Peptide),
       protein = .parse_glycan_finder_protein(.data$`Protein Accession`),
-      peptide_site = purrr::map2_int(.data$Peptide, .data$PTM, .extract_glycan_finder_peptide_site, glycan_type = glycan_type),
+      peptide_site = purrr::map2_int(.data$Peptide, .data$PTM, ~ .extract_glycan_finder_peptide_site(.x, glycan_type, .y)),
       protein_site = .data$peptide_site + .data$Start - 1L,
       glycan_composition = .select_glycan_element(.data$`Glycan Type`, .data$Glycan, glycan_type),
       glycan_structure = .select_glycan_element(.data$`Glycan Type`, .data$Structure, glycan_type)
