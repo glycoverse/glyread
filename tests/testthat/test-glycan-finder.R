@@ -60,7 +60,7 @@ test_that(".filter_glycan_finder_by_type() filters correctly", {
 
 test_that(".tidy_glycan_finder() transforms data correctly", {
   df <- glyread:::.read_glycan_finder_df("data/glycan-finder-result.csv")
-  result <- glyread:::.tidy_glycan_finder(df, "N")
+  result <- suppressMessages(glyread:::.tidy_glycan_finder(df, "N"))
 
   expect_s3_class(result, "tbl_df")
   expect_true("peptide" %in% colnames(result))
