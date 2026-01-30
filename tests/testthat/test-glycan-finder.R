@@ -33,3 +33,12 @@ test_that(".parse_glycan_finder_composition() parses composition string", {
   expect_s3_class(result, "glyrepr_composition")
   expect_equal(unname(unlist(result)), c(5L, 4L, 1L))
 })
+
+test_that(".read_glycan_finder_df() reads CSV correctly", {
+  result <- glyread:::.read_glycan_finder_df("data/glycan-finder-result.csv")
+  expect_s3_class(result, "tbl_df")
+  expect_true("Protein Accession" %in% colnames(result))
+  expect_true("Peptide" %in% colnames(result))
+  expect_true("Glycan" %in% colnames(result))
+  expect_true("Glycan Type" %in% colnames(result))
+})

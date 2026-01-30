@@ -34,6 +34,23 @@
   compositions
 }
 
+.read_glycan_finder_df <- function(fp) {
+  col_types <- readr::cols(
+    `Protein Accession` = readr::col_character(),
+    Peptide = readr::col_character(),
+    Glycan = readr::col_character(),
+    Structure = readr::col_character(),
+    `Glycan Type` = readr::col_character(),
+    Start = readr::col_integer(),
+    End = readr::col_integer()
+  )
+
+  suppressWarnings(
+    suppressMessages(readr::read_csv(fp, col_types = col_types, progress = FALSE)),
+    classes = "vroom_mismatched_column_name"
+  )
+}
+
 .extract_glycan_finder_peptide_site <- function(peptide, glycan_type) {
   # Determine which residue to look for
   target_residue <- if (glycan_type == "N") "N" else "[ST]"
