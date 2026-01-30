@@ -6,6 +6,34 @@
   stringr::str_split_i(protein, stringr::fixed("|"), 1L)
 }
 
+.parse_glycan_finder_composition <- function(x) {
+  # Extract monosaccharide counts from format like "(HexNAc)4(Hex)5(NeuAc)1"
+  extract_n_mono <- function(comp, mono) {
+    n <- stringr::str_extract(comp, paste0("\\(", mono, "\\)\\(?(\\d+)"), group = 1)
+    dplyr::if_else(is.na(n), 0L, as.integer(n))
+  }
+
+  unique_x <- unique(x)
+  comp_df <- purrr::map_dfc(c("HexNAc", "Hex", "NeuAc", "Fuc", "dHex", "HexA", "NeuGc", "Pent", "S", "P"), ~ {
+    counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
+    tibble::tibble(!!.x := counts)
+  })
+
+  # Convert each row to a glyrepr_composition object for unique values
+  unique_compositions <- purrr::pmap(comp_df, function(...) {
+    counts <- c(...)
+    counts <- counts[counts > 0]
+    if (length(counts) == 0) {
+      return(glyrepr::as_glycan_composition(integer(0)))
+    }
+    glyrepr::as_glycan_composition(counts)
+  })
+
+  unique_compositions <- do.call(c, unique_compositions)
+  compositions <- unique_compositions[match(x, unique_x)]
+  compositions
+}
+
 .extract_glycan_finder_peptide_site <- function(peptide, glycan_type) {
   # Determine which residue to look for
   target_residue <- if (glycan_type == "N") "N" else "[ST]"

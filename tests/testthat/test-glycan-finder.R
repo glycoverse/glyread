@@ -26,3 +26,10 @@ test_that(".parse_glycan_finder_protein() extracts first accession", {
   result <- glyread:::.parse_glycan_finder_protein(protein)
   expect_equal(result, "P09871")
 })
+
+test_that(".parse_glycan_finder_composition() parses composition string", {
+  comp <- "(HexNAc)4(Hex)5(NeuAc)1"
+  result <- glyread:::.parse_glycan_finder_composition(comp)
+  expect_s3_class(result, "glyrepr_composition")
+  expect_equal(unname(unlist(result)), c(5L, 4L, 1L))
+})
