@@ -42,3 +42,18 @@ test_that(".read_glycan_finder_df() reads CSV correctly", {
   expect_true("Glycan" %in% colnames(result))
   expect_true("Glycan Type" %in% colnames(result))
 })
+
+test_that(".filter_glycan_finder_by_type() filters correctly", {
+  df <- tibble::tribble(
+    ~`Glycan Type`, ~value,
+    "N-Link", 1,
+    "O-Link", 2,
+    "N-Link;O-Link", 3
+  )
+
+  result_n <- glyread:::.filter_glycan_finder_by_type(df, "N")
+  expect_equal(nrow(result_n), 2)  # N-Link and N-Link;O-Link
+
+  result_o <- glyread:::.filter_glycan_finder_by_type(df, "O-GalNAc")
+  expect_equal(nrow(result_o), 2)  # O-Link and N-Link;O-Link
+})

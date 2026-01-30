@@ -51,6 +51,15 @@
   )
 }
 
+.filter_glycan_finder_by_type <- function(df, glycan_type) {
+  # Map glycan_type to GlycanFinder notation
+  target_type <- if (glycan_type == "N") "N-Link" else "O-Link"
+
+  # Filter rows that contain the target type
+  df %>%
+    dplyr::filter(stringr::str_detect(.data$`Glycan Type`, stringr::fixed(target_type)))
+}
+
 .extract_glycan_finder_peptide_site <- function(peptide, glycan_type) {
   # Determine which residue to look for
   target_residue <- if (glycan_type == "N") "N" else "[ST]"
