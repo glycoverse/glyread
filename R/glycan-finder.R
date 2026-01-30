@@ -200,9 +200,29 @@ read_glycan_finder <- function(
       protein = .parse_glycan_finder_protein(.data$`Protein Accession`),
       peptide_site = purrr::map_int(.data$Peptide, .extract_glycan_finder_peptide_site, glycan_type = glycan_type),
       protein_site = .data$peptide_site + .data$Start - 1L,
-      glycan_composition = .data$Glycan,
-      glycan_structure = .data$Structure
+      glycan_composition = .select_glycan_element(.data$`Glycan Type`, .data$Glycan, glycan_type),
+      glycan_structure = .select_glycan_element(.data$`Glycan Type`, .data$Structure, glycan_type)
     )
+}
+
+# Helper function to select the correct glycan element from semicolon-separated values
+# For mixed glycan types (e.g., "N-Link;O-Link"), selects the element matching the target type
+.select_glycan_element <- function(glycan_types, values, target_glycan_type) {
+  # Determine which index to select (1 for N, 2 for O)
+  target_index <- if (target_glycan_type == "N") 1L else 2L
+
+  purrr::map2_chr(glycan_types, values, function(gt, val) {
+    # Check if this is a mixed type row
+    if (stringr::str_detect(gt, ";")) {
+      # Split by semicolon and select the appropriate element
+      elements <- stringr::str_split_1(val, ";")
+      if (length(elements) >= target_index) {
+        return(elements[target_index])
+      }
+    }
+    # Return as-is for non-mixed types or if split fails
+    val
+  })
 }
 
 .pivot_glycan_finder_long <- function(df) {

@@ -72,3 +72,19 @@ test_that(".tidy_glycan_finder() transforms data correctly", {
   expect_true("sample" %in% colnames(result))
   expect_true("value" %in% colnames(result))
 })
+
+test_that(".select_glycan_element() selects correct element for mixed types", {
+  # Test N-glycan selection from mixed type
+  glycan_types <- c("N-Link;O-Link", "N-Link;O-Link", "N-Link")
+  glycans <- c("(HexNAc)4(Hex)5(NeuAc)4;(HexNAc)3(Fuc)1", "(HexNAc)7(Hex)4(NeuAc)1;(HexNAc)1", "(HexNAc)4(Hex)5(NeuAc)1")
+
+  result_n <- glyread:::.select_glycan_element(glycan_types, glycans, "N")
+  expect_equal(result_n[1], "(HexNAc)4(Hex)5(NeuAc)4")  # First element for mixed
+  expect_equal(result_n[2], "(HexNAc)7(Hex)4(NeuAc)1")  # First element for mixed
+  expect_equal(result_n[3], "(HexNAc)4(Hex)5(NeuAc)1")  # Unchanged for single type
+
+  result_o <- glyread:::.select_glycan_element(glycan_types, glycans, "O-GalNAc")
+  expect_equal(result_o[1], "(HexNAc)3(Fuc)1")  # Second element for mixed
+  expect_equal(result_o[2], "(HexNAc)1")        # Second element for mixed
+  expect_equal(result_o[3], "(HexNAc)4(Hex)5(NeuAc)1")  # Unchanged for single type
+})
