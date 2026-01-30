@@ -227,7 +227,17 @@ read_glycan_finder <- function(
 
 .pivot_glycan_finder_long <- function(df) {
   # Find Area columns (sample abundance columns)
-  area_cols <- colnames(df)[stringr::str_detect(colnames(df), "^Area ")]
+  # Only include columns between first "Area " and "Sample Profile (Ratio)"
+  all_cols <- colnames(df)
+  area_candidates <- stringr::str_which(all_cols, "^Area ")
+  profile_idx <- which(all_cols == "Sample Profile (Ratio)")
+
+  if (length(profile_idx) > 0) {
+    # Only keep Area columns before "Sample Profile (Ratio)"
+    area_cols <- all_cols[area_candidates[area_candidates < profile_idx[1]]]
+  } else {
+    area_cols <- all_cols[area_candidates]
+  }
   sample_names <- stringr::str_remove(area_cols, "^Area ")
 
   # Pivot to long format
