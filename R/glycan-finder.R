@@ -3,45 +3,62 @@
 }
 
 .extract_glycan_finder_peptide_site <- function(peptide, glycan_type) {
-  # Remove modifications to get clean peptide
-  clean_peptide <- .parse_glycan_finder_peptide(peptide)
-
   # Determine which residue to look for
   target_residue <- if (glycan_type == "N") "N" else "[ST]"
 
-  # Find positions of target residues in clean peptide
+  # Iterate through the peptide to find modifications
+  # Pattern: X(+YYYY.YY) where X is an amino acid
+  mod_pattern <- "[A-Z]\\(\\+\\d+\\.\\d+\\)"
+  mods <- stringr::str_extract_all(peptide, mod_pattern)[[1]]
+
+  if (length(mods) == 0) {
+    return(NA_integer_)
+  }
+
+  # Track position in the clean peptide (without modifications)
+  pos <- 0
+  mod_idx <- 1
+  i <- 1
+
+  while (i <= stringr::str_length(peptide)) {
+    char <- stringr::str_sub(peptide, i, i)
+
+    # Check if this is the start of a modification
+    if (mod_idx <= length(mods) && stringr::str_sub(peptide, i, i + stringr::str_length(mods[mod_idx]) - 1) == mods[mod_idx]) {
+      # This is a modified residue
+      residue <- stringr::str_sub(mods[mod_idx], 1, 1)
+      pos <- pos + 1
+
+      # Check if this is a target residue with a glycan modification
+      # Glycan modifications are large (>500 Da), while small mods like carbamidomethylation (+57.02) are not
+      mod_mass <- as.numeric(stringr::str_extract(mods[mod_idx], "\\d+\\.\\d+"))
+      is_glycan <- mod_mass > 500
+
+      if (is_glycan && stringr::str_detect(residue, target_residue)) {
+        return(as.integer(pos))
+      }
+
+      # Skip past this modification
+      i <- i + stringr::str_length(mods[mod_idx])
+      mod_idx <- mod_idx + 1
+    } else if (stringr::str_detect(char, "[A-Z]")) {
+      # Regular amino acid
+      pos <- pos + 1
+      i <- i + 1
+    } else {
+      # Should not happen, but skip just in case
+      i <- i + 1
+    }
+  }
+
+  # If no glycan modification found, return first target residue position
+  clean_peptide <- .parse_glycan_finder_peptide(peptide)
   positions <- stringr::str_locate_all(clean_peptide, target_residue)[[1]]
 
   if (nrow(positions) == 0) {
     return(NA_integer_)
   }
 
-  # For each position, check if the original peptide has a modification there
-  for (i in seq_len(nrow(positions))) {
-    pos <- positions[i, "start"]
-    # Check if there's a modification at this position in original peptide
-    # Pattern: X(+YYYY.YY) where X is the residue at position pos
-    residue <- stringr::str_sub(clean_peptide, pos, pos)
-    pattern <- paste0(residue, "\\(\\+\\d+\\.\\d+\\)")
-
-    # Extract all modified positions from original peptide
-    mods <- stringr::str_extract_all(peptide, "[A-Z]\\(\\+\\d+\\.\\d+\\)")[[1]]
-    for (mod in mods) {
-      mod_residue <- stringr::str_sub(mod, 1, 1)
-      if (mod_residue == residue) {
-        # Check if this modification is at the expected position
-        # by comparing the substring before the modification
-        expected_before <- stringr::str_sub(clean_peptide, 1, pos - 1)
-        mod_pos <- stringr::str_locate(peptide, stringr::fixed(mod))[1, "start"]
-        actual_before <- .parse_glycan_finder_peptide(stringr::str_sub(peptide, 1, mod_pos - 1))
-        if (expected_before == actual_before) {
-          return(as.integer(pos))
-        }
-      }
-    }
-  }
-
-  # If no glycan modification found, return first target residue position
   as.integer(positions[1, "start"])
 }
 
