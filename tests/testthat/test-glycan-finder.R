@@ -88,3 +88,59 @@ test_that(".select_glycan_element() selects correct element for mixed types", {
   expect_equal(result_o[2], "(HexNAc)1")        # Second element for mixed
   expect_equal(result_o[3], "(HexNAc)4(Hex)5(NeuAc)1")  # Unchanged for single type
 })
+
+# Regression tests for previous fixes
+
+test_that("PTM-based detection correctly identifies small glycans like O-GlcNAc", {
+  # O-GlcNAc is ~203 Da, which would be missed by a mass > 500 threshold
+  peptide <- "N(+2360.86)ATSSSSQDPES(+203.08)LQDR"
+  ptm <- "(HexNAc)7(Hex)4(NeuAc)1; (HexNAc)1"
+
+  # The O-glycan (O-GlcNAc) is on the S with +203.08 (position 12)
+  result <- glyread:::.extract_glycan_finder_peptide_site(peptide, "O-GalNAc", ptm)
+  expect_equal(result, 12L)  # S at position 12
+
+  # The N-glycan is on the N with +2360.86 (position 1)
+  result_n <- glyread:::.extract_glycan_finder_peptide_site(peptide, "N", ptm)
+  expect_equal(result_n, 1L)  # N at position 1
+})
+
+test_that("sample columns exclude summary columns like Area C3 and Area H", {
+  # Use full pipeline to get processed data
+  result <- read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N")
+
+  # Get sample info and check columns
+  sample_info <- glyexp::get_sample_info(result)
+  sample_names <- sample_info$sample
+
+  # Should only have replicate columns (C_3, H_3, H_1, H_2), not summary columns (C3, H)
+  expect_true("C_3" %in% sample_names)
+  expect_true("H_3" %in% sample_names)
+  expect_true("H_1" %in% sample_names)
+  expect_true("H_2" %in% sample_names)
+  expect_false("C3" %in% sample_names)  # Summary column should be excluded
+  expect_false("H" %in% sample_names)   # Summary column should be excluded
+})
+
+test_that("end-to-end with mixed glycan types does not confuse N and O glycans", {
+  # Read the test data - it contains mixed type rows like:
+  # "N-Link;O-Link" with Glycan "(HexNAc)4(Hex)5(NeuAc)4;(HexNAc)3(Fuc)1"
+  result_n <- read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N")
+  result_o <- read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "O-GalNAc")
+
+  var_info_n <- glyexp::get_var_info(result_n)
+  var_info_o <- glyexp::get_var_info(result_o)
+
+  # When reading N-glycans, we should NOT see pure O-glycan compositions
+  # (e.g., single HexNAc without Hex)
+  n_comps <- var_info_n$glycan_composition
+  o_comps <- var_info_o$glycan_composition
+
+  # Check that N-glycans and O-glycans are different sets
+  n_comp_str <- purrr::map_chr(n_comps, ~ as.character(.x))
+  o_comp_str <- purrr::map_chr(o_comps, ~ as.character(.x))
+
+  # There should be some compositions unique to each type
+  expect_false(length(setdiff(n_comp_str, o_comp_str)) == 0)
+  expect_false(length(setdiff(o_comp_str, n_comp_str)) == 0)
+})
