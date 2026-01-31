@@ -1,5 +1,9 @@
 # glyread (development version)
 
+## New features
+
+* Add `read_glycan_finder()` to import glycoproteomics results from Peaks GlycanFinder.
+
 # glyread 0.8.4
 
 ## Minor improvements and bug fixes
