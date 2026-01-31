@@ -1,12 +1,12 @@
 # Changelog
 
-## glyread (development version)
+## glyread 0.9.0
 
 ### New features
 
 - Add
   [`read_glycan_finder()`](https://glycoverse.github.io/glyread/reference/read_glycan_finder.md)
-  to import glycoproteomics results from Peaks GlycanFinder.
+  to import glycoproteomics results from Peaks GlycanFinder (#6).
 
 ## glyread 0.8.4
 
