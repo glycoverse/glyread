@@ -58,396 +58,83 @@
 
     
     
+<p>Glycomics and glycoproteomics data find their home in
+<code>experiment()</code> objects from <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a>—a tidy,
+structured format designed specifically for glycobiology workflows.
+Working with glycopeptide identification tools like <code>pGlyco3</code>
+or <code>MSFragger-Glyco</code>? You can seamlessly import your results
+into <code>experiment()</code> objects with just a few lines of code
+using <code>glyread</code>.</p>
 <div class="section level2">
-<h2 id="the-great-glycoproteomics-data-chaos">The Great Glycoproteomics Data Chaos 📊<a class="anchor" aria-label="anchor" href="#the-great-glycoproteomics-data-chaos"></a>
+<h2 id="one-function-two-files-thats-it">One function, two files — that’s it<a class="anchor" aria-label="anchor" href="#one-function-two-files-thats-it"></a>
 </h2>
-<p>Picture this: you’ve just finished running your glycoproteomics
-experiment through your favorite identification software—maybe pGlyco3,
-MSFragger-Glyco, or Byonic. You’re excited to dive into the results, but
-then reality hits: you’re staring at a massive spreadsheet with 120+
-columns, cryptic column names, and data scattered everywhere like
-confetti after a celebration gone wrong!</p>
-<p>Sound familiar? Welcome to the wonderful world of glycoproteomics
-data formats!</p>
-<p>Each software tool speaks its own unique “dialect”—what one calls
-“Proteins,” another might call “Protein.Accessions,” and yet another
-prefers “UniProt_IDs.” It’s like trying to have a conversation at the
-Tower of Babel, but for data scientists.</p>
-<p><strong>Enter glyread—your universal translator! 🌟</strong></p>
-<p>Think of <code>glyread</code> as your personal data butler who speaks
-fluent “software chaos” and translates everything into beautiful,
-organized, analysis-ready data. No more wrestling with column names, no
-more manual reformatting, no more pulling your hair out over
-inconsistent formats. Just clean, tidy data that’s ready for the fun
-part: <strong>actual analysis!</strong></p>
-<p><strong>🎯 Important Note:</strong> All functions in
-<code>glyread</code> return a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code>
-object—the lingua franca of the <code>glycoverse</code> ecosystem. If
-you haven’t met this elegant data structure yet, we highly recommend
-taking a quick detour to <a href="https://glycoverse.github.io/glyexp/articles/glyexp.html" class="external-link">its
-introduction</a> first. Trust us, it’s worth the journey! 🚀</p>
+<p>Getting started is straightforward. First, pick the function that
+matches your identification software. <code>glyread</code> currently
+plays nicely with these popular tools:</p>
+<ul>
+<li>Byonic (quantification with Byologic):
+<code><a href="../reference/read_byonic_byologic.html">read_byonic_byologic()</a></code>
+</li>
+<li>Byonic (quantification with pGlycoQuant):
+<code><a href="../reference/read_byonic_pglycoquant.html">read_byonic_pglycoquant()</a></code>
+</li>
+<li>Peaks GlycanFinder: <code><a href="../reference/read_glycan_finder.html">read_glycan_finder()</a></code>
+</li>
+<li>Glyco-Decipher: <code><a href="../reference/read_glyco_decipher.html">read_glyco_decipher()</a></code>
+</li>
+<li>MSFragger-Glyco: <code><a href="../reference/read_msfragger.html">read_msfragger()</a></code>
+</li>
+<li>pGlyco3 (built-in quantification): <code><a href="../reference/read_pglyco3.html">read_pglyco3()</a></code>
+</li>
+<li>pGlyco3 (quantification with pGlycoQuant):
+<code><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code>
+</li>
+<li>StrucGP (no quantification): <code><a href="../reference/read_strucgp.html">read_strucgp()</a></code>
+</li>
+</ul>
+<p>Next, gather your two input files.</p>
+<p><strong>File 1: Results file</strong> This is the output from your
+identification software. Each <code>read_*()</code> function expects a
+specific file format, so check the function documentation to ensure
+you’re selecting the right one.</p>
+<p><strong>File 2: Sample information (CSV)</strong> A simple two-column
+table that tells <code>glyread</code> about your experimental
+design:</p>
+<ul>
+<li>
+<code>sample</code>: Sample names as they appear in your results
+file (order is flexible)</li>
+<li>
+<code>group</code>: Experimental conditions, treatments, or
+groupings (this is the recommended column name, but you have some
+flexibility here)</li>
+</ul>
+<p>Pro tip: Quality control samples should be labeled “QC” in the
+<code>group</code> column — this helps downstream analysis recognize
+them appropriately.</p>
+</div>
+<div class="section level2">
+<h2 id="load-your-data">Load your data<a class="anchor" aria-label="anchor" href="#load-your-data"></a>
+</h2>
+<p>With your files ready, importing data is a one-liner. Here’s a
+practical example: suppose you used pGlyco3 for identification and
+pGlycoQuant for quantification, with results in
+<code>pglyco3_result.csv</code> and sample details in
+<code>samples.csv</code>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://glycoverse.github.io/glyread/">glyread</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://glycoverse.github.io/glyexp/" class="external-link">glyexp</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://readr.tidyverse.org" class="external-link">readr</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant</a></span><span class="op">(</span><span class="st">"pglyco3_result.csv"</span>, sample_info <span class="op">=</span> <span class="st">"samples.csv"</span><span class="op">)</span></span></code></pre></div>
+<p>That’s it — your data is now ready for analysis in a tidy
+<code>experiment()</code> object.</p>
 </div>
 <div class="section level2">
-<h2 id="a-real-world-example-taming-the-pglyco3-pglycoquant-beast">A Real-World Example: Taming the pGlyco3 + pGlycoQuant Beast 🐉<a class="anchor" aria-label="anchor" href="#a-real-world-example-taming-the-pglyco3-pglycoquant-beast"></a>
+<h2 id="whats-next">What’s next?<a class="anchor" aria-label="anchor" href="#whats-next"></a>
 </h2>
-<p>Let’s dive into a classic glycoproteomics workflow that’ll make you
-appreciate <code>glyread</code>’s magic!</p>
-<p><strong>The Setup:</strong> You’re using pGlyco3 (the glycopeptide
-identification wizard 🧙‍♂️) paired with pGlycoQuant (the quantification
-maestro 🎼). This dynamic duo is incredibly powerful, but their output?
-Well, let’s just say it’s… comprehensive.</p>
-<p>Here’s what a typical pGlycoQuant output file looks like:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html" class="external-link">read_tsv</a></span><span class="op">(</span><span class="st">"glycopeptides.list"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; New names:</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">Rows: </span><span style="color: #0000BB;">500</span> <span style="font-weight: bold;">Columns: </span><span style="color: #0000BB;">120</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Column specification</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">────────────────────────────────────────────────────────</span> <span style="font-weight: bold;">Delimiter:</span> "\t" <span style="color: #BB0000;">chr</span></span></span>
-<span><span class="co">#&gt; (13): GlySpec, PepSpec, RawName, Peptide, Mod, Glycan(H,N,A,F), GlycanC... <span style="color: #00BB00;">dbl</span></span></span>
-<span><span class="co">#&gt; (105): Scan, RT, PrecursorMH, PrecursorMZ, Charge, Rank, PeptideMH, GlyI... <span style="color: #BBBB00;">lgl</span></span></span>
-<span><span class="co">#&gt; (2): Empty_Separator, ...120</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `spec()` to retrieve the full column specification for this data. <span style="color: #00BBBB;">ℹ</span></span></span>
-<span><span class="co">#&gt; Specify the column types or set `show_col_types = FALSE` to quiet this message.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `` -&gt; `...120`</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 500 × 120</span></span></span>
-<span><span class="co">#&gt;    GlySpec      PepSpec RawName  Scan    RT PrecursorMH PrecursorMZ Charge  Rank</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 20241224-LX… 202412… 202412…   266  58.1       <span style="text-decoration: underline;">2</span>880.        961.      3     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">2</span>870 621.        <span style="text-decoration: underline;">3</span>537.        885.      4     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">2</span>878 622.        <span style="text-decoration: underline;">3</span>246.        812.      4     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">2</span>884 623.        <span style="text-decoration: underline;">3</span>537.        708.      5     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">3</span>015 642.        <span style="text-decoration: underline;">2</span>932.        978.      3     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">3</span>079 652.        <span style="text-decoration: underline;">3</span>829.        958.      4     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">3</span>118 657.        <span style="text-decoration: underline;">3</span>537.        885.      4     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">3</span>121 657.        <span style="text-decoration: underline;">3</span>829.        767.      5     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">3</span>129 658.        <span style="text-decoration: underline;">3</span>537.        708.      5     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 20241224-LX… 202412… 202412…  <span style="text-decoration: underline;">3</span>137 659.        <span style="text-decoration: underline;">3</span>246.        812.      4     1</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 490 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 111 more variables: Peptide &lt;chr&gt;, Mod &lt;chr&gt;, PeptideMH &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   `Glycan(H,N,A,F)` &lt;chr&gt;, GlycanComposition &lt;chr&gt;, PlausibleStruct &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   GlyID &lt;dbl&gt;, GlyFrag &lt;chr&gt;, GlyMass &lt;dbl&gt;, GlySite &lt;dbl&gt;, TotalScore &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   PepScore &lt;dbl&gt;, GlyScore &lt;dbl&gt;, CoreMatched &lt;dbl&gt;, MassDeviation &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   PPM &lt;dbl&gt;, GlyIonRatio &lt;dbl&gt;, byIonRatio &lt;dbl&gt;, czIonRatio &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   GlyDecoy &lt;dbl&gt;, PepDecoy &lt;dbl&gt;, Ion_163.06 &lt;dbl&gt;, Ion_366.14 &lt;dbl&gt;, …</span></span></span></code></pre></div>
-<p>That’s 120 columns of pure, unadulterated data chaos! While this
-comprehensive output is fantastic for software interoperability, it’s
-like trying to find a needle in a haystack when you just want to get to
-your analysis.</p>
-<p><strong>What you actually need</strong> (the needle in our
-haystack):</p>
-<ol style="list-style-type: decimal">
-<li>🧬 <strong>Glycoform descriptions</strong>: proteins, sites, glycan
-compositions, glycan structures</li>
-<li>📊 <strong>Quantification results</strong>: the actual numbers from
-pGlycoQuant</li>
-</ol>
-<p><strong>The old way:</strong> Manually wrestling with this 120-column
-monster, writing custom parsing scripts, debugging column name
-mismatches, and generally questioning your life choices.</p>
-<p><strong>The glyread way:</strong> One function call. Seriously.
-✨</p>
-<p>Meet <code><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code>—your new best
-friend:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant</a></span><span class="op">(</span><span class="st">"glycopeptides.list"</span>, sample_info <span class="op">=</span> <span class="st">"sample_info.csv"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Reading data</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Finding leader proteins</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Finding leader proteins <span style="color: #B2B2B2;">[126ms]</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Reading dataColumn <span style="color: #00BB00;">group</span> converted to <span style="color: #0000BB;">&lt;factor&gt;</span>.<span style="color: #00BBBB;">ℹ</span> Parsing glycan compositions and structures</span></span>
-<span><span class="co">#&gt; Column <span style="color: #00BB00;">group</span> converted to <span style="color: #0000BB;">&lt;factor&gt;</span>.<span style="color: #00BB00;">✔</span> Parsing glycan compositions and structures <span style="color: #B2B2B2;">[475ms]</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Reading data<span style="color: #00BB00;">✔</span> Reading data <span style="color: #B2B2B2;">[933ms]</span></span></span>
-<span><span class="va">exp</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Glycoproteomics Experiment</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Expression matrix: <span style="color: #0000BB;">12</span> samples, <span style="color: #0000BB;">298</span> variables</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Sample information fields: <span style="color: #00BB00;">group</span> <span style="color: #0000BB;">&lt;fct&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Variable information fields: <span style="color: #00BB00;">peptide</span> <span style="color: #0000BB;">&lt;chr&gt;</span>, <span style="color: #00BB00;">peptide_site</span> <span style="color: #0000BB;">&lt;int&gt;</span>, <span style="color: #00BB00;">protein</span> <span style="color: #0000BB;">&lt;chr&gt;</span>, <span style="color: #00BB00;">protein_site</span> <span style="color: #0000BB;">&lt;int&gt;</span>, <span style="color: #00BB00;">gene</span> <span style="color: #0000BB;">&lt;chr&gt;</span>, <span style="color: #00BB00;">glycan_composition</span> <span style="color: #0000BB;">&lt;comp&gt;</span></span></span></code></pre></div>
-<p><strong>Ta-da!</strong> Look at that beautiful transformation! From
-120-column chaos to organized elegance in one line of code.</p>
-<p>Let’s peek at what treasures we’ve extracted:</p>
-<p><strong>🏷️ Variable Information - Meet Your
-Glycopeptides:</strong></p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://glycoverse.github.io/glyexp/reference/get_var_info.html" class="external-link">get_var_info</a></span><span class="op">(</span><span class="va">exp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 298 × 7</span></span></span>
-<span><span class="co">#&gt;    variable   peptide peptide_site protein protein_site gene  glycan_composition</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;comp&gt;</span>            </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> P08185-N1… NKTQGK             1 P08185           176 SERP… <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> P04196-N3… HSHNNJ…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> P04196-N3… HSHNNJ…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> P04196-N3… HSHNNJ…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> P10909-N2… HNSTGC…            2 P10909           291 CLU   <span style="color: #000000;">Hex</span>(6)<span style="color: #000000;">HexNAc</span>(5)   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> P04196-N3… HSHNNJ…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> P04196-J3… HSHNNJ…            6 P04196           345 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> P04196-N3… HSHNNJ…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(5)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">dH</span>…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> P04196-N3… HSHNNJ…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(4)<span style="color: #000000;">HexNAc</span>(3)   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> P04196-N3… HSHNNJ…            5 P04196           344 HRG   <span style="color: #000000;">Hex</span>(4)<span style="color: #000000;">HexNAc</span>(4)<span style="color: #000000;">Ne</span>…</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 288 more rows</span></span></span></code></pre></div>
-<p><strong>📋 Sample Information - Know Your Experiments:</strong></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://glycoverse.github.io/glyexp/reference/get_sample_info.html" class="external-link">get_sample_info</a></span><span class="op">(</span><span class="va">exp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 12 × 2</span></span></span>
-<span><span class="co">#&gt;    sample                  group</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 20241224-LXJ-Nglyco-H_1 H    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 20241224-LXJ-Nglyco-H_2 H    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 20241224-LXJ-Nglyco-H_3 H    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 20241224-LXJ-Nglyco-M_1 M    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20241224-LXJ-Nglyco-M_2 M    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 20241224-LXJ-Nglyco-M_3 M    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 20241224-LXJ-Nglyco-Y_1 Y    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 20241224-LXJ-Nglyco-Y_2 Y    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 20241224-LXJ-Nglyco-Y_3 Y    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 20241224-LXJ-Nglyco-C_1 C    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> 20241224-LXJ-Nglyco-C_2 C    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> 20241224-LXJ-Nglyco-C_3 C</span></span></code></pre></div>
-<p><strong>📊 Expression Matrix - Your Data’s Heart and
-Soul:</strong></p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://glycoverse.github.io/glyexp/reference/get_expr_mat.html" class="external-link">get_expr_mat</a></span><span class="op">(</span><span class="va">exp</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">]</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-H_1</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  31054.12</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                      NA</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                                NA</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               285613.66</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                       27588555.39</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-H_2</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                        NA</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               136556.05</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          15717.87</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               268250.71</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                       19527065.26</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-H_3</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  457398.3</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                      NA</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          427312.0</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               2621248.6</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                        32930089.6</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-M_1</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                   7616346</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                22675686</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          10813133</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               993255511</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                          32500720</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-M_2</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                   7391049</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                16675442</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                           9746325</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2              1099069766</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                                NA</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-M_3</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                   6267864</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               114423292</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          25348175</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2              1106268049</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                          26346060</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-Y_1</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  23059718</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               115717950</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          33607210</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               547660361</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                          21780632</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-Y_2</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  15010885</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                90594397</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          21284262</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               753702172</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                          19862189</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-Y_3</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                    740942</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1                55977605</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          28608146</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               556784303</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                          12764805</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-C_1</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                        NA</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               305840564</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          32885077</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               669332806</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                          25946392</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-C_2</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                        NA</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1               428631806</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                          35418588</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2               696696106</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                          18860878</span></span>
-<span><span class="co">#&gt;                                       20241224-LXJ-Nglyco-C_3</span></span>
-<span><span class="co">#&gt; P08185-N176-Hex(5)HexNAc(4)NeuAc(2)                  10655.62</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-1             16064212.10</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)                        6372648.51</span></span>
-<span><span class="co">#&gt; P04196-N344-Hex(5)HexNAc(4)NeuAc(1)-2            112287653.59</span></span>
-<span><span class="co">#&gt; P10909-N291-Hex(6)HexNAc(5)                        4316119.03</span></span></code></pre></div>
-<p><strong>The magic?</strong> All the essential information for
-downstream analysis has been carefully extracted, cleaned, and packaged
-into a beautiful <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object. No more data
-archaeology—just clean, analysis-ready data! ✨</p>
-</div>
-<div class="section level2">
-<h2 id="peek-under-the-hood-the-magic-explained">Peek Under the Hood: The Magic Explained 🔧✨<a class="anchor" aria-label="anchor" href="#peek-under-the-hood-the-magic-explained"></a>
-</h2>
-<p>Curious about what just happened? Let’s lift the hood and see the
-sophisticated machinery that <code><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code>
-runs behind the scenes. Spoiler alert: it’s doing <strong>a lot</strong>
-of heavy lifting so you don’t have to!</p>
-<p><strong>The 8-Step Data Transformation Dance:</strong></p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Smart File Reading</strong>: Reads your data with
-intelligent column type detection—no more “everything is a character”
-surprises!</li>
-<li>
-<strong>Column Cleaning Magic</strong>: Extracts clean UniProt
-accessions from messy “Proteins” columns and handles all those pesky
-formatting inconsistencies.</li>
-<li>
-<strong>Protein Inference Intelligence</strong>: Runs a
-sophisticated “parsimony” algorithm to resolve protein assignment
-ambiguities—because biology is complicated, but your data doesn’t have
-to be!</li>
-<li>
-<strong>📊 PSM-to-Glycopeptide Aggregation</strong>: Intelligently
-combines PSM-level quantification into meaningful glycopeptide-level
-measurements.</li>
-<li>
-<strong>Sample Information Validation</strong>: Cross-checks sample
-names and ensures everything matches up perfectly.</li>
-<li>
-<strong>🎯 Data Extraction</strong>: Carefully extracts variable
-information and expression matrix while maintaining data integrity.</li>
-<li>
-<strong>🧬 Glycan Parsing Power</strong>: Leverages the amazing <a href="https://github.com/glycoverse/glyparse" class="external-link">glyparse</a> package to
-parse glycan compositions and structures into proper data types.</li>
-<li>
-<strong>Final Assembly</strong>: Packages everything into a
-beautiful, analysis-ready <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">experiment()</a></code> object.</li>
-</ol>
-<p><strong>The result?</strong> What used to take hours of custom
-scripting now happens in seconds, with bulletproof reliability!</p>
-</div>
-<div class="section level2">
-<h2 id="meet-the-whole-glyread-family">Meet the Whole glyread Family!<a class="anchor" aria-label="anchor" href="#meet-the-whole-glyread-family"></a>
-</h2>
-<p>One function down, but there’s so much more! <code>glyread</code> is
-like a Swiss Army knife for glycoproteomics data—it speaks the language
-of virtually every major identification and quantification workflow out
-there. 🔧</p>
-<p><strong>🌟 The Complete Toolkit:</strong></p>
-<ul>
-<li>
-<strong><code><a href="../reference/read_byonic_byologic.html">read_byonic_byologic()</a></code></strong>: The dynamic
-duo of Byonic identification + Byologic quantification</li>
-<li>
-<strong><code><a href="../reference/read_byonic_pglycoquant.html">read_byonic_pglycoquant()</a></code></strong>: Byonic’s
-precision meets pGlycoQuant’s power</li>
-<li>
-<strong><code><a href="../reference/read_msfragger.html">read_msfragger()</a></code></strong>: MSFragger-Glyco’s
-all-in-one identification and quantification magic</li>
-<li>
-<strong><code><a href="../reference/read_pglyco3.html">read_pglyco3()</a></code></strong>: Pure pGlyco3 with its
-built-in quantification capabilities</li>
-<li>
-<strong><code><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code></strong>: The
-workflow we just explored—pGlyco3 + pGlycoQuant perfection</li>
-<li>
-<strong><code><a href="../reference/read_glyco_decipher.html">read_glyco_decipher()</a></code></strong>:
-Glyco-Decipher’s identification and label-free quantification</li>
-<li>
-<strong><code><a href="../reference/read_strucgp.html">read_strucgp()</a></code></strong>: StrucGP’s
-identification</li>
-</ul>
-<p><strong>Coming Soon to a Package Near You:</strong> We’re actively
-working on supporting GPQuest, GlycanFinder and other exciting tools.
-The glycoproteomics software landscape is evolving rapidly, and
-<code>glyread</code> is evolving right alongside it! 🚀</p>
-<p><strong>💡 Pro Tip:</strong> No matter which workflow you choose, you
-can expect the same consistent, clean data format on the other side.
-It’s like having a universal remote for your glycoproteomics data!</p>
-</div>
-<div class="section level2">
-<h2 id="the-universal-data-language-consistent-columns-across-all-functions">The Universal Data Language: Consistent Columns Across All
-Functions<a class="anchor" aria-label="anchor" href="#the-universal-data-language-consistent-columns-across-all-functions"></a>
-</h2>
-<p>Here’s the beautiful part: no matter which <code>glyread</code>
-function you use, you’ll always get the same consistent, predictable
-data structure. It’s like having a universal translator that ensures
-everyone speaks the same language!</p>
-<p><strong>🏷️ Your Variable Information Columns - The Standard
-Cast:</strong></p>
-<ul>
-<li>
-<strong><code>peptide</code></strong> 🧬: The peptide sequence
-(character) - your protein’s building blocks</li>
-<li>
-<strong><code>peptide_site</code></strong>: Glycosylation site on
-the peptide (integer) - where the magic happens</li>
-<li>
-<strong><code>protein</code></strong> 🏷️: UniProt accession
-(character) - your protein’s official ID card</li>
-<li>
-<strong><code>protein_site</code></strong> 🎯: Glycosylation site on
-the protein (integer) - the full-length coordinates</li>
-<li>
-<strong><code>gene</code></strong> 🧬: Gene symbol (character) - the
-genetic blueprint behind it all</li>
-<li>
-<strong><code>glycan_composition</code></strong>: A
-<code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code> object - what’s in your
-glycan</li>
-<li>
-<strong><code>glycan_structure</code></strong>: A
-<code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_structure.html" class="external-link">glyrepr::glycan_structure()</a></code> object - how it’s all
-connected</li>
-</ul>
-<p><strong>🎯 Special Note on Those Last Two:</strong> The
-<code>glycan_composition</code> and <code>glycan_structure</code>
-columns aren’t just plain text—they’re sophisticated data types from the
-amazing <a href="https://github.com/glycoverse/glyrepr" class="external-link">glyrepr</a>
-package. Think of them as smart objects that know how to do glycan
-math!</p>
-<p><strong>💡 Pro Tip:</strong> Getting familiar with
-<code>glyrepr</code> objects is absolutely worth the investment. They
-unlock a whole world of glycan analysis capabilities that would be
-impossible with plain text. Trust us on this one!</p>
-</div>
-<div class="section level2">
-<h2 id="your-glycoverse-adventure-awaits">Your Glycoverse Adventure Awaits! 🚀✨<a class="anchor" aria-label="anchor" href="#your-glycoverse-adventure-awaits"></a>
-</h2>
-<p>Congratulations! You’ve just mastered the art of taming
-glycoproteomics data chaos with <code>glyread</code>. But this is just
-the beginning of your journey through the <code>glycoverse</code>
-ecosystem!</p>
-<p><strong>🎯 Your Next Destinations:</strong></p>
-<ul>
-<li>
-<strong><a href="https://github.com/glycoverse/glyclean" class="external-link">glyclean</a></strong>:
-Your data preprocessing powerhouse! Think of it as Marie Kondo for
-glycoproteomics data—it’ll help you clean, filter, and organize your
-experiments until they spark joy.</li>
-<li>
-<strong><a href="https://github.com/glycoverse/glymotif" class="external-link">glymotif</a></strong>: The
-motif hunting expedition! Discover hidden patterns and recurring
-structural themes in your glycan data. It’s like being a detective, but
-for sugar molecules!</li>
-<li>
-<strong>📊 <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a></strong>: Your
-experimental data command center! Master the <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">experiment()</a></code>
-object and unlock the full power of synchronized data manipulation.</li>
-</ul>
-<p><strong>The Best Part?</strong> Since you’re now fluent in
-<code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">experiment()</a></code> objects thanks to <code>glyread</code>, all
-these packages will feel like natural extensions of your workflow. It’s
-like learning a new language and suddenly being able to read an entire
-library!</p>
-<p><strong>Happy glycan hunting!</strong> 🧬🎯</p>
-<hr>
-<p><em>Remember: Great glycoproteomics analysis starts with great data
-import. You’ve got the tools—now go make some discoveries! 💫</em></p>
+<p>Each <code>read_*()</code> function has its own quirks and options —
+file format variations, optional parameters, and output customizations.
+Check the function-specific documentation with
+<code><a href="../reference/read_pglyco3.html">?read_pglyco3</a></code> (or whichever function matches your workflow)
+to fine-tune your data import.</p>
+<p>Happy glyco-analyzing! 🍬</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
