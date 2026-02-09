@@ -43,8 +43,6 @@ Imports:
     tibble,
     tidyr,
     tidyselect
-Remotes: 
-    glycoverse/glyexp@*release
 Depends: 
     R (>= 4.1)
 VignetteBuilder: knitr
