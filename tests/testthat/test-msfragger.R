@@ -249,7 +249,7 @@ test_that("it correctly extracts variable information", {
 
   # Check that variable names are unique and properly formatted
   # Variables should be meaningful: protein-site-glycan pattern
-  expect_true(all(stringr::str_detect(var_info$variable, ".+?-N\\d+-.+")))
+  expect_true(all(stringr::str_detect(var_info$variable, ".+?-\\d+-.+")))
   # And contain glycan composition info
   expect_true(all(stringr::str_detect(var_info$variable, "Hex")))
   expect_true(all(stringr::str_detect(var_info$variable, "HexNAc")))

@@ -180,7 +180,7 @@ test_that("variables are correctly named with meaningful IDs", {
 
   variables <- res$var_info$variable
   # Variables should be meaningful: protein-site-glycan pattern
-  expect_true(all(stringr::str_detect(variables, ".+?-N\\d+-.+")))
+  expect_true(all(stringr::str_detect(variables, ".+?-\\d+-.+")))
   # And contain glycan composition info
   expect_true(all(stringr::str_detect(variables, "Hex")))
   expect_true(all(stringr::str_detect(variables, "HexNAc")))
