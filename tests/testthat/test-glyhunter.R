@@ -8,3 +8,16 @@ test_that("read_glyhunter works", {
   expect_equal(exp$meta_data$exp_type, "glycomics")
   expect_s3_class(exp$var_info$glycan_composition, "glyrepr_composition")
 })
+
+test_that("read_glyhunter works for NP preset", {
+  exp <- suppressMessages(read_glyhunter(
+    test_path("data/glyhunter-np-result.csv"),
+    glycan_type = "N",
+    preset = "Fu_NP_2026"
+  ))
+
+  expect_s3_class(exp, "glyexp_experiment")
+  expect_equal(exp$meta_data$exp_type, "glycomics")
+  expect_s3_class(exp$var_info$glycan_composition, "glyrepr_composition")
+  expect_true(all(c("nL", "nE") %in% colnames(exp$var_info)))
+})

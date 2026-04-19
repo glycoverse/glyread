@@ -1,5 +1,9 @@
 # glyread (development version)
 
+# New features
+
+* Add a `preset` parameter to `read_glyhunter()`. This adds the support for reading glycomics data with sialic acid linkage specific methylamidation used in the unpublished Nature Protocols paper by Fu et al. (2026).
+
 # glyread 0.9.2
 
 # glyread 0.9.1
