@@ -69,24 +69,30 @@ read_glyhunter <- function(
   var_info <- df |>
     dplyr::select(all_of(c("variable" = "glycan"))) |>
     dplyr::mutate(
-      glycan_composition = stringr::str_remove_all(.data$variable, "\\[.*?\\]"),
-      glycan_composition = glyrepr::as_glycan_composition(.data$glycan_composition)
+      variable = stringr::str_remove_all(.data$variable, "\\[.*?\\]"),
+      glycan_composition = glyrepr::as_glycan_composition(.data$variable),
+      variable = .data$variable |>
+        stringr::str_replace(stringr::fixed("Hex("), "H") |>
+        stringr::str_replace(stringr::fixed("HexNAc("), "N") |>
+        stringr::str_replace(stringr::fixed("dHex("), "F") |>
+        stringr::str_replace(stringr::fixed("NeuAc("), "S") |>
+        stringr::str_remove_all(stringr::fixed(")")),
     )
 
   # Prepare expression matrix
   expr_mat <- df |>
     tibble::column_to_rownames("glycan") |>
     as.matrix()
+  rownames(expr_mat) <- var_info$variable
 
   # Pack experiment
-  exp <- glyexp::experiment(
-    expr_mat, sample_info, var_info,
+  glyexp::experiment(
+    expr_mat,
+    sample_info = sample_info,
+    var_info = var_info,
     exp_type = "glycomics",
     glycan_type = glycan_type
   )
-
-  # Standardize variable IDs
-  glyexp::standardize_variable(exp)
 }
 
 .read_glyhunter_np <- function(
