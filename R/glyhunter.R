@@ -109,8 +109,8 @@ read_glyhunter <- function(
         stringr::str_replace(stringr::fixed("Hex("), "H") |>
         stringr::str_replace(stringr::fixed("HexNAc("), "N") |>
         stringr::str_replace(stringr::fixed("dHex("), "F") |>
-        stringr::str_replace(stringr::fixed("NeuAc[+13.0300]("), "L") |>
-        stringr::str_replace(stringr::fixed("NeuAc[+16.0500]("), "E") |>
+        stringr::str_replace("NeuAc\\[\\+13.*?\\]\\(", "L") |>
+        stringr::str_replace("NeuAc\\[\\+16.*?\\]\\(", "E") |>
         stringr::str_remove_all(stringr::fixed(")")),
       nL = stringr::str_extract(.data$variable, "L(\\d+)", group = 1),
       nL = dplyr::if_else(is.na(.data$nL), 0L, as.integer(.data$nL)),
