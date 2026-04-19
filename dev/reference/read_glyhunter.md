@@ -12,6 +12,7 @@ object.
 read_glyhunter(
   fp,
   sample_info = NULL,
+  preset = c("Fu_NC_2026", "Fu_NP_2026"),
   glycan_type = "N",
   sample_name_converter = NULL
 )
@@ -27,6 +28,13 @@ read_glyhunter(
 
   File path of the sample information file (csv), or a sample
   information data.frame/tibble.
+
+- preset:
+
+  "Fu_NC_2026" (default) or "Fu_NP_2026". Use "Fu_NC_2026" to use the
+  configuration following "DOI: 10.1038/s41467-026-68579-x". Use
+  "Fu_NP_2026" to use the configuration in an unpublished Nature
+  Protocols paper.
 
 - glycan_type:
 
@@ -58,6 +66,12 @@ The following columns could be found in the variable information tibble:
 - `glycan_composition`:
   [`glyrepr::glycan_composition()`](https://glycoverse.github.io/glyrepr/reference/glycan_composition.html),
   glycan compositions.
+
+If "Fu_NP_2026" preset is used, two additional columns will be included:
+
+- `nL`: Number of α2,3-linked sialic acids.
+
+- `nE`: Number of α2,6-linked sialic acids.
 
 ## Sample information
 
