@@ -21,3 +21,15 @@ test_that("read_glyhunter works for NP preset", {
   expect_s3_class(exp$var_info$glycan_composition, "glyrepr_composition")
   expect_true(all(c("nL", "nE") %in% colnames(exp$var_info)))
 })
+
+test_that("read_glyhunter works with sample name converter", {
+  exp <- suppressMessages(read_glyhunter(
+    test_path("data/glyhunter-result.csv"),
+    glycan_type = "N",
+    sample_name_converter = function(samples) {
+      paste0("Sample_", samples)
+    }
+  ))
+
+  expect_true(all(grepl("^Sample_", colnames(exp$expr_mat))))
+})
