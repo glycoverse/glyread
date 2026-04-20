@@ -61,6 +61,13 @@ read_glyhunter <- function(
 ) {
   df <- suppressMessages(readr::read_csv(fp))
 
+  # Rename samples
+  if (!is.null(sample_name_converter)) {
+    samples <- setdiff(colnames(df), "glycan")
+    new_samples <- sample_name_converter(samples)
+    colnames(df) <- c("glycan", new_samples)
+  }
+
   # Prepare sample info
   samples <- setdiff(colnames(df), "glycan")
   sample_info <- .process_sample_info(sample_info, samples, glycan_type)
@@ -102,6 +109,13 @@ read_glyhunter <- function(
   sample_name_converter = NULL
 ) {
   df <- suppressMessages(readr::read_csv(fp))
+
+  # Rename samples
+  if (!is.null(sample_name_converter)) {
+    samples <- setdiff(colnames(df), "glycan")
+    new_samples <- sample_name_converter(samples)
+    colnames(df) <- c("glycan", new_samples)
+  }
 
   # Prepare sample info
   samples <- setdiff(colnames(df), "glycan")
