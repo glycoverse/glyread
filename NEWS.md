@@ -1,4 +1,4 @@
-# glyread (development version)
+# glyread 0.11.0
 
 ## New features
 
