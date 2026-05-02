@@ -103,19 +103,25 @@ read_byonic_byologic <- function(
 
 .tidy_byonic_byologic <- function(df, orgdb) {
   df %>%
-    .filter_byonic_byologic_rows() %>%
-    .refine_byonic_byologic_columns() %>%
+    dplyr::filter(!is.na(.data$glycans)) %>%
+    .collapse_byologic_rows() %>%
+    .expand_byologic_multisite_rows() %>%
+    .standardize_byologic_columns() %>%
     .add_gene_symbols(orgdb)
 }
 
-.filter_byonic_byologic_rows <- function(df) {
-  df %>%
-    dplyr::filter(!is.na(.data$glycans)) %>%
-    .collapse_byologic_rows() %>%
-    .handle_multisite_byologic()
-}
-
-.handle_multisite_byologic <- function(df) {
+#' Expand Byologic multisite glycopeptides
+#'
+#' Byologic reports multisite glycopeptides as one row with comma-separated
+#' glycan compositions and semicolon-separated NGlycan entries in `mod_summary`.
+#' This helper expands those rows to one row per glycosylation site while
+#' preserving a shared `gp_id`.
+#'
+#' @param df A collapsed Byologic tibble.
+#'
+#' @returns A tibble with one row per glycosylation site.
+#' @noRd
+.expand_byologic_multisite_rows <- function(df) {
   if (!"row_number" %in% colnames(df)) {
     df <- dplyr::mutate(df, row_number = as.character(dplyr::row_number()))
   }
@@ -181,12 +187,14 @@ read_byonic_byologic <- function(
     dplyr::select(-all_of(c("depth", "lvl1", "has_lvl2")))
 }
 
-.refine_byonic_byologic_columns <- function(df) {
-  expanded_cols <- c("gp_id", "glycan_composition", "peptide_site")
-  if (!all(expanded_cols %in% colnames(df))) {
-    df <- .handle_multisite_byologic(df)
-  }
-
+#' Standardize expanded Byologic columns
+#'
+#' @param df A Byologic tibble after multisite row expansion.
+#'
+#' @returns A long-format tibble with standard glycopeptide variable columns,
+#'   `sample`, and `value`.
+#' @noRd
+.standardize_byologic_columns <- function(df) {
   selected_cols <- c(
     "gp_id",
     "peptide",
