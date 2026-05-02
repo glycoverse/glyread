@@ -95,6 +95,21 @@ test_that("multisite Byonic-pGlycoQuant glycopeptides are expanded into site-spe
   expect_equal(as.numeric(res$expr_mat[, "Sample1"]), c(100, 100))
 })
 
+test_that("Byonic-pGlycoQuant rows without glycosite markers fail clearly", {
+  malformed_df <- tibble::tibble(
+    Peptide = "K.NLFLNHSENATAK.D",
+    `Protein Name` = ">tr|H0Y300|H0Y300_HUMAN Haptoglobin OS=Homo sapiens OX=9606 GN=HP PE=1 SV=4",
+    Position = 239L,
+    Composition = "HexNAc(1)Fuc(1),HexNAc(4)Hex(5)Fuc(1)NeuAc(1)",
+    `Intensity(Sample1)` = 100
+  )
+
+  expect_error(
+    glyread:::.expand_byonic_pglycoquant_multisite_rows(malformed_df),
+    "Cannot pair Byonic-pGlycoQuant glycan compositions with glycosylation sites"
+  )
+})
+
 # ----- Peptide site calculation -----
 test_that("peptide_site and protein_site are correctly calculated", {
   suppressMessages(

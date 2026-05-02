@@ -23,7 +23,7 @@
 #' @param site_column Source column that carries the glycosylation sites.
 #' @param row_id Row identifiers to report on mismatch.
 #'
-#' @returns The input tibble, invisibly checked.
+#' @returns The input tibble.
 #' @noRd
 .check_byonic_glycan_site_pairing <- function(
   df,
@@ -33,9 +33,9 @@
 ) {
   invalid_rows <- row_id[df$n_glycans != df$n_sites]
   if (length(invalid_rows) > 0) {
-    rlang::abort(c(
+    cli::cli_abort(c(
       "Cannot pair {source} glycan compositions with glycosylation sites.",
-      i = "The number of comma-separated glycans must match the number of glycosylation sites in `.field {site_column}`.",
+      i = "The number of comma-separated glycans must match the number of glycosylation sites in {.field {site_column}}.",
       x = "Problematic rows: {.val {toString(invalid_rows)}}"
     ))
   }
