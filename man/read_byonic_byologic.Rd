@@ -10,7 +10,8 @@ read_byonic_byologic(
   quant_method = "label-free",
   glycan_type = "N",
   sample_name_converter = NULL,
-  orgdb = "org.Hs.eg.db"
+  orgdb = "org.Hs.eg.db",
+  multisite = "expand"
 )
 }
 \arguments{
@@ -32,6 +33,12 @@ If NULL, original names are kept.}
 
 \item{orgdb}{name of the OrgDb package to use for UniProt to gene symbol conversion.
 Default is "org.Hs.eg.db".}
+
+\item{multisite}{How to handle multisite glycopeptides.
+\itemize{
+\item "expand" (default) expands each multisite glycopeptide into site-specific rows.
+\item "drop" removes multisite glycopeptides.
+}}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -53,9 +60,9 @@ The exported .csv file is the file you should use.
 \section{Multisite glycopeptides}{
 
 Some glycopeptides can have more than one glycosylation site.
-In this case, it will be expanded into multiple rows with the same quantification value
+By default, they are expanded into multiple rows with the same quantification value
 but different \code{protein_site} and \code{glycan_composition}.
-This is generally fine if downstream analyses are done at the glycoform level.
+Set \code{multisite = "drop"} to remove multisite glycopeptides instead.
 }
 
 \section{Variable information}{

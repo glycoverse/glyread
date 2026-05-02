@@ -16,6 +16,31 @@
     stringr::str_trim()
 }
 
+#' Drop multisite Byonic rows when requested
+#'
+#' @param df A Byonic result tibble.
+#' @param glycan_col Name of the column containing glycan compositions.
+#' @param source Human-readable source name for messages.
+#'
+#' @returns The input tibble with multisite rows removed.
+#' @noRd
+.drop_byonic_multisite_rows <- function(df, glycan_col, source) {
+  is_multisite <- stringr::str_detect(df[[glycan_col]], stringr::fixed(","))
+  n_multisite <- sum(is_multisite, na.rm = TRUE)
+
+  if (n_multisite > 0) {
+    perc_multisite <- round(n_multisite / nrow(df) * 100, 1)
+    cli::cli_alert_info(
+      "Dropping {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite {source} rows."
+    )
+  }
+
+  df %>%
+    dplyr::mutate(.byonic_is_multisite = is_multisite) %>%
+    dplyr::filter(!.data$.byonic_is_multisite) %>%
+    dplyr::select(-all_of(".byonic_is_multisite"))
+}
+
 #' Check glycan-site pairing in expanded Byonic rows
 #'
 #' @param df A tibble with `n_glycans` and `n_sites` columns.
