@@ -147,7 +147,6 @@ read_byonic_pglycoquant <- function(
         .data$Peptide,
         .extract_byonic_pglycoquant_glycosites
       ),
-      first_peptide_site = purrr::map_int(.data$peptide_site, min),
       n_glycans = purrr::map_int(.data$glycan_composition, length),
       n_sites = purrr::map_int(.data$peptide_site, length)
     ) %>%
@@ -155,6 +154,7 @@ read_byonic_pglycoquant <- function(
       source = "Byonic-pGlycoQuant",
       site_column = "Peptide"
     ) %>%
+    dplyr::mutate(first_peptide_site = purrr::map_int(.data$peptide_site, min)) %>%
     tidyr::unnest_longer(c("glycan_composition", "peptide_site")) %>%
     dplyr::mutate(
       peptide_site = as.integer(.data$peptide_site),

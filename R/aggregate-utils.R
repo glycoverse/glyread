@@ -12,16 +12,43 @@
     "gene",
     "glycan_composition",
     "glycan_structure",
-    "gp_id",
     "proteins",
     "genes",
     "protein_sites"
   )
-  sample_names <- unique(df$sample)
-  res_df <- df %>%
+
+  group_cols <- intersect(aggr_cols, colnames(df))
+  value_df <- df %>%
     dplyr::summarise(
       value = sum(.data$value, na.rm = TRUE),
-      .by = any_of(c(aggr_cols, "sample"))
-    ) %>%
+      .by = any_of(c(group_cols, "sample"))
+    )
+
+  if ("gp_id" %in% colnames(df)) {
+    gp_id_df <- df %>%
+      dplyr::summarise(
+        gp_id = .collapse_trace_ids(.data$gp_id),
+        .by = any_of(group_cols)
+      )
+    value_df <- dplyr::left_join(value_df, gp_id_df, by = group_cols)
+  }
+
+  value_df %>%
     dplyr::mutate(value = dplyr::if_else(.data$value == 0, NA, .data$value))
+}
+
+#' Collapse trace IDs while preserving first-seen order
+#'
+#' @param x A character vector of trace IDs.
+#'
+#' @returns A semicolon-separated character scalar, or `NA_character_` if all
+#'   IDs are missing.
+#' @noRd
+.collapse_trace_ids <- function(x) {
+  x <- unique(stats::na.omit(x))
+  if (length(x) == 0) {
+    return(NA_character_)
+  }
+
+  paste(x, collapse = ";")
 }
