@@ -16,8 +16,6 @@
 #' In this case, it will be expanded into multiple rows with the same quantification value
 #' but different `protein_site` and `glycan_composition`.
 #' This is generally fine if downstream analyses are done at the glycoform level.
-#' A `gp_id` column is also added to uniquely identify each glycopeptide before row expansion,
-#' so that the multiple rows can be mapped back to the original glycopeptide if needed.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
@@ -30,7 +28,6 @@
 #' - `protein_site`: integer, site of glycosylation on protein
 #' - `gene`: character, gene name (symbol)
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
-#' - `gp_id`: character, glycopeptide ID before multisite row expansion.
 #'
 #' @inheritParams read_pglyco3_pglycoquant
 #' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.
@@ -114,8 +111,7 @@ read_byonic_byologic <- function(
 #'
 #' Byologic reports multisite glycopeptides as one row with comma-separated
 #' glycan compositions and semicolon-separated NGlycan entries in `mod_summary`.
-#' This helper expands those rows to one row per glycosylation site while
-#' preserving a shared `gp_id`.
+#' This helper expands those rows to one row per glycosylation site.
 #'
 #' @param df A collapsed Byologic tibble.
 #'
@@ -139,8 +135,6 @@ read_byonic_byologic <- function(
 
   expanded_df <- df %>%
     dplyr::mutate(
-      gp_source = stringr::str_split_i(.data$row_number, stringr::fixed("."), 1L),
-      gp_id = paste0("BGP", dplyr::dense_rank(.data$gp_source)),
       glycan_composition = purrr::map(
         .data$glycans,
         .split_byonic_glycan_compositions
@@ -158,7 +152,7 @@ read_byonic_byologic <- function(
     ) %>%
     tidyr::unnest_longer(c("glycan_composition", "peptide_site")) %>%
     dplyr::mutate(peptide_site = as.integer(.data$peptide_site)) %>%
-    dplyr::select(-all_of(c("gp_source", "n_glycans", "n_sites")))
+    dplyr::select(-all_of(c("n_glycans", "n_sites")))
 }
 
 # Collapse hierarchical search-result rows to peptide–sample abundances
@@ -205,7 +199,6 @@ read_byonic_byologic <- function(
 #' @noRd
 .standardize_byologic_columns <- function(df) {
   selected_cols <- c(
-    "gp_id",
     "peptide",
     "peptide_site",
     "protein",

@@ -62,8 +62,6 @@ Some glycopeptides can have more than one glycosylation site.
 In this case, it will be expanded into multiple rows with the same quantification value
 but different \code{protein_site} and \code{glycan_composition}.
 This is generally fine if downstream analyses are done at the glycoform level.
-A \code{gp_id} column is also added to uniquely identify each glycopeptide before row expansion,
-so that the multiple rows can be mapped back to the original glycopeptide if needed.
 }
 
 \section{Variable information}{
@@ -77,7 +75,6 @@ The following columns could be found in the variable information tibble:
 \item \code{gene}: character, gene name (symbol)
 \item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
 \item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures (if \code{parse_structure = TRUE}).
-\item \code{gp_id}: character, glycopeptide ID before multisite row expansion.
 }
 }
 

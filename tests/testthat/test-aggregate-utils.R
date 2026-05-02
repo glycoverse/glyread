@@ -1,4 +1,4 @@
-test_that("gp_id is retained as trace metadata without splitting aggregation", {
+test_that("aggregation ignores trace columns and sums glycopeptide values", {
   tidy_df <- tibble::tibble(
     peptide = "NTEST",
     peptide_site = 1L,
@@ -14,10 +14,10 @@ test_that("gp_id is retained as trace metadata without splitting aggregation", {
 
   expect_equal(nrow(res), 1L)
   expect_equal(res$value, 30)
-  expect_equal(res$gp_id, "GP1;GP2")
+  expect_false("gp_id" %in% colnames(res))
 })
 
-test_that("gp_id trace metadata is stable across samples", {
+test_that("aggregation keeps sample-level values separate", {
   tidy_df <- tibble::tibble(
     peptide = "NTEST",
     peptide_site = 1L,
@@ -32,5 +32,6 @@ test_that("gp_id trace metadata is stable across samples", {
   res <- glyread:::.aggregate_long(tidy_df)
 
   expect_equal(nrow(res), 2L)
-  expect_equal(unique(res$gp_id), "GP1;GP2")
+  expect_false("gp_id" %in% colnames(res))
+  expect_equal(res$value, c(10, 20))
 })
