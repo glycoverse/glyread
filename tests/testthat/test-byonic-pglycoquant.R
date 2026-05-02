@@ -49,23 +49,50 @@ test_that("multisite glycopeptides are handled correctly in full workflow", {
   # All entries should be present (multisite glycopeptides are no longer filtered out)
   expect_true(nrow(res$var_info) > 0)
 
-  # If there were multisite glycopeptides (indicated by commas in compositions),
-  # their protein_site should be NA, but this test data doesn't contain any
+  # Multisite glycopeptides should be expanded before composition parsing,
+  # so parsed output should not retain comma-separated compositions.
   compositions <- as.character(res$var_info$glycan_composition)
   multisite_entries <- stringr::str_detect(compositions, ",")
+  expect_false(any(multisite_entries))
 
-  if (any(multisite_entries)) {
-    # For multisite entries, protein_site should be NA
-    multisite_protein_sites <- res$var_info$protein_site[multisite_entries]
-    expect_true(all(is.na(multisite_protein_sites)))
-  }
+  # Expanded entries should have valid protein_site values.
+  expect_true(all(!is.na(res$var_info$protein_site)))
+})
 
-  # Single-site entries should have valid protein_site values
-  singlesite_entries <- !multisite_entries
-  if (any(singlesite_entries)) {
-    singlesite_protein_sites <- res$var_info$protein_site[singlesite_entries]
-    expect_true(all(!is.na(singlesite_protein_sites)))
-  }
+test_that("multisite Byonic-pGlycoQuant glycopeptides are expanded into site-specific rows", {
+  pglycoquant_path <- withr::local_tempfile(fileext = ".list")
+  readr::write_tsv(
+    tibble::tibble(
+      Peptide = "K.NLFLN[+349.13728]HSEN[+2059.73493]ATAK.D",
+      `Protein Name` = ">tr|H0Y300|H0Y300_HUMAN Haptoglobin OS=Homo sapiens OX=9606 GN=HP PE=1 SV=4",
+      Position = 239L,
+      Composition = "HexNAc(1)Fuc(1),HexNAc(4)Hex(5)Fuc(1)NeuAc(1)",
+      `Intensity(Sample1)` = 100
+    ),
+    pglycoquant_path
+  )
+
+  suppressMessages(
+    res <- read_byonic_pglycoquant(
+      pglycoquant_path,
+      quant_method = "label-free",
+      orgdb = "missing.OrgDb"
+    )
+  )
+
+  res$var_info <- dplyr::arrange(res$var_info, .data$protein_site)
+
+  expect_equal(nrow(res$var_info), 2L)
+  expect_true("gp_id" %in% colnames(res$var_info))
+  expect_equal(length(unique(res$var_info$gp_id)), 1L)
+  expect_equal(res$var_info$peptide_site, c(5L, 9L))
+  expect_equal(res$var_info$protein_site, c(239L, 243L))
+  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+  expect_equal(
+    as.character(res$var_info$glycan_composition),
+    c("HexNAc(1)dHex(1)", "Hex(5)HexNAc(4)dHex(1)NeuAc(1)")
+  )
+  expect_equal(as.numeric(res$expr_mat[, "Sample1"]), c(100, 100))
 })
 
 # ----- Peptide site calculation -----
