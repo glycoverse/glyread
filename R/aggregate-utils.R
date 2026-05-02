@@ -12,6 +12,7 @@
     "gene",
     "glycan_composition",
     "glycan_structure",
+    "gp_id",
     "proteins",
     "genes",
     "protein_sites"

@@ -12,8 +12,12 @@
 #' The exported .csv file is the file you should use.
 #'
 #' @section Multisite glycopeptides:
-#' Multisite glycopeptides are supported but their `protein_site` will be set to `NA`
-#' since the exact site of glycosylation cannot be determined unambiguously.
+#' Some glycopeptides can have more than one glycosylation site.
+#' In this case, it will be expanded into multiple rows with the same quantification value
+#' but different `protein_site` and `glycan_composition`.
+#' This is generally fine if downstream analyses are done at the glycoform level.
+#' A `gp_id` column is also added to uniquely identify each glycopeptide before row expansion,
+#' so that the multiple rows can be mapped back to the original glycopeptide if needed.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
@@ -26,6 +30,7 @@
 #' - `protein_site`: integer, site of glycosylation on protein
 #' - `gene`: character, gene name (symbol)
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
+#' - `gp_id`: character, glycopeptide ID before multisite row expansion.
 #'
 #' @inheritParams read_pglyco3_pglycoquant
 #' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.
@@ -91,11 +96,9 @@ read_byonic_byologic <- function(
   )
 
   # Apply type conversion to the cleaned data
-  df_typed <- df_clean |>
+  df_clean |>
     dplyr::select(dplyr::any_of(names(expected_cols$cols))) |>
     readr::type_convert(col_types = expected_cols)
-
-  return(df_typed)
 }
 
 .tidy_byonic_byologic <- function(df, orgdb) {
@@ -113,6 +116,10 @@ read_byonic_byologic <- function(
 }
 
 .handle_multisite_byologic <- function(df) {
+  if (!"row_number" %in% colnames(df)) {
+    df <- dplyr::mutate(df, row_number = as.character(dplyr::row_number()))
+  }
+
   # Identify multisite glycopeptides (those with commas in glycans column)
   is_multisite <- stringr::str_detect(df$glycans, stringr::fixed(","))
   n_multisite <- sum(is_multisite)
@@ -120,13 +127,23 @@ read_byonic_byologic <- function(
   if (n_multisite > 0) {
     perc_multisite <- round(n_multisite / nrow(df) * 100, 1)
     cli::cli_alert_info(
-      "Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite glycopeptides. Setting protein_site to NA for these entries."
+      "Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite glycopeptides. Expanding these entries to site-specific rows."
     )
   }
 
-  # Keep all rows but mark multisite ones for special handling
-  df$is_multisite <- is_multisite
-  df
+  df %>%
+    dplyr::mutate(
+      gp_source = stringr::str_split_i(.data$row_number, stringr::fixed("."), 1L),
+      gp_id = paste0("BGP", dplyr::dense_rank(.data$gp_source)),
+      glycan_composition = purrr::map(.data$glycans, .split_byologic_glycans),
+      peptide_site = purrr::map(.data$mod_summary, .extract_byologic_glycosites),
+      n_glycans = purrr::map_int(.data$glycan_composition, length),
+      n_sites = purrr::map_int(.data$peptide_site, length)
+    ) %>%
+    .check_byologic_glycosite_pairing() %>%
+    tidyr::unnest_longer(c("glycan_composition", "peptide_site")) %>%
+    dplyr::mutate(peptide_site = as.integer(.data$peptide_site)) %>%
+    dplyr::select(-all_of(c("gp_source", "n_glycans", "n_sites")))
 }
 
 # Collapse hierarchical search-result rows to peptide–sample abundances
@@ -165,7 +182,13 @@ read_byonic_byologic <- function(
 }
 
 .refine_byonic_byologic_columns <- function(df) {
+  expanded_cols <- c("gp_id", "glycan_composition", "peptide_site")
+  if (!all(expanded_cols %in% colnames(df))) {
+    df <- .handle_multisite_byologic(df)
+  }
+
   selected_cols <- c(
+    "gp_id",
     "peptide",
     "peptide_site",
     "protein",
@@ -183,33 +206,8 @@ read_byonic_byologic <- function(
       peptide = stringr::str_split_i(.data$sequence, stringr::fixed("."), 2L),
       # EHEGAIYPDnTTDFQR -> EHEGAIYPDNTTDFQR (n -> N)
       peptide = stringr::str_to_upper(.data$peptide),
-      # Fuc -> dHex
-      glycan_composition = stringr::str_replace(.data$glycans, "Fuc", "dHex"),
-      # Add peptide_site
-      peptide_site = stringr::str_extract(
-        .data$mod_summary,
-        "N(\\d+)\\(NGlycan",
-        group = 1
-      ),
-      peptide_site = as.integer(.data$peptide_site)
-    )
-
-  # Add protein_site - set to NA for multisite glycopeptides (if is_multisite column exists)
-  if ("is_multisite" %in% colnames(result)) {
-    result <- dplyr::mutate(
-      result,
-      protein_site = dplyr::if_else(
-        .data$is_multisite,
-        NA_integer_,
-        as.integer(.data$start_aa + .data$peptide_site - 1L)
-      )
-    )
-  } else {
-    result <- dplyr::mutate(
-      result,
       protein_site = as.integer(.data$start_aa + .data$peptide_site - 1L)
     )
-  }
 
   result %>%
     dplyr::rename(all_of(c(
@@ -217,4 +215,61 @@ read_byonic_byologic <- function(
       value = "xic_area_summed"
     ))) %>%
     dplyr::select(all_of(selected_cols))
+}
+
+#' Split Byologic glycan compositions by glycosylation site
+#'
+#' @param glycans A single Byologic glycan composition string.
+#'
+#' @returns A character vector with one glycan composition per site.
+#' @noRd
+.split_byologic_glycans <- function(glycans) {
+  if (is.na(glycans)) {
+    return(NA_character_)
+  }
+
+  glycans %>%
+    stringr::str_replace_all("Fuc", "dHex") %>%
+    stringr::str_split(stringr::fixed(","), simplify = FALSE) %>%
+    purrr::pluck(1) %>%
+    stringr::str_trim()
+}
+
+#' Extract Byologic glycosylation sites
+#'
+#' @param mod_summary A single Byologic modification summary string.
+#'
+#' @returns An integer vector with one peptide site per glycan.
+#' @noRd
+.extract_byologic_glycosites <- function(mod_summary) {
+  if (is.na(mod_summary)) {
+    return(NA_integer_)
+  }
+
+  matches <- stringr::str_match_all(
+    mod_summary,
+    "N(\\d+)\\(NGlycan"
+  )[[1]]
+
+  as.integer(matches[, 2])
+}
+
+#' Check glycan-site pairing in Byologic rows
+#'
+#' @param df A collapsed Byologic tibble with list columns for glycan
+#'   compositions and peptide sites.
+#'
+#' @returns The input tibble, invisibly checked.
+#' @noRd
+.check_byologic_glycosite_pairing <- function(df) {
+  invalid_rows <- df$row_number[df$n_glycans != df$n_sites]
+  if (length(invalid_rows) > 0) {
+    rlang::abort(c(
+      "Cannot pair Byologic glycan compositions with glycosylation sites.",
+      i = "The number of comma-separated glycans must match the number of NGlycan sites in `mod_summary`.",
+      x = glue::glue("Problematic rows: {toString(invalid_rows)}")
+    ))
+  }
+
+  df
 }
