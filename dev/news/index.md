@@ -2,6 +2,8 @@
 
 ## glyread (development version)
 
+## glyread 0.11.0
+
 ### New features
 
 - [`read_byonic_byologic()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_byologic.md)
