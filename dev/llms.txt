@@ -24,6 +24,7 @@ You can install the latest release of glyread from
 (**recommended**):
 
 ``` r
+
 # install.packages("pak")
 pak::repo_add(glycoverse = "https://glycoverse.r-universe.dev")
 pak::pkg_install("glyread")
@@ -32,12 +33,14 @@ pak::pkg_install("glyread")
 Or from [GitHub](https://github.com/glycoverse/glyread):
 
 ``` r
+
 pak::pkg_install("glycoverse/glyread@*release")
 ```
 
 Or install the development version (NOT recommended):
 
 ``` r
+
 pak::pkg_install("glycoverse/glyread")
 ```
 
@@ -68,6 +71,7 @@ quantification? Try
 [`read_pglyco3_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_pglyco3_pglycoquant.md)!
 
 ``` r
+
 library(glyread)
 
 exp <- read_pglyco3_pglycoquant(
