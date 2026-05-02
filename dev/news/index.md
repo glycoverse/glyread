@@ -14,6 +14,15 @@
   glycosite. If `multisite = "drop"`, multisite glycopeptides will be
   dropped (#11).
 
+### Minor improvements and bug fixes
+
+- Fix the bug that
+  [`read_byonic_byologic()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_byologic.md)
+  and
+  [`read_byonic_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_pglycoquant.md)
+  could not handle glycopeptides with multiple glycosites correctly
+  (#11).
+
 ## glyread 0.10.0
 
 ### New features
