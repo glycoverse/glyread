@@ -137,7 +137,7 @@ read_byonic_byologic <- function(
     )
   }
 
-  df %>%
+  expanded_df <- df %>%
     dplyr::mutate(
       gp_source = stringr::str_split_i(.data$row_number, stringr::fixed("."), 1L),
       gp_id = paste0("BGP", dplyr::dense_rank(.data$gp_source)),
@@ -148,11 +148,13 @@ read_byonic_byologic <- function(
       peptide_site = purrr::map(.data$mod_summary, .extract_byologic_glycosites),
       n_glycans = purrr::map_int(.data$glycan_composition, length),
       n_sites = purrr::map_int(.data$peptide_site, length)
-    ) %>%
+    )
+
+  expanded_df %>%
     .check_byonic_glycan_site_pairing(
       source = "Byologic",
       site_column = "mod_summary",
-      row_id = dplyr::pull(., "row_number")
+      row_id = expanded_df$row_number
     ) %>%
     tidyr::unnest_longer(c("glycan_composition", "peptide_site")) %>%
     dplyr::mutate(peptide_site = as.integer(.data$peptide_site)) %>%
