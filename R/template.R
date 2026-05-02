@@ -23,7 +23,10 @@
 
   # ----- 2. Sample name conversion -----
   if (!is.null(sample_name_converter)) {
-    tidy_df <- dplyr::mutate(tidy_df, sample = sample_name_converter(.data$sample))
+    tidy_df <- dplyr::mutate(
+      tidy_df,
+      sample = sample_name_converter(.data$sample)
+    )
   }
 
   # ----- 3. Process sample information -----
@@ -57,7 +60,9 @@
 
   # ----- 6. Packing Experiment -----
   exp <- glyexp::experiment(
-    expr_mat, sample_info, var_info,
+    expr_mat,
+    sample_info,
+    var_info,
     exp_type = "glycoproteomics",
     glycan_type = glycan_type,
     quant_method = quant_method

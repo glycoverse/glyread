@@ -1,13 +1,19 @@
 test_that("read_strucgp works", {
-  suppressMessages(result <- read_strucgp(test_path("data/strucgp-result.xlsx")))
+  suppressMessages(
+    result <- read_strucgp(test_path("data/strucgp-result.xlsx"))
+  )
 
   # Check that result is an experiment object
   expect_s3_class(result, "glyexp_experiment")
 
   # Check var_info has expected columns (peptide is removed after standardization)
   expected_cols <- c(
-    "variable", "protein", "gene", "protein_site",
-    "glycan_composition", "glycan_structure"
+    "variable",
+    "protein",
+    "gene",
+    "protein_site",
+    "glycan_composition",
+    "glycan_structure"
   )
   expect_true(all(expected_cols %in% colnames(result$var_info)))
 
@@ -39,14 +45,19 @@ test_that("read_strucgp works", {
 })
 
 test_that("read_strucgp works with parse_structure = FALSE", {
-  suppressMessages(result <- read_strucgp(test_path("data/strucgp-result.xlsx"), parse_structure = FALSE))
-  
+  suppressMessages(
+    result <- read_strucgp(
+      test_path("data/strucgp-result.xlsx"),
+      parse_structure = FALSE
+    )
+  )
+
   # Check that result is an experiment object
   expect_s3_class(result, "glyexp_experiment")
-  
+
   # Check var_info does NOT have glycan_structure column
   expect_false("glycan_structure" %in% colnames(result$var_info))
-  
+
   # Check that glycan_composition is still present
   expect_true("glycan_composition" %in% colnames(result$var_info))
   expect_s3_class(result$var_info$glycan_composition, "glyrepr_composition")
@@ -58,12 +69,14 @@ test_that("read_strucgp works with custom sample_info", {
     sample = c("20250403-LZE-NGlyco5_3"),
     group = c("treatment")
   )
-  
-  suppressMessages(result <- read_strucgp(
-    test_path("data/strucgp-result.xlsx"),
-    sample_info = sample_info
-  ))
-  
+
+  suppressMessages(
+    result <- read_strucgp(
+      test_path("data/strucgp-result.xlsx"),
+      sample_info = sample_info
+    )
+  )
+
   # Check that sample_info is included
   expect_true("group" %in% colnames(result$sample_info))
   expect_equal(as.character(result$sample_info$group), c("treatment"))
@@ -72,16 +85,18 @@ test_that("read_strucgp works with custom sample_info", {
 test_that(".parse_strucgp_comp works correctly", {
   # Test the internal composition parsing function
   test_comp <- "H5N4F1S2+Na"
-  
-  # Access the internal function 
+
+  # Access the internal function
   result <- glyread:::.parse_strucgp_comp(test_comp)
-  
+
   expect_s3_class(result, "glyrepr_composition")
-  
+
   # Check that the composition string is parsed correctly
   # H -> Hex, N -> HexNAc, F -> dHex, S -> NeuAc
   # +Na should be removed
-  expected_comp <- glyrepr::as_glycan_composition("Hex(5)HexNAc(4)dHex(1)NeuAc(2)")
+  expected_comp <- glyrepr::as_glycan_composition(
+    "Hex(5)HexNAc(4)dHex(1)NeuAc(2)"
+  )
   expect_equal(result, expected_comp)
 })
 
@@ -91,7 +106,7 @@ test_that(".parse_strucgp_comp handles edge cases", {
   result1 <- glyread:::.parse_strucgp_comp(test_comp1)
   expected1 <- glyrepr::as_glycan_composition("Hex(3)HexNAc(2)")
   expect_equal(result1, expected1)
-  
+
   # Test with single digit numbers
   test_comp2 <- "H1N1F1S1"
   result2 <- glyread:::.parse_strucgp_comp(test_comp2)

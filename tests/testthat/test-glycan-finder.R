@@ -1,5 +1,8 @@
 test_that("read_glycan_finder() returns a glyexp experiment object", {
-  result <- suppressMessages(read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N"))
+  result <- suppressMessages(read_glycan_finder(
+    "data/glycan-finder-result.csv",
+    glycan_type = "N"
+  ))
   expect_s3_class(result, "glyexp_experiment")
 })
 
@@ -12,13 +15,13 @@ test_that(".parse_glycan_finder_peptide() removes modifications", {
 test_that(".extract_glycan_finder_peptide_site() extracts N-glycan site", {
   peptide <- "NC(+57.02)GVN(+1913.68)C(+57.02)SGDVF"
   result <- glyread:::.extract_glycan_finder_peptide_site(peptide, "N")
-  expect_equal(result, 5L)  # N at position 5 has the glycan modification
+  expect_equal(result, 5L) # N at position 5 has the glycan modification
 })
 
 test_that(".extract_glycan_finder_peptide_site() extracts O-glycan site", {
   peptide <- "LGN(+2786.96)WSAMPS(+755.30)C(+57.02)K"
   result <- glyread:::.extract_glycan_finder_peptide_site(peptide, "O-GalNAc")
-  expect_equal(result, 9L)  # S at position 9 has the glycan modification
+  expect_equal(result, 9L) # S at position 9 has the glycan modification
 })
 
 test_that(".parse_glycan_finder_protein() extracts first accession", {
@@ -45,17 +48,17 @@ test_that(".read_glycan_finder_df() reads CSV correctly", {
 
 test_that(".filter_glycan_finder_by_type() filters correctly", {
   df <- tibble::tribble(
-    ~`Glycan Type`, ~value,
-    "N-Link", 1,
-    "O-Link", 2,
-    "N-Link;O-Link", 3
+    ~`Glycan Type`  , ~value ,
+    "N-Link"        ,      1 ,
+    "O-Link"        ,      2 ,
+    "N-Link;O-Link" ,      3
   )
 
   result_n <- glyread:::.filter_glycan_finder_by_type(df, "N")
-  expect_equal(nrow(result_n), 2)  # N-Link and N-Link;O-Link
+  expect_equal(nrow(result_n), 2) # N-Link and N-Link;O-Link
 
   result_o <- glyread:::.filter_glycan_finder_by_type(df, "O-GalNAc")
-  expect_equal(nrow(result_o), 2)  # O-Link and N-Link;O-Link
+  expect_equal(nrow(result_o), 2) # O-Link and N-Link;O-Link
 })
 
 test_that(".tidy_glycan_finder() transforms data correctly", {
@@ -76,17 +79,25 @@ test_that(".tidy_glycan_finder() transforms data correctly", {
 test_that(".select_glycan_element() selects correct element for mixed types", {
   # Test N-glycan selection from mixed type
   glycan_types <- c("N-Link;O-Link", "N-Link;O-Link", "N-Link")
-  glycans <- c("(HexNAc)4(Hex)5(NeuAc)4;(HexNAc)3(Fuc)1", "(HexNAc)7(Hex)4(NeuAc)1;(HexNAc)1", "(HexNAc)4(Hex)5(NeuAc)1")
+  glycans <- c(
+    "(HexNAc)4(Hex)5(NeuAc)4;(HexNAc)3(Fuc)1",
+    "(HexNAc)7(Hex)4(NeuAc)1;(HexNAc)1",
+    "(HexNAc)4(Hex)5(NeuAc)1"
+  )
 
   result_n <- glyread:::.select_glycan_element(glycan_types, glycans, "N")
-  expect_equal(result_n[1], "(HexNAc)4(Hex)5(NeuAc)4")  # First element for mixed
-  expect_equal(result_n[2], "(HexNAc)7(Hex)4(NeuAc)1")  # First element for mixed
-  expect_equal(result_n[3], "(HexNAc)4(Hex)5(NeuAc)1")  # Unchanged for single type
+  expect_equal(result_n[1], "(HexNAc)4(Hex)5(NeuAc)4") # First element for mixed
+  expect_equal(result_n[2], "(HexNAc)7(Hex)4(NeuAc)1") # First element for mixed
+  expect_equal(result_n[3], "(HexNAc)4(Hex)5(NeuAc)1") # Unchanged for single type
 
-  result_o <- glyread:::.select_glycan_element(glycan_types, glycans, "O-GalNAc")
-  expect_equal(result_o[1], "(HexNAc)3(Fuc)1")  # Second element for mixed
-  expect_equal(result_o[2], "(HexNAc)1")        # Second element for mixed
-  expect_equal(result_o[3], "(HexNAc)4(Hex)5(NeuAc)1")  # Unchanged for single type
+  result_o <- glyread:::.select_glycan_element(
+    glycan_types,
+    glycans,
+    "O-GalNAc"
+  )
+  expect_equal(result_o[1], "(HexNAc)3(Fuc)1") # Second element for mixed
+  expect_equal(result_o[2], "(HexNAc)1") # Second element for mixed
+  expect_equal(result_o[3], "(HexNAc)4(Hex)5(NeuAc)1") # Unchanged for single type
 })
 
 # Regression tests for previous fixes
@@ -97,17 +108,24 @@ test_that("PTM-based detection correctly identifies small glycans like O-GlcNAc"
   ptm <- "(HexNAc)7(Hex)4(NeuAc)1; (HexNAc)1"
 
   # The O-glycan (O-GlcNAc) is on the S with +203.08 (position 12)
-  result <- glyread:::.extract_glycan_finder_peptide_site(peptide, "O-GalNAc", ptm)
-  expect_equal(result, 12L)  # S at position 12
+  result <- glyread:::.extract_glycan_finder_peptide_site(
+    peptide,
+    "O-GalNAc",
+    ptm
+  )
+  expect_equal(result, 12L) # S at position 12
 
   # The N-glycan is on the N with +2360.86 (position 1)
   result_n <- glyread:::.extract_glycan_finder_peptide_site(peptide, "N", ptm)
-  expect_equal(result_n, 1L)  # N at position 1
+  expect_equal(result_n, 1L) # N at position 1
 })
 
 test_that("sample columns exclude summary columns like Area C3 and Area H", {
   # Use full pipeline to get processed data
-  result <- suppressMessages(read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N"))
+  result <- suppressMessages(read_glycan_finder(
+    "data/glycan-finder-result.csv",
+    glycan_type = "N"
+  ))
 
   # Get sample info and check columns
   sample_info <- glyexp::get_sample_info(result)
@@ -118,15 +136,21 @@ test_that("sample columns exclude summary columns like Area C3 and Area H", {
   expect_true("H_3" %in% sample_names)
   expect_true("H_1" %in% sample_names)
   expect_true("H_2" %in% sample_names)
-  expect_false("C3" %in% sample_names)  # Summary column should be excluded
-  expect_false("H" %in% sample_names)   # Summary column should be excluded
+  expect_false("C3" %in% sample_names) # Summary column should be excluded
+  expect_false("H" %in% sample_names) # Summary column should be excluded
 })
 
 test_that("end-to-end with mixed glycan types does not confuse N and O glycans", {
   # Read the test data - it contains mixed type rows like:
   # "N-Link;O-Link" with Glycan "(HexNAc)4(Hex)5(NeuAc)4;(HexNAc)3(Fuc)1"
-  result_n <- suppressMessages(read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "N"))
-  result_o <- suppressMessages(read_glycan_finder("data/glycan-finder-result.csv", glycan_type = "O-GalNAc"))
+  result_n <- suppressMessages(read_glycan_finder(
+    "data/glycan-finder-result.csv",
+    glycan_type = "N"
+  ))
+  result_o <- suppressMessages(read_glycan_finder(
+    "data/glycan-finder-result.csv",
+    glycan_type = "O-GalNAc"
+  ))
 
   var_info_n <- glyexp::get_var_info(result_n)
   var_info_o <- glyexp::get_var_info(result_o)

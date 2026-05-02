@@ -12,7 +12,7 @@
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
 #' @section Multisite glycopeptides:
-#' Multisite glycopeptides are supported but their `protein_site` will be set to `NA` 
+#' Multisite glycopeptides are supported but their `protein_site` will be set to `NA`
 #' since the exact site of glycosylation cannot be determined unambiguously.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
@@ -92,7 +92,11 @@ read_byonic_pglycoquant <- function(
     Composition = readr::col_character(),
   )
   suppressWarnings(
-    suppressMessages(readr::read_tsv(fp, col_types = col_types, progress = FALSE)),
+    suppressMessages(readr::read_tsv(
+      fp,
+      col_types = col_types,
+      progress = FALSE
+    )),
     classes = "vroom_mismatched_column_name"
   )
 }
@@ -101,19 +105,27 @@ read_byonic_pglycoquant <- function(
   # Identify multisite glycopeptides (those with commas in Composition column)
   is_multisite <- stringr::str_detect(df$Composition, stringr::fixed(","))
   n_multisite <- sum(is_multisite)
-  
+
   if (n_multisite > 0) {
     perc_multisite <- round(n_multisite / nrow(df) * 100, 1)
-    cli::cli_alert_info("Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite PSMs. Setting protein_site to NA for these entries.")
+    cli::cli_alert_info(
+      "Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite PSMs. Setting protein_site to NA for these entries."
+    )
   }
-  
+
   # Keep all rows but mark multisite ones for special handling
   df$is_multisite <- is_multisite
   df
 }
 
 .refine_byonic_pglycoquant_columns <- function(df) {
-  var_cols <- c("peptide", "peptide_site", "protein", "protein_site", "glycan_composition")
+  var_cols <- c(
+    "peptide",
+    "peptide_site",
+    "protein",
+    "protein_site",
+    "glycan_composition"
+  )
   df %>%
     .convert_byonic_columns() %>%
     dplyr::select(all_of(var_cols), tidyselect::starts_with("Intensity"))
@@ -141,15 +153,24 @@ read_byonic_pglycoquant <- function(
       # >sp|P19652|A1AG2_HUMAN -> P19652, >sp|P08185-1|CBG_HUMAN -> P08185-1
       protein = .extract_uniprot_accession(.data$protein),
       # HexNAc(4)Hex(4)Fuc(1)NeuAc(1) -> HexNAc(4)Hex(4)dHex(1)NeuAc(1)
-      glycan_composition = stringr::str_replace(.data$glycan_composition, "Fuc", "dHex")
+      glycan_composition = stringr::str_replace(
+        .data$glycan_composition,
+        "Fuc",
+        "dHex"
+      )
     )
-  
+
   # Set protein_site to NA for multisite glycopeptides (if is_multisite column exists)
   if ("is_multisite" %in% colnames(result)) {
-    result <- dplyr::mutate(result, 
-      protein_site = dplyr::if_else(.data$is_multisite, NA_integer_, .data$protein_site)
+    result <- dplyr::mutate(
+      result,
+      protein_site = dplyr::if_else(
+        .data$is_multisite,
+        NA_integer_,
+        .data$protein_site
+      )
     )
   }
-  
+
   result
 }

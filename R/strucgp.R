@@ -45,7 +45,12 @@
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
 #'   [glyrepr::glycan_structure()]
 #' @export
-read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_structure = TRUE) {
+read_strucgp <- function(
+  fp,
+  sample_info = NULL,
+  glycan_type = "N",
+  parse_structure = TRUE
+) {
   # ----- Check arguments -----
   .validate_read_args(
     fp = fp,
@@ -95,7 +100,9 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
   # ----- Pack experiment -----
   cli::cli_progress_step("Creating experiment object")
   exp <- glyexp::experiment(
-    expr_mat, sample_info, var_info,
+    expr_mat,
+    sample_info,
+    var_info,
     exp_type = "glycoproteomics",
     glycan_type = glycan_type,
     quant_method = "label-free"
@@ -114,7 +121,15 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
 .tidy_strucgp <- function(df, parse_structure) {
   result <- df %>%
     janitor::clean_names() %>%
-    dplyr::select(c("file_name", "peptide", "protein_id", "gene_name", "glycosite_position", "glycan_composition", "structure_coding")) %>%
+    dplyr::select(c(
+      "file_name",
+      "peptide",
+      "protein_id",
+      "gene_name",
+      "glycosite_position",
+      "glycan_composition",
+      "structure_coding"
+    )) %>%
     dplyr::rename(c(
       sample = "file_name",
       protein = "protein_id",
@@ -122,11 +137,17 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
       protein_site = "glycosite_position",
       glycan_structure = "structure_coding"
     )) %>%
-    dplyr::mutate(glycan_composition = .parse_strucgp_comp(.data$glycan_composition))
+    dplyr::mutate(
+      glycan_composition = .parse_strucgp_comp(.data$glycan_composition)
+    )
 
   # Protein inference
   cli::cli_progress_step("Finding leader proteins")
-  protein_vectors <- list(protein = result$protein, gene = result$gene, protein_site = result$protein_site)
+  protein_vectors <- list(
+    protein = result$protein,
+    gene = result$gene,
+    protein_site = result$protein_site
+  )
   protein_vectors <- .infer_proteins(protein_vectors)
   result <- dplyr::mutate(
     result,
@@ -139,7 +160,7 @@ read_strucgp <- function(fp, sample_info = NULL, glycan_type = "N", parse_struct
   # StrucGP only works with N-glycans, so use "N" as placeholder
   result <- result %>%
     dplyr::mutate(
-      peptide = "N",  # Placeholder for N-glycosylation
+      peptide = "N", # Placeholder for N-glycosylation
       peptide_site = 1L
     )
 

@@ -128,7 +128,11 @@ read_glycan_finder <- function(
   # Extract monosaccharide counts from format like "(HexNAc)4(Hex)5(NeuAc)1"
   # Note: We map Fuc -> dHex and Pent -> Pen to match glyrepr's naming conventions
   extract_n_mono <- function(comp, mono) {
-    n <- stringr::str_extract(comp, paste0("\\(", mono, "\\)\\(?(\\d+)"), group = 1)
+    n <- stringr::str_extract(
+      comp,
+      paste0("\\(", mono, "\\)\\(?(\\d+)"),
+      group = 1
+    )
     dplyr::if_else(is.na(n), 0L, as.integer(n))
   }
 
@@ -139,10 +143,14 @@ read_glycan_finder <- function(
   mono_names <- c("HexNAc", "Hex", "NeuAc", "dHex", "HexA", "NeuGc", "Pen")
   search_names <- c("HexNAc", "Hex", "NeuAc", "Fuc", "HexA", "NeuGc", "Pent")
 
-  comp_df <- purrr::map2_dfc(search_names, mono_names, ~ {
-    counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
-    tibble::tibble(!!.y := counts)
-  })
+  comp_df <- purrr::map2_dfc(
+    search_names,
+    mono_names,
+    ~ {
+      counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
+      tibble::tibble(!!.y := counts)
+    }
+  )
 
   # Convert each row to a glyrepr_composition object for unique values
   unique_compositions <- purrr::pmap(comp_df, function(...) {
@@ -171,7 +179,11 @@ read_glycan_finder <- function(
   )
 
   suppressWarnings(
-    suppressMessages(readr::read_csv(fp, col_types = col_types, progress = FALSE)),
+    suppressMessages(readr::read_csv(
+      fp,
+      col_types = col_types,
+      progress = FALSE
+    )),
     classes = "vroom_mismatched_column_name"
   )
 }
@@ -182,7 +194,10 @@ read_glycan_finder <- function(
 
   # Filter rows that contain the target type
   df %>%
-    dplyr::filter(stringr::str_detect(.data$`Glycan Type`, stringr::fixed(target_type)))
+    dplyr::filter(stringr::str_detect(
+      .data$`Glycan Type`,
+      stringr::fixed(target_type)
+    ))
 }
 
 .tidy_glycan_finder <- function(df, glycan_type, orgdb = "org.Hs.eg.db") {
@@ -198,10 +213,22 @@ read_glycan_finder <- function(
     dplyr::mutate(
       peptide = .parse_glycan_finder_peptide(.data$Peptide),
       protein = .parse_glycan_finder_protein(.data$`Protein Accession`),
-      peptide_site = purrr::map2_int(.data$Peptide, .data$PTM, ~ .extract_glycan_finder_peptide_site(.x, glycan_type, .y)),
+      peptide_site = purrr::map2_int(
+        .data$Peptide,
+        .data$PTM,
+        ~ .extract_glycan_finder_peptide_site(.x, glycan_type, .y)
+      ),
       protein_site = .data$peptide_site + .data$Start - 1L,
-      glycan_composition = .select_glycan_element(.data$`Glycan Type`, .data$Glycan, glycan_type),
-      glycan_structure = .select_glycan_element(.data$`Glycan Type`, .data$Structure, glycan_type)
+      glycan_composition = .select_glycan_element(
+        .data$`Glycan Type`,
+        .data$Glycan,
+        glycan_type
+      ),
+      glycan_structure = .select_glycan_element(
+        .data$`Glycan Type`,
+        .data$Structure,
+        glycan_type
+      )
     )
 }
 
@@ -243,8 +270,12 @@ read_glycan_finder <- function(
   # Pivot to long format
   df %>%
     dplyr::select(
-      "peptide", "peptide_site", "protein", "protein_site",
-      "glycan_composition", "glycan_structure",
+      "peptide",
+      "peptide_site",
+      "protein",
+      "protein_site",
+      "glycan_composition",
+      "glycan_structure",
       dplyr::all_of(area_cols)
     ) %>%
     tidyr::pivot_longer(
@@ -258,7 +289,11 @@ read_glycan_finder <- function(
     )
 }
 
-.extract_glycan_finder_peptide_site <- function(peptide, glycan_type, ptm = NULL) {
+.extract_glycan_finder_peptide_site <- function(
+  peptide,
+  glycan_type,
+  ptm = NULL
+) {
   # Determine which residue to look for
   target_residue <- if (glycan_type == "N") "N" else "[ST]"
 
@@ -269,7 +304,10 @@ read_glycan_finder <- function(
     glycan_pattern <- "\\(HexNAc\\)\\d+(\\(Hex\\)\\d+)?(\\(Fuc\\)\\d+)?(\\(NeuAc\\)\\d+)?(\\(NeuGc\\)\\d+)?(\\(HexA\\)\\d+)?"
     ptm_glycans <- stringr::str_extract_all(ptm, glycan_pattern)[[1]]
     if (length(ptm_glycans) > 0) {
-      expected_glycan_masses <- purrr::map_dbl(ptm_glycans, .calculate_glycan_mass)
+      expected_glycan_masses <- purrr::map_dbl(
+        ptm_glycans,
+        .calculate_glycan_mass
+      )
     }
   }
 
@@ -291,7 +329,15 @@ read_glycan_finder <- function(
     char <- stringr::str_sub(peptide, i, i)
 
     # Check if this is the start of a modification
-    if (mod_idx <= length(mods) && stringr::str_sub(peptide, i, i + stringr::str_length(mods[mod_idx]) - 1) == mods[mod_idx]) {
+    if (
+      mod_idx <= length(mods) &&
+        stringr::str_sub(
+          peptide,
+          i,
+          i + stringr::str_length(mods[mod_idx]) - 1
+        ) ==
+          mods[mod_idx]
+    ) {
       # This is a modified residue
       residue <- stringr::str_sub(mods[mod_idx], 1, 1)
       pos <- pos + 1

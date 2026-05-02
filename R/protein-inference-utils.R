@@ -25,7 +25,10 @@
     purrr::imap(~ tibble::tibble(protein = .x, entry_idx = .y)) %>%
     dplyr::bind_rows() %>%
     dplyr::group_by(.data$protein) %>%
-    dplyr::summarise(entry_indices = list(.data$entry_idx), .groups = "drop") %>%
+    dplyr::summarise(
+      entry_indices = list(.data$entry_idx),
+      .groups = "drop"
+    ) %>%
     (function(x) stats::setNames(x$entry_indices, x$protein))
 
   # Map proteins to integer IDs for faster comparisons
@@ -47,42 +50,48 @@
   selected_protein_ids <- integer(0)
   cover <- lengths(protein_entry_list)
   storage.mode(cover) <- "double"
-  
+
   while (any(uncovered)) {
     # Find the protein that covers the most uncovered entries
     max_coverage <- max(cover)
-    if (!is.finite(max_coverage) || max_coverage <= 0) break
-    
+    if (!is.finite(max_coverage) || max_coverage <= 0) {
+      break
+    }
+
     # Find the protein with maximum coverage
     candidate_ids <- which(cover == max_coverage)
-    if (length(candidate_ids) == 0) break
+    if (length(candidate_ids) == 0) {
+      break
+    }
     best_protein_id <- candidate_ids[which.min(protein_rank[candidate_ids])]
-    
+
     newly_covered <- protein_entry_list[[best_protein_id]]
     if (is.null(newly_covered) || length(newly_covered) == 0) {
       cover[best_protein_id] <- -Inf
       next
     }
-    
+
     newly_covered <- newly_covered[uncovered[newly_covered]]
     if (length(newly_covered) == 0) {
       cover[best_protein_id] <- -Inf
       next
     }
-    
+
     # Add the best protein to the selected set
     selected_protein_ids <- c(selected_protein_ids, best_protein_id)
-    
+
     # Remove covered entries from uncovered set
     uncovered[newly_covered] <- FALSE
-    
+
     # Decrement coverage counts for proteins associated with newly covered entries
     for (entry_idx in newly_covered) {
       entry_proteins <- entry_to_proteins[[entry_idx]]
-      if (length(entry_proteins) == 0) next
+      if (length(entry_proteins) == 0) {
+        next
+      }
       cover[entry_proteins] <- cover[entry_proteins] - 1
     }
-    
+
     cover[cover < 0 & is.finite(cover)] <- 0
     cover[best_protein_id] <- -Inf
   }
@@ -102,7 +111,9 @@
       # Choose the protein with highest coverage count
       # If tie, choose the first one in alphabetical order
       max_count <- max(protein_coverage_count[available_selected])
-      best_candidates <- available_selected[protein_coverage_count[available_selected] == max_count]
+      best_candidates <- available_selected[
+        protein_coverage_count[available_selected] == max_count
+      ]
       best_protein <- sort(best_candidates)[1]
 
       # Find the index of the best protein in this entry's protein list
@@ -134,24 +145,28 @@
 
   # Handle mismatched vector lengths
   if (dplyr::n_distinct(purrr::map_int(protein_vectors, length)) > 1) {
-    cli::cli_abort("All vectors in `protein_vectors` must have the same length.")
+    cli::cli_abort(
+      "All vectors in `protein_vectors` must have the same length."
+    )
   }
 
   # Perform protein inference on the proteins vector (first vector)
   first_vector_name <- names(protein_vectors)[1]
-  selected_indices <- .infer_proteins_internal(protein_vectors[[first_vector_name]])
-  
+  selected_indices <- .infer_proteins_internal(protein_vectors[[
+    first_vector_name
+  ]])
+
   # Apply the selection to all vectors in the list
   result <- purrr::map(protein_vectors, function(vec) {
     # Split each entry by ";"
     vec_list <- stringr::str_split(vec, ";")
-    
+
     # Extract the selected element for each entry
     purrr::map2_chr(vec_list, selected_indices, function(elements, idx) {
       if (is.na(idx) || idx > length(elements)) NA_character_ else elements[idx]
     })
   })
-  
+
   result
 }
 
@@ -166,18 +181,24 @@
 .infer_proteins_df <- function(df) {
   cli::cli_progress_step("Finding leader proteins")
   # Parse the proteins, genes, and protein_sites columns
-  pep_df <- dplyr::distinct(df, .data$peptide, .data$proteins, .data$genes, .data$protein_sites)
-  
+  pep_df <- dplyr::distinct(
+    df,
+    .data$peptide,
+    .data$proteins,
+    .data$genes,
+    .data$protein_sites
+  )
+
   # Create the list of vectors for protein inference
   protein_vectors <- list(
     proteins = pep_df$proteins,
     genes = pep_df$genes,
     protein_sites = pep_df$protein_sites
   )
-  
+
   # Perform protein inference using the new interface
   inferred_vectors <- .infer_proteins(protein_vectors)
-  
+
   # Update var_info with protein inference results
   new_old_map <- pep_df %>%
     dplyr::mutate(
@@ -186,7 +207,10 @@
       protein_site = as.integer(inferred_vectors$protein_sites)
     )
   new_df <- df %>%
-    dplyr::left_join(new_old_map, by = c("peptide", "proteins", "genes", "protein_sites")) %>%
+    dplyr::left_join(
+      new_old_map,
+      by = c("peptide", "proteins", "genes", "protein_sites")
+    ) %>%
     dplyr::select(-tidyselect::all_of(c("proteins", "genes", "protein_sites")))
 
   new_df

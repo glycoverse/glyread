@@ -14,7 +14,11 @@
 # Returns: A character vector of extracted UniProt accessions
 .extract_uniprot_accession <- function(protein_ids) {
   # First try to extract using str_replace_all for multiple proteins
-  result <- stringr::str_replace_all(protein_ids, "(?:>)?(?:sp|tr)\\|([\\w-]+)\\|[^;]*", "\\1")
+  result <- stringr::str_replace_all(
+    protein_ids,
+    "(?:>)?(?:sp|tr)\\|([\\w-]+)\\|[^;]*",
+    "\\1"
+  )
 
   # For entries that didn't match (result == original), assign NA
   no_match <- result == protein_ids
@@ -25,7 +29,9 @@
 
 .add_gene_symbols <- function(df, orgdb) {
   if (!requireNamespace(orgdb, quietly = TRUE)) {
-    cli::cli_alert_info("Package `{orgdb}` not installed. Skipping gene symbol conversion.")
+    cli::cli_alert_info(
+      "Package `{orgdb}` not installed. Skipping gene symbol conversion."
+    )
     return(df)
   }
 
@@ -34,7 +40,9 @@
   unique_proteins <- unique_proteins[!is.na(unique_proteins)]
 
   if (length(unique_proteins) == 0) {
-    cli::cli_alert_info("No valid protein IDs found, skipping gene symbol conversion.")
+    cli::cli_alert_info(
+      "No valid protein IDs found, skipping gene symbol conversion."
+    )
     return(df)
   }
 

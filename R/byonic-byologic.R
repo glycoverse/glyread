@@ -12,7 +12,7 @@
 #' The exported .csv file is the file you should use.
 #'
 #' @section Multisite glycopeptides:
-#' Multisite glycopeptides are supported but their `protein_site` will be set to `NA` 
+#' Multisite glycopeptides are supported but their `protein_site` will be set to `NA`
 #' since the exact site of glycosylation cannot be determined unambiguously.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
@@ -80,14 +80,14 @@ read_byonic_byologic <- function(
 
   # Define expected column types based on cleaned names
   expected_cols <- readr::cols(
-    row_number = readr::col_character(),      # Row#
-    protein_name = readr::col_character(),    # Protein\nname or Protein\r\nname
-    sequence = readr::col_character(),        # Sequence
-    glycans = readr::col_character(),         # Glycans
-    xic_area_summed = readr::col_double(),    # XIC area\nsummed or XIC area\r\nsummed
-    ms_alias_name = readr::col_character(),   # MS\nAlias name or MS\r\nAlias name
-    mod_summary = readr::col_character(),     # Mod.\nSummary or Mod.\r\nSummary
-    start_aa = readr::col_integer()           # Start\nAA or Start\r\nAA
+    row_number = readr::col_character(), # Row#
+    protein_name = readr::col_character(), # Protein\nname or Protein\r\nname
+    sequence = readr::col_character(), # Sequence
+    glycans = readr::col_character(), # Glycans
+    xic_area_summed = readr::col_double(), # XIC area\nsummed or XIC area\r\nsummed
+    ms_alias_name = readr::col_character(), # MS\nAlias name or MS\r\nAlias name
+    mod_summary = readr::col_character(), # Mod.\nSummary or Mod.\r\nSummary
+    start_aa = readr::col_integer() # Start\nAA or Start\r\nAA
   )
 
   # Apply type conversion to the cleaned data
@@ -116,12 +116,14 @@ read_byonic_byologic <- function(
   # Identify multisite glycopeptides (those with commas in glycans column)
   is_multisite <- stringr::str_detect(df$glycans, stringr::fixed(","))
   n_multisite <- sum(is_multisite)
-  
+
   if (n_multisite > 0) {
     perc_multisite <- round(n_multisite / nrow(df) * 100, 1)
-    cli::cli_alert_info("Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite glycopeptides. Setting protein_site to NA for these entries.")
+    cli::cli_alert_info(
+      "Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite glycopeptides. Setting protein_site to NA for these entries."
+    )
   }
-  
+
   # Keep all rows but mark multisite ones for special handling
   df$is_multisite <- is_multisite
   df
@@ -154,13 +156,25 @@ read_byonic_byologic <- function(
       lvl1 = stringr::str_split_i(.data$row_number, stringr::fixed("."), 1L)
     ) %>%
     dplyr::mutate(has_lvl2 = any(.data$depth == 2), .by = "lvl1") %>%
-    dplyr::filter(dplyr::if_else(.data$has_lvl2, .data$depth == 2, .data$depth == 1)) %>%
+    dplyr::filter(dplyr::if_else(
+      .data$has_lvl2,
+      .data$depth == 2,
+      .data$depth == 1
+    )) %>%
     dplyr::select(-all_of(c("depth", "lvl1", "has_lvl2")))
 }
 
 .refine_byonic_byologic_columns <- function(df) {
-  selected_cols <- c("peptide", "peptide_site", "protein", "protein_site", "glycan_composition", "sample", "value")
-  
+  selected_cols <- c(
+    "peptide",
+    "peptide_site",
+    "protein",
+    "protein_site",
+    "glycan_composition",
+    "sample",
+    "value"
+  )
+
   result <- df %>%
     dplyr::mutate(
       # sp|P02765|FETUA_HUMAN... -> P02765, sp|P08185-1|CBG_HUMAN -> P08185-1
@@ -172,13 +186,18 @@ read_byonic_byologic <- function(
       # Fuc -> dHex
       glycan_composition = stringr::str_replace(.data$glycans, "Fuc", "dHex"),
       # Add peptide_site
-      peptide_site = stringr::str_extract(.data$mod_summary, "N(\\d+)\\(NGlycan", group = 1),
+      peptide_site = stringr::str_extract(
+        .data$mod_summary,
+        "N(\\d+)\\(NGlycan",
+        group = 1
+      ),
       peptide_site = as.integer(.data$peptide_site)
     )
-  
+
   # Add protein_site - set to NA for multisite glycopeptides (if is_multisite column exists)
   if ("is_multisite" %in% colnames(result)) {
-    result <- dplyr::mutate(result,
+    result <- dplyr::mutate(
+      result,
       protein_site = dplyr::if_else(
         .data$is_multisite,
         NA_integer_,
@@ -186,12 +205,16 @@ read_byonic_byologic <- function(
       )
     )
   } else {
-    result <- dplyr::mutate(result,
+    result <- dplyr::mutate(
+      result,
       protein_site = as.integer(.data$start_aa + .data$peptide_site - 1L)
     )
   }
-  
+
   result %>%
-    dplyr::rename(all_of(c(sample = "ms_alias_name", value = "xic_area_summed"))) %>%
+    dplyr::rename(all_of(c(
+      sample = "ms_alias_name",
+      value = "xic_area_summed"
+    ))) %>%
     dplyr::select(all_of(selected_cols))
 }

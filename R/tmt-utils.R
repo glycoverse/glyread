@@ -1,8 +1,14 @@
 mz_to_tmt_channel <- function(x, tmt_type) {
   tmt_type <- rlang::arg_match(
     tmt_type,
-    c("TMT-6plex", "TMT-10plex", "TMT-11plex",
-      "TMTpro-10plex", "TMTpro-16plex", "TMTpro-18plex")
+    c(
+      "TMT-6plex",
+      "TMT-10plex",
+      "TMT-11plex",
+      "TMTpro-10plex",
+      "TMTpro-16plex",
+      "TMTpro-18plex"
+    )
   )
 
   tmt11_channels <- c(

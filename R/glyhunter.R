@@ -48,8 +48,18 @@ read_glyhunter <- function(
   # ----- Read data -----
   switch(
     preset,
-    "Fu_NC_2026" = .read_glyhunter_nc(fp, sample_info, glycan_type, sample_name_converter),
-    "Fu_NP_2026" = .read_glyhunter_np(fp, sample_info, glycan_type, sample_name_converter)
+    "Fu_NC_2026" = .read_glyhunter_nc(
+      fp,
+      sample_info,
+      glycan_type,
+      sample_name_converter
+    ),
+    "Fu_NP_2026" = .read_glyhunter_np(
+      fp,
+      sample_info,
+      glycan_type,
+      sample_name_converter
+    )
   )
 }
 
@@ -143,7 +153,9 @@ read_glyhunter <- function(
         paste0(.data$glycan_composition, "S", .data$nS),
         .data$glycan_composition
       ),
-      glycan_composition = glyrepr::as_glycan_composition(.data$glycan_composition)
+      glycan_composition = glyrepr::as_glycan_composition(
+        .data$glycan_composition
+      )
     ) |>
     dplyr::select(-all_of("nS"))
 

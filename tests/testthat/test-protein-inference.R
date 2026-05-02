@@ -7,7 +7,7 @@ test_that(".infer_proteins_internal works with no ambiguity", {
 test_that(".infer_proteins_internal resolves basic ambiguity correctly", {
   proteins <- c("PROA", "PROB;PROA", "PROC")
   result <- .infer_proteins_internal(proteins)
-  expect_equal(result, c(1, 2, 1))  # Should select PROA for second entry
+  expect_equal(result, c(1, 2, 1)) # Should select PROA for second entry
 })
 
 test_that(".infer_proteins_internal handles proteins appearing in multiple entries", {
@@ -23,12 +23,12 @@ test_that(".infer_proteins_internal handles proteins appearing in multiple entri
 test_that(".infer_proteins_internal handles complex parsimony cases", {
   # Test case: Parsimony principle - choose minimal set
   proteins <- c(
-    "PROA;PROB;PROC",  # Entry 1: all three proteins
-    "PROA;PROB",       # Entry 2: PROA and PROB
-    "PROA",            # Entry 3: only PROA
-    "PROB;PROC",       # Entry 4: PROB and PROC
-    "PROC",            # Entry 5: only PROC
-    "PROC"             # Entry 6: only PROC
+    "PROA;PROB;PROC", # Entry 1: all three proteins
+    "PROA;PROB", # Entry 2: PROA and PROB
+    "PROA", # Entry 3: only PROA
+    "PROB;PROC", # Entry 4: PROB and PROC
+    "PROC", # Entry 5: only PROC
+    "PROC" # Entry 6: only PROC
   )
   result <- .infer_proteins_internal(proteins)
 
@@ -52,7 +52,7 @@ test_that(".infer_proteins_internal handles single entry", {
 
 test_that(".infer_proteins_internal handles single entry with multiple proteins", {
   result <- .infer_proteins_internal("PROA;PROB;PROC")
-  expect_equal(result, 1)  # Should select first protein
+  expect_equal(result, 1) # Should select first protein
 })
 
 test_that(".infer_proteins_internal handles identical proteins across entries", {
@@ -143,8 +143,16 @@ test_that(".infer_proteins produces deterministic results regardless of protein 
 
     # The selected proteins should always be the same regardless of order
     # PROA should always be selected due to alphabetical tie-breaking
-    expect_equal(result$proteins, case$expected_proteins,
-                 info = paste("Failed for case", i, "with proteins:", paste(case$proteins, collapse = ", ")))
+    expect_equal(
+      result$proteins,
+      case$expected_proteins,
+      info = paste(
+        "Failed for case",
+        i,
+        "with proteins:",
+        paste(case$proteins, collapse = ", ")
+      )
+    )
   }
 })
 

@@ -11,26 +11,39 @@ test_that("it returns correct information (label-free)", {
   expect_equal(
     colnames(res$var_info),
     c(
-      "variable", "peptide", "peptide_site", "protein", "protein_site",
-      "gene", "glycan_composition"
+      "variable",
+      "peptide",
+      "peptide_site",
+      "protein",
+      "protein_site",
+      "gene",
+      "glycan_composition"
     )
   )
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
   expect_type(res$var_info$protein_site, "integer")
   expect_equal(colnames(res$sample_info), c("sample", "group"))
-  expect_equal(colnames(res$expr_mat), c("20250315_LiangYuying_GP09_1", "20250315_LiangYuying_GP09_2"))
+  expect_equal(
+    colnames(res$expr_mat),
+    c("20250315_LiangYuying_GP09_1", "20250315_LiangYuying_GP09_2")
+  )
   expect_equal(rownames(res$expr_mat), res$var_info$variable)
-  expect_equal(res$meta_data, list(
-    exp_type = "glycoproteomics",
-    glycan_type = "N",
-    quant_method = "label-free"
-  ))
+  expect_equal(
+    res$meta_data,
+    list(
+      exp_type = "glycoproteomics",
+      glycan_type = "N",
+      quant_method = "label-free"
+    )
+  )
 })
 
 
 test_that("it accepts a sample_info tibble", {
   suppressMessages({
-    sample_info <- readr::read_csv(test_path("data/pglyco3-LFQ-result-sample-info.csv"))
+    sample_info <- readr::read_csv(test_path(
+      "data/pglyco3-LFQ-result-sample-info.csv"
+    ))
     res <- read_pglyco3(
       test_path("data/pglyco3-LFQ-result.txt"),
       sample_info = sample_info,
@@ -66,7 +79,12 @@ test_that("it provides a default sample information tibble (label-free)", {
       quant_method = "label-free"
     )
   )
-  expect_equal(res$sample_info, tibble::tibble(sample = c("20250315_LiangYuying_GP09_2", "20250315_LiangYuying_GP09_1")))
+  expect_equal(
+    res$sample_info,
+    tibble::tibble(
+      sample = c("20250315_LiangYuying_GP09_2", "20250315_LiangYuying_GP09_1")
+    )
+  )
 })
 
 
@@ -104,7 +122,7 @@ test_that("it works with sample_name_converter", {
   }
 
   sample_info <- tibble::tibble(
-    sample = c("Sample_2", "Sample_1"),  # Note: order matches the actual sample order
+    sample = c("Sample_2", "Sample_1"), # Note: order matches the actual sample order
     group = c("A", "B")
   )
 
@@ -183,7 +201,7 @@ test_that("glycan composition parsing works correctly", {
       quant_method = "label-free"
     )
   )
-  
+
   # Check that all glycan compositions are parsed
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
   compositions <- res$var_info$glycan_composition
@@ -278,11 +296,11 @@ test_that("expression matrix has correct dimensions and values", {
       quant_method = "label-free"
     )
   )
-  
+
   # Check dimensions
   expect_equal(nrow(res$expr_mat), nrow(res$var_info))
   expect_equal(ncol(res$expr_mat), nrow(res$sample_info))
-  
+
   # Check that values are numeric and non-negative
   expect_type(res$expr_mat, "double")
   expect_true(all(res$expr_mat >= 0, na.rm = TRUE))
@@ -310,7 +328,9 @@ test_that("variable identifiers are unique", {
 # ----- PSM aggregation tests -----
 test_that("PSMs are correctly aggregated to glycopeptides", {
   # Read data and double the rows to simulate multiple PSMs per glycopeptide
-  suppressMessages(df <- readr::read_tsv(test_path("data/pglyco3-LFQ-result.txt")))
+  suppressMessages(
+    df <- readr::read_tsv(test_path("data/pglyco3-LFQ-result.txt"))
+  )
   new_df <- dplyr::bind_rows(df, df)
   withr::with_dir(tempdir(), {
     readr::write_tsv(new_df, "test.txt")
@@ -328,7 +348,10 @@ test_that("PSMs are correctly aggregated to glycopeptides", {
 test_that("pH and aH are correctly parsed", {
   comps <- c("H(1)pH(1)N(1)", "H(1)aH(1)N(1)")
   result <- glyread:::.convert_pglyco3_comp(comps)
-  expect_equal(as.character(result), c("Hex(2)HexNAc(1)P(1)", "Hex(1)HexNAc(1)HexN(1)"))
+  expect_equal(
+    as.character(result),
+    c("Hex(2)HexNAc(1)P(1)", "Hex(1)HexNAc(1)HexN(1)")
+  )
 })
 
 # ----- Peptide sequence tests -----
@@ -347,8 +370,32 @@ test_that("J is converted to N in peptide column", {
   expect_true(any(stringr::str_detect(res$var_info$peptide, "N")))
 
   # Verify no invalid amino acids in peptides (20 standard amino acids)
-  valid_aa <- c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y")
+  valid_aa <- c(
+    "A",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "V",
+    "W",
+    "Y"
+  )
   all_peptides <- paste(res$var_info$peptide, collapse = "")
-  invalid_chars <- stringr::str_remove_all(all_peptides, paste(valid_aa, collapse = "|"))
+  invalid_chars <- stringr::str_remove_all(
+    all_peptides,
+    paste(valid_aa, collapse = "|")
+  )
   expect_equal(nchar(invalid_chars), 0L)
 })

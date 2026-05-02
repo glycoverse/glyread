@@ -8,23 +8,35 @@ test_that("it returns correct information (label-free)", {
   )
 
   # Check expected columns
-  expected_cols <- c("variable", "protein", "protein_site", "glycan_composition")
+  expected_cols <- c(
+    "variable",
+    "protein",
+    "protein_site",
+    "glycan_composition"
+  )
   expect_true(all(expected_cols %in% colnames(res$var_info)))
 
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
   expect_type(res$var_info$protein_site, "integer")
   expect_equal(colnames(res$sample_info), c("sample"))
-  
+
   # Check sample names and data structure
-  expected_samples <- c("20241224-LXJ-Nglyco-H_1", "20241224-LXJ-Nglyco-H_2", "20241224-LXJ-Nglyco-H_3")
+  expected_samples <- c(
+    "20241224-LXJ-Nglyco-H_1",
+    "20241224-LXJ-Nglyco-H_2",
+    "20241224-LXJ-Nglyco-H_3"
+  )
   expect_true(all(expected_samples %in% colnames(res$expr_mat)))
   expect_equal(rownames(res$expr_mat), res$var_info$variable)
-  
-  expect_equal(res$meta_data, list(
-    exp_type = "glycoproteomics",
-    glycan_type = "N",
-    quant_method = "label-free"
-  ))
+
+  expect_equal(
+    res$meta_data,
+    list(
+      exp_type = "glycoproteomics",
+      glycan_type = "N",
+      quant_method = "label-free"
+    )
+  )
 })
 
 
@@ -36,16 +48,16 @@ test_that("protein inference and site resolution work correctly", {
       quant_method = "label-free"
     )
   )
-  
+
   # Proteins should be properly inferred (no semicolons, proper format)
   proteins <- res$var_info$protein
   expect_false(any(stringr::str_detect(proteins, ";")))
   expect_true(all(stringr::str_detect(proteins, "^[A-Z0-9]+$")))
-  
+
   # Protein sites should be integers, some may be NA for uncertain sites
   protein_sites <- res$var_info$protein_site
   expect_type(protein_sites, "integer")
-  expect_true(any(!is.na(protein_sites)))  # Some sites should be determined
+  expect_true(any(!is.na(protein_sites))) # Some sites should be determined
 })
 
 
@@ -56,10 +68,10 @@ test_that("glycan compositions are correctly processed", {
       quant_method = "label-free"
     )
   )
-  
+
   compositions <- res$var_info$glycan_composition
   expect_s3_class(compositions, "glyrepr_composition")
-  
+
   # Check that Fuc is converted to dHex and adducts are removed
   composition_strings <- as.character(compositions)
   expect_false(any(stringr::str_detect(composition_strings, "Fuc")))
@@ -103,7 +115,11 @@ test_that("it handles sample information correctly", {
       quant_method = "label-free"
     )
   )
-  expected_samples <- c("20241224-LXJ-Nglyco-H_1", "20241224-LXJ-Nglyco-H_2", "20241224-LXJ-Nglyco-H_3")
+  expected_samples <- c(
+    "20241224-LXJ-Nglyco-H_1",
+    "20241224-LXJ-Nglyco-H_2",
+    "20241224-LXJ-Nglyco-H_3"
+  )
   expect_true(all(expected_samples %in% res1$sample_info$sample))
   expect_equal(colnames(res1$sample_info), c("sample"))
 

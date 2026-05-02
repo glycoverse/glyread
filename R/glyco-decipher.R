@@ -59,7 +59,7 @@ read_glyco_decipher <- function(
     # Add placeholder columns for standardize_variable() temporarily
     tidy_df <- dplyr::mutate(
       tidy_df,
-      peptide = "N",  # Placeholder for N-glycosylation
+      peptide = "N", # Placeholder for N-glycosylation
       peptide_site = 1L
     )
     exp <- .read_template(
@@ -86,19 +86,29 @@ read_glyco_decipher <- function(
     Site = readr::col_character(),
     Glycan = readr::col_character()
   )
-  readr::read_csv(fp, progress = FALSE, show_col_types = FALSE, col_types = col_types)
+  readr::read_csv(
+    fp,
+    progress = FALSE,
+    show_col_types = FALSE,
+    col_types = col_types
+  )
 }
 
 .tidy_glyco_decipher <- function(df, orgdb) {
   # Resolve sites
   sites <- .resolve_glyco_decipher_sites(df$Site)
   df <- df %>%
-    dplyr::mutate(protein = sites$protein, protein_site = sites$protein_site) %>%
+    dplyr::mutate(
+      protein = sites$protein,
+      protein_site = sites$protein_site
+    ) %>%
     dplyr::select(-"Site")
 
   # Parse glycan compositions
   df <- df %>%
-    dplyr::mutate(glycan_composition = .convert_glyco_decipher_comp(.data$Glycan)) %>%
+    dplyr::mutate(
+      glycan_composition = .convert_glyco_decipher_comp(.data$Glycan)
+    ) %>%
     dplyr::select(-"Glycan")
 
   # Add gene column
@@ -114,7 +124,8 @@ read_glyco_decipher <- function(
   df %>%
     tidyr::pivot_longer(
       -dplyr::all_of(exclude_cols),
-      names_to = "sample", values_to = "value"
+      names_to = "sample",
+      values_to = "value"
     )
 }
 
@@ -125,8 +136,14 @@ read_glyco_decipher <- function(
 #' @noRd
 .resolve_glyco_decipher_sites <- function(sites) {
   sites <- stringr::str_split(sites, stringr::fixed(";"))
-  proteins <- purrr::map(sites, ~ stringr::str_split_i(.x, stringr::fixed("@"), 1L))
-  protein_sites <- purrr::map(sites, ~ stringr::str_split_i(.x, stringr::fixed("@"), 2L))
+  proteins <- purrr::map(
+    sites,
+    ~ stringr::str_split_i(.x, stringr::fixed("@"), 1L)
+  )
+  protein_sites <- purrr::map(
+    sites,
+    ~ stringr::str_split_i(.x, stringr::fixed("@"), 2L)
+  )
 
   # There are two situations:
   # 1. Unsure proteins: "P00738@211;P00739@153"
@@ -145,7 +162,9 @@ read_glyco_decipher <- function(
 
   # Deal with uncertain sites
   protein_site <- purrr::map_int(protein_sites, function(x) {
-    if (length(x) == 1L) return(as.integer(x))
+    if (length(x) == 1L) {
+      return(as.integer(x))
+    }
     return(NA_integer_)
   })
   list(protein = protein, protein_site = protein_site)
@@ -158,7 +177,10 @@ read_glyco_decipher <- function(
 #' @noRd
 .find_glyco_decipher_leader_proteins <- function(proteins) {
   unique_proteins <- purrr::map(proteins, unique)
-  unique_proteins_str <- purrr::map_chr(unique_proteins, ~ stringr::str_c(.x, collapse = ";"))
+  unique_proteins_str <- purrr::map_chr(
+    unique_proteins,
+    ~ stringr::str_c(.x, collapse = ";")
+  )
   leader_protein_idx <- .infer_proteins_internal(unique_proteins_str)
   purrr::map2_chr(unique_proteins, leader_protein_idx, ~ .x[.y])
 }

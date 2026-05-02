@@ -34,37 +34,46 @@
       if (is.null(file_extensions)) {
         checkmate::assert_file_exists(fp, access = "r")
       } else {
-        checkmate::assert_file_exists(fp, access = "r", extension = file_extensions)
+        checkmate::assert_file_exists(
+          fp,
+          access = "r",
+          extension = file_extensions
+        )
       }
     }
   }
-  
+
   # Validate sample_info
   checkmate::assert(
     checkmate::check_null(sample_info),
     checkmate::check_file_exists(
-      sample_info, access = "r", extension = ".csv"
+      sample_info,
+      access = "r",
+      extension = ".csv"
     ),
     checkmate::check_data_frame(sample_info)
   )
-  
+
   # Validate and match quant_method
   checkmate::assert_choice(quant_method, c("label-free", "TMT"))
-  
+
   # Validate and match glycan_type
-  checkmate::assert_choice(glycan_type, c("N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", "O-Glc"))
-  
+  checkmate::assert_choice(
+    glycan_type,
+    c("N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", "O-Glc")
+  )
+
   # Validate sample_name_converter
   checkmate::assert(
     checkmate::check_null(sample_name_converter),
     checkmate::check_function(sample_name_converter)
   )
-  
+
   # Validate parse_structure if provided
   if (!is.null(parse_structure)) {
     checkmate::assert_logical(parse_structure, len = 1)
   }
-  
+
   # Validate orgdb if provided
   if (!is.null(orgdb)) {
     checkmate::assert_string(orgdb)

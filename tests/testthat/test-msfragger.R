@@ -14,8 +14,13 @@ test_that("it returns correct information (label-free) with single sample", {
   expect_equal(
     colnames(res$var_info),
     c(
-      "variable", "peptide", "peptide_site",
-      "protein", "protein_site", "gene", "glycan_composition"
+      "variable",
+      "peptide",
+      "peptide_site",
+      "protein",
+      "protein_site",
+      "gene",
+      "glycan_composition"
     )
   )
 
@@ -31,11 +36,14 @@ test_that("it returns correct information (label-free) with single sample", {
   expect_equal(rownames(res$expr_mat), res$var_info$variable)
 
   # Check metadata
-  expect_equal(res$meta_data, list(
-    exp_type = "glycoproteomics",
-    glycan_type = "N",
-    quant_method = "label-free"
-  ))
+  expect_equal(
+    res$meta_data,
+    list(
+      exp_type = "glycoproteomics",
+      glycan_type = "N",
+      quant_method = "label-free"
+    )
+  )
 
   # Check sample names are extracted correctly from directory structure
   expect_equal(sort(colnames(res$expr_mat)), c("H_1", "H_2", "H_3"))
@@ -376,6 +384,9 @@ test_that("it preserves sample information structure", {
   # Check that sample info is preserved correctly
   expect_equal(nrow(res$sample_info), 3)
   expect_equal(colnames(res$sample_info), c("sample", "condition", "replicate"))
-  expect_equal(res$sample_info$condition, c("control", "treatment", "treatment"))
+  expect_equal(
+    res$sample_info$condition,
+    c("control", "treatment", "treatment")
+  )
   expect_equal(res$sample_info$replicate, c(1, 1, 2))
 })

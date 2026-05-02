@@ -144,7 +144,11 @@ read_pglyco3 <- function(
   )
 
   suppressWarnings(
-    suppressMessages(readr::read_tsv(fp, col_types = col_types, progress = FALSE)),
+    suppressMessages(readr::read_tsv(
+      fp,
+      col_types = col_types,
+      progress = FALSE
+    )),
     classes = "vroom_mismatched_column_name"
   )
 }
@@ -172,30 +176,33 @@ read_pglyco3 <- function(
 .convert_pglyco3_comp <- function(x) {
   # Define mapping from pGlyco3 notation to generic monosaccharides
   pglyco_to_generic <- c(
-    "H" = "Hex",      # Hexose
-    "N" = "HexNAc",   # N-Acetylhexosamine  
-    "A" = "NeuAc",    # N-Acetylneuraminic acid
-    "G" = "HexA",     # Hexuronic acid
-    "F" = "dHex",     # Deoxyhexose (Fucose)
-    "aH" = "HexN"     # Hexosamine
+    "H" = "Hex", # Hexose
+    "N" = "HexNAc", # N-Acetylhexosamine
+    "A" = "NeuAc", # N-Acetylneuraminic acid
+    "G" = "HexA", # Hexuronic acid
+    "F" = "dHex", # Deoxyhexose (Fucose)
+    "aH" = "HexN" # Hexosamine
   )
-  
+
   extract_n_mono <- function(comp, mono) {
     n <- stringr::str_extract(comp, paste0(mono, "\\((\\d+)\\)"), group = 1)
     dplyr::if_else(is.na(n), 0L, as.integer(n))
   }
 
   unique_x <- unique(x)
-  comp_df <- purrr::map_dfc(names(pglyco_to_generic), ~ {
-    counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
-    tibble::tibble(!!pglyco_to_generic[[.x]] := counts)
-  })
+  comp_df <- purrr::map_dfc(
+    names(pglyco_to_generic),
+    ~ {
+      counts <- purrr::map_int(unique_x, extract_n_mono, mono = .x)
+      tibble::tibble(!!pglyco_to_generic[[.x]] := counts)
+    }
+  )
 
   # Deal with "pH": a Hex with a phosphate group
   n_ph <- extract_n_mono(unique_x, "pH")
   comp_df$Hex <- comp_df$Hex + n_ph
   comp_df$P <- n_ph
-  
+
   # Convert each row to a glyrepr_composition object for unique values
   unique_compositions <- purrr::pmap(comp_df, function(...) {
     counts <- c(...)

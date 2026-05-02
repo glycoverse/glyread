@@ -13,8 +13,8 @@
     } else if (is.data.frame(sample_info)) {
       # Convert data.frame to tibble
       sample_info <- tibble::as_tibble(sample_info)
-    }  # Otherwise, assume it's already a tibble.
-    
+    } # Otherwise, assume it's already a tibble.
+
     # Validate sample_info format by creating a dummy experiment
     # This passes the checking responsibility to `experiment()`.
     local({
@@ -25,18 +25,21 @@
         glycan_composition = glyrepr::glycan_composition(),
       )
       fake_expr_mat <- matrix(
-        nrow = 0, ncol = length(samples),
+        nrow = 0,
+        ncol = length(samples),
         dimnames = list(NULL, samples)
       )
 
       # This line will throw an error if sample_info is not in correct format.
       glyexp::experiment(
-        fake_expr_mat, sample_info, fake_var_info,
+        fake_expr_mat,
+        sample_info,
+        fake_var_info,
         exp_type = "glycoproteomics",
         glycan_type = glycan_type
       )
     })
   }
-  
+
   sample_info
 }

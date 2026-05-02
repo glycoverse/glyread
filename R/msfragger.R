@@ -80,7 +80,14 @@ read_msfragger <- function(
 
   # Read files and ensure file column is always present
   suppressWarnings(
-    suppressMessages(df <- readr::read_tsv(fps, col_types = col_types, progress = FALSE, id = "file")),
+    suppressMessages(
+      df <- readr::read_tsv(
+        fps,
+        col_types = col_types,
+        progress = FALSE,
+        id = "file"
+      )
+    ),
     classes = "vroom_mismatched_column_name"
   )
 
@@ -101,7 +108,9 @@ read_msfragger <- function(
   new_df <- dplyr::filter(df, .data$`Number Best Positions` == 1)
   n_removed <- nrow(df) - nrow(new_df)
   perc_removed <- round(n_removed / nrow(df) * 100, 1)
-  cli::cli_alert_info("Removed {.val {n_removed}} ({.val {perc_removed}}%) uncertain or multisite PSMs.")
+  cli::cli_alert_info(
+    "Removed {.val {n_removed}} ({.val {perc_removed}}%) uncertain or multisite PSMs."
+  )
   new_df
 }
 
@@ -119,7 +128,11 @@ read_msfragger <- function(
       value = "Intensity"
     ) %>%
     dplyr::mutate(
-      peptide_site = as.integer(stringr::str_sub(.data$best_positions, 2L, -1L)),
+      peptide_site = as.integer(stringr::str_sub(
+        .data$best_positions,
+        2L,
+        -1L
+      )),
       protein_site = .data$protein_start + .data$peptide_site - 1L,
     )
 }
