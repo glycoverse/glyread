@@ -13,9 +13,9 @@
 #'
 #' @section Multisite glycopeptides:
 #' Some glycopeptides can have more than one glycosylation site.
-#' In this case, it will be expanded into multiple rows with the same quantification value
+#' By default, they are expanded into multiple rows with the same quantification value
 #' but different `protein_site` and `glycan_composition`.
-#' This is generally fine if downstream analyses are done at the glycoform level.
+#' Set `multisite = "drop"` to remove multisite glycopeptides instead.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
@@ -31,8 +31,7 @@
 #' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
 #'
 #' @inheritParams read_pglyco3_pglycoquant
-#' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.
-#'  Default is "org.Hs.eg.db".
+#' @inheritParams read_byonic_byologic
 #'
 #' @returns An [glyexp::experiment()] object.
 #' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()]
@@ -44,7 +43,8 @@ read_byonic_pglycoquant <- function(
   glycan_type = "N",
   sample_name_converter = NULL,
   orgdb = "org.Hs.eg.db",
-  parse_structure = TRUE
+  parse_structure = TRUE,
+  multisite = "expand"
 ) {
   # ----- Check arguments -----
   .validate_read_args(
@@ -56,13 +56,14 @@ read_byonic_pglycoquant <- function(
     sample_name_converter = sample_name_converter,
     orgdb = orgdb
   )
+  checkmate::assert_choice(multisite, c("expand", "drop"))
 
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
   if (quant_method == "label-free") {
     cli::cli_progress_step("Reading data")
     df <- .read_byonic_df(fp)
-    tidy_df <- .tidy_byonic_pglycoquant(df, orgdb)
+    tidy_df <- .tidy_byonic_pglycoquant(df, orgdb, multisite)
     exp <- .read_template(
       tidy_df,
       sample_info,
@@ -78,12 +79,25 @@ read_byonic_pglycoquant <- function(
   exp
 }
 
-.tidy_byonic_pglycoquant <- function(df, orgdb) {
+.tidy_byonic_pglycoquant <- function(df, orgdb, multisite = "expand") {
   df %>%
-    .expand_byonic_pglycoquant_multisite_rows() %>%
+    .handle_byonic_pglycoquant_multisite_rows(multisite) %>%
     .standardize_byonic_pglycoquant_columns() %>%
     .add_gene_symbols(orgdb) %>%
     .pivot_longer_pglycoquant()
+}
+
+.handle_byonic_pglycoquant_multisite_rows <- function(df, multisite) {
+  switch(
+    multisite,
+    expand = .expand_byonic_pglycoquant_multisite_rows(df),
+    drop = df %>%
+      .drop_byonic_multisite_rows(
+        glycan_col = "Composition",
+        source = "Byonic-pGlycoQuant"
+      ) %>%
+      .expand_byonic_pglycoquant_multisite_rows()
+  )
 }
 
 .read_byonic_df <- function(fp) {

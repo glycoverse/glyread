@@ -94,6 +94,44 @@ test_that("multisite Byonic-pGlycoQuant glycopeptides are expanded into site-spe
   expect_equal(as.numeric(res$expr_mat[, "Sample1"]), c(100, 100))
 })
 
+test_that("multisite Byonic-pGlycoQuant glycopeptides can be dropped", {
+  pglycoquant_path <- withr::local_tempfile(fileext = ".list")
+  readr::write_tsv(
+    tibble::tibble(
+      Peptide = c(
+        "K.NLFLN[+349.13728]HSEN[+2059.73493]ATAK.D",
+        "K.N[+203.07937]GTR.G"
+      ),
+      `Protein Name` = c(
+        ">tr|H0Y300|H0Y300_HUMAN Haptoglobin OS=Homo sapiens OX=9606 GN=HP PE=1 SV=4",
+        ">tr|A0A024R6P0|A0A024R6P0_HUMAN Serpin peptidase inhibitor, clade A, member 3 OS=Homo sapiens OX=9606 GN=SERPINA3 PE=3 SV=1"
+      ),
+      Position = c(239L, 186L),
+      Composition = c(
+        "HexNAc(1)Fuc(1),HexNAc(4)Hex(5)Fuc(1)NeuAc(1)",
+        "HexNAc(1)"
+      ),
+      `Intensity(Sample1)` = c(100, 50)
+    ),
+    pglycoquant_path
+  )
+
+  suppressMessages(
+    res <- read_byonic_pglycoquant(
+      pglycoquant_path,
+      quant_method = "label-free",
+      orgdb = "missing.OrgDb",
+      multisite = "drop"
+    )
+  )
+
+  expect_equal(nrow(res$var_info), 1L)
+  expect_equal(res$var_info$peptide_site, 1L)
+  expect_equal(res$var_info$protein_site, 186L)
+  expect_equal(as.character(res$var_info$glycan_composition), "HexNAc(1)")
+  expect_equal(as.numeric(res$expr_mat[, "Sample1"]), 50)
+})
+
 test_that("Byonic-pGlycoQuant rows without glycosite markers fail clearly", {
   malformed_df <- tibble::tibble(
     Peptide = "K.NLFLNHSENATAK.D",

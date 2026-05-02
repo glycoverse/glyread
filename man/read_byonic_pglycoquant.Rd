@@ -11,7 +11,8 @@ read_byonic_pglycoquant(
   glycan_type = "N",
   sample_name_converter = NULL,
   orgdb = "org.Hs.eg.db",
-  parse_structure = TRUE
+  parse_structure = TRUE,
+  multisite = "expand"
 )
 }
 \arguments{
@@ -38,6 +39,12 @@ Default is "org.Hs.eg.db".}
 If \code{TRUE}, glycan structures are parsed and included in the
 \code{var_info} as \code{glycan_structure} column. If \code{FALSE} (default), structure parsing
 is skipped and structure-related columns are removed.}
+
+\item{multisite}{How to handle multisite glycopeptides.
+\itemize{
+\item "expand" (default) expands each multisite glycopeptide into site-specific rows.
+\item "drop" removes multisite glycopeptides.
+}}
 }
 \value{
 An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
@@ -59,9 +66,9 @@ the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%2
 \section{Multisite glycopeptides}{
 
 Some glycopeptides can have more than one glycosylation site.
-In this case, it will be expanded into multiple rows with the same quantification value
+By default, they are expanded into multiple rows with the same quantification value
 but different \code{protein_site} and \code{glycan_composition}.
-This is generally fine if downstream analyses are done at the glycoform level.
+Set \code{multisite = "drop"} to remove multisite glycopeptides instead.
 }
 
 \section{Variable information}{

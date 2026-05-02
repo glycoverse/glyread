@@ -106,6 +106,44 @@ test_that("multisite glycopeptides are expanded into site-specific rows", {
   expect_equal(as.numeric(res$expr_mat[, "Sample1"]), c(100, 100))
 })
 
+test_that("multisite glycopeptides can be dropped", {
+  byologic_path <- withr::local_tempfile(fileext = ".csv")
+  readr::write_csv(
+    tibble::tibble(
+      row_number = c("1", "2"),
+      protein_name = "sp|P02765|FETUA_HUMAN",
+      sequence = c("K.ABCDnEFGHnIK.R", "K.ABCDnEF.R"),
+      glycans = c(
+        "HexNAc(1)Fuc(1),HexNAc(4)Hex(5)Fuc(1)NeuAc(1)",
+        "HexNAc(1)Fuc(1)"
+      ),
+      xic_area_summed = c(100, 50),
+      ms_alias_name = "Sample1",
+      mod_summary = c(
+        "N5(NGlycan/349.1373); N9(NGlycan/2059.7349)",
+        "N5(NGlycan/349.1373)"
+      ),
+      start_aa = 10L
+    ),
+    byologic_path
+  )
+
+  suppressMessages(
+    res <- read_byonic_byologic(
+      byologic_path,
+      quant_method = "label-free",
+      orgdb = "missing.OrgDb",
+      multisite = "drop"
+    )
+  )
+
+  expect_equal(nrow(res$var_info), 1L)
+  expect_equal(res$var_info$peptide_site, 5L)
+  expect_equal(res$var_info$protein_site, 14L)
+  expect_equal(as.character(res$var_info$glycan_composition), "HexNAc(1)dHex(1)")
+  expect_equal(as.numeric(res$expr_mat[, "Sample1"]), 50)
+})
+
 
 # ----- Row hierarchy collapse -----
 test_that("hierarchical rows are correctly collapsed", {
