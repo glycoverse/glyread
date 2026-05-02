@@ -140,7 +140,10 @@ test_that("multisite glycopeptides can be dropped", {
   expect_equal(nrow(res$var_info), 1L)
   expect_equal(res$var_info$peptide_site, 5L)
   expect_equal(res$var_info$protein_site, 14L)
-  expect_equal(as.character(res$var_info$glycan_composition), "HexNAc(1)dHex(1)")
+  expect_equal(
+    as.character(res$var_info$glycan_composition),
+    "HexNAc(1)dHex(1)"
+  )
   expect_equal(as.numeric(res$expr_mat[, "Sample1"]), 50)
 })
 
