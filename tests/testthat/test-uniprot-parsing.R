@@ -1,7 +1,7 @@
 # Test UniProt identifier parsing functions
 
 # ----- Test byonic-pglycoquant UniProt parsing -----
-test_that(".convert_byonic_columns correctly extracts UniProt accessions", {
+test_that(".standardize_byonic_pglycoquant_columns correctly extracts UniProt accessions", {
   # Create test data with various UniProt formats
   test_df <- tibble::tibble(
     `Protein Name` = c(
@@ -16,8 +16,10 @@ test_that(".convert_byonic_columns correctly extracts UniProt accessions", {
     Position = rep(123L, 5)
   )
 
-  # Apply the conversion function
-  result <- glyread:::.convert_byonic_columns(test_df)
+  # Apply the pGlycoQuant row expansion and column-standardization helpers.
+  result <- test_df %>%
+    glyread:::.expand_byonic_pglycoquant_multisite_rows() %>%
+    glyread:::.standardize_byonic_pglycoquant_columns()
 
   # Check that accessions are correctly extracted
   expected_proteins <- c(
@@ -116,7 +118,9 @@ test_that("UniProt parsing handles edge cases correctly", {
     Position = rep(123L, 4)
   )
 
-  result_byonic <- glyread:::.convert_byonic_columns(test_df_byonic)
+  result_byonic <- test_df_byonic %>%
+    glyread:::.expand_byonic_pglycoquant_multisite_rows() %>%
+    glyread:::.standardize_byonic_pglycoquant_columns()
 
   # Should extract valid accession and handle malformed entries gracefully
   expect_equal(result_byonic$protein[1], "P08185")

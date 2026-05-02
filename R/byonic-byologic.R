@@ -141,12 +141,19 @@ read_byonic_byologic <- function(
     dplyr::mutate(
       gp_source = stringr::str_split_i(.data$row_number, stringr::fixed("."), 1L),
       gp_id = paste0("BGP", dplyr::dense_rank(.data$gp_source)),
-      glycan_composition = purrr::map(.data$glycans, .split_byologic_glycans),
+      glycan_composition = purrr::map(
+        .data$glycans,
+        .split_byonic_glycan_compositions
+      ),
       peptide_site = purrr::map(.data$mod_summary, .extract_byologic_glycosites),
       n_glycans = purrr::map_int(.data$glycan_composition, length),
       n_sites = purrr::map_int(.data$peptide_site, length)
     ) %>%
-    .check_byologic_glycosite_pairing() %>%
+    .check_byonic_glycan_site_pairing(
+      source = "Byologic",
+      site_column = "mod_summary",
+      row_id = dplyr::pull(., "row_number")
+    ) %>%
     tidyr::unnest_longer(c("glycan_composition", "peptide_site")) %>%
     dplyr::mutate(peptide_site = as.integer(.data$peptide_site)) %>%
     dplyr::select(-all_of(c("gp_source", "n_glycans", "n_sites")))
@@ -225,24 +232,6 @@ read_byonic_byologic <- function(
     dplyr::select(all_of(selected_cols))
 }
 
-#' Split Byologic glycan compositions by glycosylation site
-#'
-#' @param glycans A single Byologic glycan composition string.
-#'
-#' @returns A character vector with one glycan composition per site.
-#' @noRd
-.split_byologic_glycans <- function(glycans) {
-  if (is.na(glycans)) {
-    return(NA_character_)
-  }
-
-  glycans %>%
-    stringr::str_replace_all("Fuc", "dHex") %>%
-    stringr::str_split(stringr::fixed(","), simplify = FALSE) %>%
-    purrr::pluck(1) %>%
-    stringr::str_trim()
-}
-
 #' Extract Byologic glycosylation sites
 #'
 #' @param mod_summary A single Byologic modification summary string.
@@ -260,24 +249,4 @@ read_byonic_byologic <- function(
   )[[1]]
 
   as.integer(matches[, 2])
-}
-
-#' Check glycan-site pairing in Byologic rows
-#'
-#' @param df A collapsed Byologic tibble with list columns for glycan
-#'   compositions and peptide sites.
-#'
-#' @returns The input tibble, invisibly checked.
-#' @noRd
-.check_byologic_glycosite_pairing <- function(df) {
-  invalid_rows <- df$row_number[df$n_glycans != df$n_sites]
-  if (length(invalid_rows) > 0) {
-    rlang::abort(c(
-      "Cannot pair Byologic glycan compositions with glycosylation sites.",
-      i = "The number of comma-separated glycans must match the number of NGlycan sites in `mod_summary`.",
-      x = glue::glue("Problematic rows: {toString(invalid_rows)}")
-    ))
-  }
-
-  df
 }

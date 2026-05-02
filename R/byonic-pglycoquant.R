@@ -84,7 +84,7 @@ read_byonic_pglycoquant <- function(
 .tidy_byonic_pglycoquant <- function(df, orgdb) {
   df %>%
     .expand_byonic_pglycoquant_multisite_rows() %>%
-    .refine_byonic_pglycoquant_columns() %>%
+    .standardize_byonic_pglycoquant_columns() %>%
     .add_gene_symbols(orgdb) %>%
     .pivot_longer_pglycoquant()
 }
@@ -141,7 +141,7 @@ read_byonic_pglycoquant <- function(
       gp_id = paste0("BPGQ", dplyr::dense_rank(.data$gp_key)),
       glycan_composition = purrr::map(
         .data$Composition,
-        .split_byonic_pglycoquant_glycans
+        .split_byonic_glycan_compositions
       ),
       peptide_site = purrr::map(
         .data$Peptide,
@@ -151,7 +151,10 @@ read_byonic_pglycoquant <- function(
       n_glycans = purrr::map_int(.data$glycan_composition, length),
       n_sites = purrr::map_int(.data$peptide_site, length)
     ) %>%
-    .check_byonic_pglycoquant_glycosite_pairing() %>%
+    .check_byonic_glycan_site_pairing(
+      source = "Byonic-pGlycoQuant",
+      site_column = "Peptide"
+    ) %>%
     tidyr::unnest_longer(c("glycan_composition", "peptide_site")) %>%
     dplyr::mutate(
       peptide_site = as.integer(.data$peptide_site),
@@ -162,7 +165,14 @@ read_byonic_pglycoquant <- function(
     dplyr::select(-all_of(c("gp_key", "first_peptide_site", "n_glycans", "n_sites")))
 }
 
-.refine_byonic_pglycoquant_columns <- function(df) {
+#' Standardize expanded Byonic-pGlycoQuant columns
+#'
+#' @param df A Byonic-pGlycoQuant tibble after multisite row expansion.
+#'
+#' @returns A wide-format tibble with standard glycopeptide variable columns
+#'   and pGlycoQuant intensity columns.
+#' @noRd
+.standardize_byonic_pglycoquant_columns <- function(df) {
   var_cols <- c(
     "gp_id",
     "peptide",
@@ -171,43 +181,14 @@ read_byonic_pglycoquant <- function(
     "protein_site",
     "glycan_composition"
   )
+
   df %>%
-    .convert_byonic_columns() %>%
-    dplyr::select(all_of(var_cols), tidyselect::starts_with("Intensity"))
-}
-
-.convert_byonic_columns <- function(df) {
-  expanded_cols <- c("gp_id", "glycan_composition", "peptide_site", "protein_site")
-  if (!all(expanded_cols %in% colnames(df))) {
-    df <- .expand_byonic_pglycoquant_multisite_rows(df)
-  }
-
-  result <- df %>%
     dplyr::mutate(
       peptide = .clean_byonic_pglycoquant_peptide(.data$Peptide),
       # >sp|P19652|A1AG2_HUMAN -> P19652, >sp|P08185-1|CBG_HUMAN -> P08185-1
       protein = .extract_uniprot_accession(.data$`Protein Name`)
-    )
-
-  result
-}
-
-#' Split Byonic-pGlycoQuant glycan compositions by site
-#'
-#' @param glycans A single Byonic-pGlycoQuant glycan composition string.
-#'
-#' @returns A character vector with one glycan composition per site.
-#' @noRd
-.split_byonic_pglycoquant_glycans <- function(glycans) {
-  if (is.na(glycans)) {
-    return(NA_character_)
-  }
-
-  glycans %>%
-    stringr::str_replace_all("Fuc", "dHex") %>%
-    stringr::str_split(stringr::fixed(","), simplify = FALSE) %>%
-    purrr::pluck(1) %>%
-    stringr::str_trim()
+    ) %>%
+    dplyr::select(all_of(var_cols), tidyselect::starts_with("Intensity"))
 }
 
 #' Extract glycosylated peptide sites from a Byonic peptide
@@ -259,24 +240,4 @@ read_byonic_pglycoquant <- function(
 #' @noRd
 .extract_byonic_pglycoquant_peptide_core <- function(peptide) {
   stringr::str_sub(peptide, 3L, -3L)
-}
-
-#' Check glycan-site pairing in Byonic-pGlycoQuant rows
-#'
-#' @param df A Byonic-pGlycoQuant tibble with list columns for glycan
-#'   compositions and peptide sites.
-#'
-#' @returns The input tibble, invisibly checked.
-#' @noRd
-.check_byonic_pglycoquant_glycosite_pairing <- function(df) {
-  invalid_rows <- which(df$n_glycans != df$n_sites)
-  if (length(invalid_rows) > 0) {
-    rlang::abort(c(
-      "Cannot pair Byonic-pGlycoQuant glycan compositions with glycosylation sites.",
-      i = "The number of comma-separated glycans must match the number of glycosylated N sites in `Peptide`.",
-      x = glue::glue("Problematic rows: {toString(invalid_rows)}")
-    ))
-  }
-
-  df
 }
