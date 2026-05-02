@@ -15,7 +15,8 @@ read_byonic_byologic(
   quant_method = "label-free",
   glycan_type = "N",
   sample_name_converter = NULL,
-  orgdb = "org.Hs.eg.db"
+  orgdb = "org.Hs.eg.db",
+  multisite = "expand"
 )
 ```
 
@@ -51,6 +52,15 @@ read_byonic_byologic(
   name of the OrgDb package to use for UniProt to gene symbol
   conversion. Default is "org.Hs.eg.db".
 
+- multisite:
+
+  How to handle multisite glycopeptides.
+
+  - "expand" (default) expands each multisite glycopeptide into
+    site-specific rows.
+
+  - "drop" removes multisite glycopeptides.
+
 ## Value
 
 An
@@ -66,9 +76,11 @@ should use.
 
 ## Multisite glycopeptides
 
-Multisite glycopeptides are supported but their `protein_site` will be
-set to `NA` since the exact site of glycosylation cannot be determined
-unambiguously.
+Some glycopeptides can have more than one glycosylation site. By
+default, they are expanded into multiple rows with the same
+quantification value but different `protein_site` and
+`glycan_composition`. Set `multisite = "drop"` to remove multisite
+glycopeptides instead.
 
 ## Variable information
 

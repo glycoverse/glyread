@@ -16,7 +16,8 @@ read_byonic_pglycoquant(
   glycan_type = "N",
   sample_name_converter = NULL,
   orgdb = "org.Hs.eg.db",
-  parse_structure = TRUE
+  parse_structure = TRUE,
+  multisite = "expand"
 )
 ```
 
@@ -59,6 +60,15 @@ read_byonic_pglycoquant(
   `glycan_structure` column. If `FALSE` (default), structure parsing is
   skipped and structure-related columns are removed.
 
+- multisite:
+
+  How to handle multisite glycopeptides.
+
+  - "expand" (default) expands each multisite glycopeptide into
+    site-specific rows.
+
+  - "drop" removes multisite glycopeptides.
+
 ## Value
 
 An
@@ -74,9 +84,11 @@ on how to use Byonic and pGlycoQuant, please refer to the manual:
 
 ## Multisite glycopeptides
 
-Multisite glycopeptides are supported but their `protein_site` will be
-set to `NA` since the exact site of glycosylation cannot be determined
-unambiguously.
+Some glycopeptides can have more than one glycosylation site. By
+default, they are expanded into multiple rows with the same
+quantification value but different `protein_site` and
+`glycan_composition`. Set `multisite = "drop"` to remove multisite
+glycopeptides instead.
 
 ## Variable information
 

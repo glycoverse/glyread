@@ -54,7 +54,8 @@ Currently only label-free quantification is supported.</p>
 <span>  glycan_type <span class="op">=</span> <span class="st">"N"</span>,</span>
 <span>  sample_name_converter <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  orgdb <span class="op">=</span> <span class="st">"org.Hs.eg.db"</span>,</span>
-<span>  parse_structure <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  parse_structure <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  multisite <span class="op">=</span> <span class="st">"expand"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -99,6 +100,12 @@ If <code>TRUE</code>, glycan structures are parsed and included in the
 <code>var_info</code> as <code>glycan_structure</code> column. If <code>FALSE</code> (default), structure parsing
 is skipped and structure-related columns are removed.</p></dd>
 
+
+<dt id="arg-multisite">multisite<a class="anchor" aria-label="anchor" href="#arg-multisite"></a></dt>
+<dd><p>How to handle multisite glycopeptides.</p><ul><li><p>"expand" (default) expands each multisite glycopeptide into site-specific rows.</p></li>
+<li><p>"drop" removes multisite glycopeptides.</p></li>
+</ul></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -117,8 +124,10 @@ the manual: <a href="https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual
     <h2 id="multisite-glycopeptides">Multisite glycopeptides<a class="anchor" aria-label="anchor" href="#multisite-glycopeptides"></a></h2>
 
 
-<p>Multisite glycopeptides are supported but their <code>protein_site</code> will be set to <code>NA</code>
-since the exact site of glycosylation cannot be determined unambiguously.</p>
+<p>Some glycopeptides can have more than one glycosylation site.
+By default, they are expanded into multiple rows with the same quantification value
+but different <code>protein_site</code> and <code>glycan_composition</code>.
+Set <code>multisite = "drop"</code> to remove multisite glycopeptides instead.</p>
     </div>
     <div class="section level2">
     <h2 id="variable-information">Variable information<a class="anchor" aria-label="anchor" href="#variable-information"></a></h2>

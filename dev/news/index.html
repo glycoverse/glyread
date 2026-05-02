@@ -33,6 +33,11 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="glyread-development-version">glyread (development version)<a class="anchor" aria-label="anchor" href="#glyread-development-version"></a></h2>
+<div class="section level3">
+<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/read_byonic_byologic.html">read_byonic_byologic()</a></code> and <code><a href="../reference/read_byonic_pglycoquant.html">read_byonic_pglycoquant()</a></code> now have a new logic to handle glycopeptides with multiple glycosites. A <code>multisite</code> parameter is added to control this. If <code>multisite = "expand"</code> (default), glycopeptides with multiple glycosites will be expanded into multiple rows, each with one glycosite. If <code>multisite = "drop"</code>, multisite glycopeptides will be dropped (#11).</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.0" id="glyread-0100">glyread 0.10.0<a class="anchor" aria-label="anchor" href="#glyread-0100"></a></h2>
