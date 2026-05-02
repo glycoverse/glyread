@@ -16,8 +16,6 @@
 #' In this case, it will be expanded into multiple rows with the same quantification value
 #' but different `protein_site` and `glycan_composition`.
 #' This is generally fine if downstream analyses are done at the glycoform level.
-#' A `gp_id` column is also added to uniquely identify each glycopeptide before row expansion,
-#' so that the multiple rows can be mapped back to the original glycopeptide if needed.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
@@ -31,7 +29,6 @@
 #' - `gene`: character, gene name (symbol)
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
-#' - `gp_id`: character, glycopeptide ID before multisite row expansion.
 #'
 #' @inheritParams read_pglyco3_pglycoquant
 #' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.
@@ -110,8 +107,7 @@ read_byonic_pglycoquant <- function(
 #'
 #' pGlycoQuant reports Byonic multisite glycopeptides as one row with
 #' comma-separated glycan compositions and multiple modified N residues in
-#' `Peptide`. This helper expands those rows to one row per glycosylation site
-#' while preserving a shared `gp_id`.
+#' `Peptide`. This helper expands those rows to one row per glycosylation site.
 #'
 #' @param df A Byonic-pGlycoQuant tibble.
 #'
@@ -131,14 +127,6 @@ read_byonic_pglycoquant <- function(
 
   df %>%
     dplyr::mutate(
-      gp_key = paste(
-        .data$Peptide,
-        .data$`Protein Name`,
-        .data$Position,
-        .data$Composition,
-        sep = "\r"
-      ),
-      gp_id = paste0("BPGQ", dplyr::dense_rank(.data$gp_key)),
       glycan_composition = purrr::map(
         .data$Composition,
         .split_byonic_glycan_compositions
@@ -162,7 +150,7 @@ read_byonic_pglycoquant <- function(
         .data$Position + .data$peptide_site - .data$first_peptide_site
       )
     ) %>%
-    dplyr::select(-all_of(c("gp_key", "first_peptide_site", "n_glycans", "n_sites")))
+    dplyr::select(-all_of(c("first_peptide_site", "n_glycans", "n_sites")))
 }
 
 #' Standardize expanded Byonic-pGlycoQuant columns
@@ -174,7 +162,6 @@ read_byonic_pglycoquant <- function(
 #' @noRd
 .standardize_byonic_pglycoquant_columns <- function(df) {
   var_cols <- c(
-    "gp_id",
     "peptide",
     "peptide_site",
     "protein",

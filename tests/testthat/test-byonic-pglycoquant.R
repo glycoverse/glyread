@@ -83,8 +83,7 @@ test_that("multisite Byonic-pGlycoQuant glycopeptides are expanded into site-spe
   res$var_info <- dplyr::arrange(res$var_info, .data$protein_site)
 
   expect_equal(nrow(res$var_info), 2L)
-  expect_true("gp_id" %in% colnames(res$var_info))
-  expect_equal(length(unique(res$var_info$gp_id)), 1L)
+  expect_false("gp_id" %in% colnames(res$var_info))
   expect_equal(res$var_info$peptide_site, c(5L, 9L))
   expect_equal(res$var_info$protein_site, c(239L, 243L))
   expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
