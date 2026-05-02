@@ -4,6 +4,10 @@
 
 * `read_byonic_byologic()` and `read_byonic_pglycoquant()` now have a new logic to handle glycopeptides with multiple glycosites. A `multisite` parameter is added to control this. If `multisite = "expand"` (default), glycopeptides with multiple glycosites will be expanded into multiple rows, each with one glycosite. If `multisite = "drop"`, multisite glycopeptides will be dropped (#11).
 
+## Minor improvements and bug fixes
+
+* Fix the bug that `read_byonic_byologic()` and `read_byonic_pglycoquant()` could not handle glycopeptides with multiple glycosites correctly (#11).
+
 # glyread 0.10.0
 
 ## New features
