@@ -157,7 +157,10 @@ read_byonic_byologic <- function(
         .data$glycans,
         .split_byonic_glycan_compositions
       ),
-      peptide_site = purrr::map(.data$mod_summary, .extract_byologic_glycosites),
+      peptide_site = purrr::map(
+        .data$mod_summary,
+        .extract_byologic_glycosites
+      ),
       n_glycans = purrr::map_int(.data$glycan_composition, length),
       n_sites = purrr::map_int(.data$peptide_site, length)
     )
