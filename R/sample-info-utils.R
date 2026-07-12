@@ -6,6 +6,8 @@
 #' @returns A validated sample information tibble.
 #' @noRd
 .process_sample_info <- function(sample_info, samples) {
+  samples <- as.character(samples)
+
   if (is.null(sample_info)) {
     sample_info <- tibble::tibble(sample = samples)
     cli::cli_alert_info(
@@ -19,19 +21,19 @@
       # Convert data.frame to tibble
       sample_info <- tibble::as_tibble(sample_info)
     } # Otherwise, assume it's already a tibble.
+  }
 
-    checkmate::assert_names(colnames(sample_info), must.include = "sample")
-    sample_info$sample <- as.character(sample_info$sample)
-    checkmate::assert_character(
-      sample_info$sample,
-      any.missing = FALSE,
-      unique = TRUE
+  checkmate::assert_names(colnames(sample_info), must.include = "sample")
+  sample_info$sample <- as.character(sample_info$sample)
+  checkmate::assert_character(
+    sample_info$sample,
+    any.missing = FALSE,
+    unique = TRUE
+  )
+  if (!setequal(sample_info$sample, samples)) {
+    cli::cli_abort(
+      "Sample identifiers in {.arg sample_info} must match the input data."
     )
-    if (!setequal(sample_info$sample, samples)) {
-      cli::cli_abort(
-        "Sample identifiers in {.arg sample_info} must match the input data."
-      )
-    }
   }
 
   factor_cols <- intersect(
