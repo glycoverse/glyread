@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Provides a unified interface for reading and processing quantification results from various glycomics and glycoproteomics software tools, including Byonic (ByoLogic, pGlycoQuant), StrucGP, pGlyco3 (pGlycoQuant), Glyco-Decipher, GlyHunter, and MSFragger. The package standardizes raw data from different sources, performs peptide-spectrum match (PSM) aggregation, parses glycan compositions and structures, and converts the data into a standardized experiment object from the 'glyexp' package for downstream analysis within the glycoverse ecosystem.
+Provides a unified interface for reading and processing quantification results from various glycomics and glycoproteomics software tools, including Byonic (ByoLogic, pGlycoQuant), StrucGP, pGlyco3 (pGlycoQuant), Glyco-Decipher, GlyHunter, and MSFragger. The package standardizes raw data from different sources, performs peptide-spectrum match (PSM) aggregation, parses glycan compositions and structures, and converts the data into a standardized 'GlycomicSE' and 'GlycoproteomicSE' objects from the 'glyexp' package for downstream analysis within the glycoverse ecosystem.
 }
 \seealso{
 Useful links:

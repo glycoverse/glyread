@@ -1,7 +1,7 @@
 #' Read MSFragger-Glyco result
 #'
 #' MSFragger-Glyco is a software for glycopeptide identification and quantification.
-#' This function reads in the result file and returns a [glyexp::experiment()] object.
+#' This function reads in the result file and returns a [glyexp::GlycoproteomicSE()] object.
 #'
 #' This function uses the "psm.tsv" file in each sample folder.
 #' Sample names are extracted from the file paths.
@@ -20,8 +20,8 @@
 #' @param dp The directory path of the MSFragger-Glyco result folder.
 #' @inheritParams read_pglyco3_pglycoquant
 #'
-#' @returns An [glyexp::experiment()] object.
-#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()]
+#' @returns An [glyexp::GlycoproteomicSE()] object.
+#' @seealso [glyexp::GlycoproteomicSE()], [glyrepr::glycan_composition()]
 #' @export
 read_msfragger <- function(
   dp,

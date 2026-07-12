@@ -47,12 +47,12 @@ is skipped and structure-related columns are removed.}
 }}
 }
 \value{
-An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 }
 \description{
 If you used Byonic for intact glycopeptide identification,
 and used pGlycoQuant for quantification, this is the function for you.
-It reads in a pGlycoQuant result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+It reads in a pGlycoQuant result file and returns a \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 Currently only label-free quantification is supported.
 }
 \section{Which file to use?}{
@@ -110,5 +110,5 @@ we sum up the quantifications of all PSMs that belong to this glycopeptide.
 }
 
 \seealso{
-\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}
+\code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}
 }

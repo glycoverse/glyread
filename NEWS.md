@@ -1,5 +1,13 @@
 # glyread (development version)
 
+## Breaking changes
+
+* All `read_*()` functions now return `glyexp::GlycomicSE` or `glyexp::GlycoproteomicSE` objects; code using legacy `glyexp::experiment()` fields must migrate to `SummarizedExperiment` assays, `rowData`, `colData`, and metadata. This is Stage II of glyexp#15.
+
+## New features
+
+* `read_glyhunter()` now returns `glyexp::GlycomicSE`, while all glycoproteomics readers return `glyexp::GlycoproteomicSE`.
+
 # glyread 0.11.0
 
 ## New features

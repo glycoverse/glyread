@@ -30,11 +30,11 @@ Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
 }
 \value{
-An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 }
 \description{
 MSFragger-Glyco is a software for glycopeptide identification and quantification.
-This function reads in the result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+This function reads in the result file and returns a \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 }
 \details{
 This function uses the "psm.tsv" file in each sample folder.
@@ -56,5 +56,5 @@ The following columns could be found in the variable information tibble:
 }
 
 \seealso{
-\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}
+\code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}
 }

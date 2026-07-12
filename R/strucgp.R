@@ -2,7 +2,7 @@
 #'
 #' StrucGP is a software for intact glycopeptide identification.
 #' As StrucGP doesn't support quantification,
-#' this function returns an [glyexp::experiment()] object with a binary (0/1) expression matrix
+#' this function returns an [glyexp::GlycoproteomicSE()] object with a binary (0/1) expression matrix
 #' indicating whether each glycopeptide was identified in each sample.
 #'
 #' @details
@@ -40,9 +40,9 @@
 #'  `var_info` as `glycan_structure` column. If `FALSE`, structure parsing
 #'  is skipped and the structure column is removed.
 #'
-#' @returns An [glyexp::experiment()] object with a binary (0/1) expression matrix,
+#' @returns An [glyexp::GlycoproteomicSE()] object with a binary (0/1) expression matrix,
 #'  where 1 indicates the glycopeptide was identified in that sample and 0 indicates it was not.
-#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
+#' @seealso [glyexp::GlycoproteomicSE()], [glyrepr::glycan_composition()],
 #'   [glyrepr::glycan_structure()]
 #' @export
 read_strucgp <- function(
@@ -69,7 +69,7 @@ read_strucgp <- function(
   samples <- unique(tidy_df$sample)
 
   # ----- Process sample information -----
-  sample_info <- .process_sample_info(sample_info, samples, glycan_type)
+  sample_info <- .process_sample_info(sample_info, samples)
 
   # ----- Create variable information -----
   cli::cli_progress_step("Creating variable information")
@@ -97,25 +97,15 @@ read_strucgp <- function(
     expr_mat[var_id, sample_id] <- 1
   }
 
-  # ----- Pack experiment -----
-  cli::cli_progress_step("Creating experiment object")
-  exp <- glyexp::experiment(
+  # ----- Pack GlycoproteomicSE -----
+  cli::cli_progress_step("Creating GlycoproteomicSE object")
+  .new_glycoproteomic_se(
     expr_mat,
     sample_info,
     var_info,
-    exp_type = "glycoproteomics",
     glycan_type = glycan_type,
     quant_method = "label-free"
   )
-
-  # ----- Standardize variable IDs -----
-  # standardize_variable returns a modified copy
-  exp <- glyexp::standardize_variable(exp)
-
-  # Remove placeholder columns so they don't appear in final var_info
-  exp$var_info <- dplyr::select(exp$var_info, -"peptide", -"peptide_site")
-
-  exp
 }
 
 .tidy_strucgp <- function(df, parse_structure) {
@@ -155,14 +145,6 @@ read_strucgp <- function(
     gene = protein_vectors$gene,
     protein_site = as.integer(protein_vectors$protein_site)
   )
-
-  # Add peptide and peptide_site for standardize_variable()
-  # StrucGP only works with N-glycans, so use "N" as placeholder
-  result <- result %>%
-    dplyr::mutate(
-      peptide = "N", # Placeholder for N-glycosylation
-      peptide_site = 1L
-    )
 
   # Parse structure only if requested
   if (parse_structure) {

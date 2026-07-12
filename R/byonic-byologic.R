@@ -2,7 +2,7 @@
 #'
 #' If you used Byonic for intact glycopeptide identification,
 #' and used Byologic for quantification, this is the function for you.
-#' It reads in a result file and returns a [glyexp::experiment()] object.
+#' It reads in a result file and returns a [glyexp::GlycoproteomicSE()] object.
 #' Currently only label-free quantification is supported.
 #'
 #' @section Which file to use?:
@@ -36,8 +36,8 @@
 #'   - "expand" (default) expands each multisite glycopeptide into site-specific rows.
 #'   - "drop" removes multisite glycopeptides.
 #'
-#' @returns An [glyexp::experiment()] object.
-#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()]
+#' @returns An [glyexp::GlycoproteomicSE()] object.
+#' @seealso [glyexp::GlycoproteomicSE()], [glyrepr::glycan_composition()]
 #' @export
 read_byonic_byologic <- function(
   fp,

@@ -16,8 +16,9 @@ coverage](https://codecov.io/gh/glycoverse/glyread/graph/badge.svg)](https://app
 
 The goal of glyread is to read and process quantification results from
 common glycomics and glycoproteomics software, such as Byonic, StrucGP,
-or pGlyco, and convert them into a `glyexp::expriment()` object (from
-the [glyexp](https://github.com/glycoverse/glyexp) package) for further
+or pGlyco, and convert them into `glyexp::GlycomicSE` or
+`glyexp::GlycoproteomicSE` objects (from the
+[glyexp](https://github.com/glycoverse/glyexp) package) for further
 analysis.
 
 ## Installation
@@ -71,8 +72,9 @@ glycoverse](https://github.com/glycoverse/glycoverse#installation).
 
 `glyread` is the entry point for the `glycoverse` ecosystem. It provides
 a unified interface for reading and processing data from various
-glycomics and glycoproteomics software, and converting them into a
-`glyexp::experiment()` object for further analysis.
+glycomics and glycoproteomics software, and converting them into
+`glyexp::GlycomicSE` or `glyexp::GlycoproteomicSE` objects for further
+analysis.
 
 ## Example
 

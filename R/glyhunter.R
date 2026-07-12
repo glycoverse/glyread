@@ -1,7 +1,7 @@
 #' Read GlyHunter result
 #'
 #' This function reads in a [GlyHunter](https://github.com/fubin1999/glyhunter)
-#' result file and returns a [glyexp::experiment()] object.
+#' result file and returns a [glyexp::GlycomicSE()] object.
 #'
 #' @details
 #' # Which file to use?
@@ -26,8 +26,8 @@
 #'   Use "Fu_NC_2026" to use the configuration following "DOI: 10.1038/s41467-026-68579-x".
 #'   Use "Fu_NP_2026" to use the configuration in an unpublished Nature Protocols paper.
 #'
-#' @returns An [glyexp::experiment()] object.
-#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()]
+#' @returns An [glyexp::GlycomicSE()] object.
+#' @seealso [glyexp::GlycomicSE()], [glyrepr::glycan_composition()]
 #' @export
 read_glyhunter <- function(
   fp,
@@ -80,7 +80,7 @@ read_glyhunter <- function(
 
   # Prepare sample info
   samples <- setdiff(colnames(df), "glycan")
-  sample_info <- .process_sample_info(sample_info, samples, glycan_type)
+  sample_info <- .process_sample_info(sample_info, samples)
 
   # Prepare variable info
   var_info <- df |>
@@ -102,14 +102,8 @@ read_glyhunter <- function(
     as.matrix()
   rownames(expr_mat) <- var_info$variable
 
-  # Pack experiment
-  glyexp::experiment(
-    expr_mat,
-    sample_info = sample_info,
-    var_info = var_info,
-    exp_type = "glycomics",
-    glycan_type = glycan_type
-  )
+  # Pack GlycomicSE
+  .new_glycomic_se(expr_mat, sample_info, var_info, glycan_type)
 }
 
 .read_glyhunter_np <- function(
@@ -129,7 +123,7 @@ read_glyhunter <- function(
 
   # Prepare sample info
   samples <- setdiff(colnames(df), "glycan")
-  sample_info <- .process_sample_info(sample_info, samples, glycan_type)
+  sample_info <- .process_sample_info(sample_info, samples)
 
   # Prepare variable info
   var_info <- df |>
@@ -165,12 +159,6 @@ read_glyhunter <- function(
     as.matrix()
   rownames(expr_mat) <- var_info$variable
 
-  # Pack experiment
-  glyexp::experiment(
-    expr_mat,
-    sample_info = sample_info,
-    var_info = var_info,
-    exp_type = "glycomics",
-    glycan_type = glycan_type
-  )
+  # Pack GlycomicSE
+  .new_glycomic_se(expr_mat, sample_info, var_info, glycan_type)
 }

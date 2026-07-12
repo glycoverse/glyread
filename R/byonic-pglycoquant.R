@@ -2,7 +2,7 @@
 #'
 #' If you used Byonic for intact glycopeptide identification,
 #' and used pGlycoQuant for quantification, this is the function for you.
-#' It reads in a pGlycoQuant result file and returns a [glyexp::experiment()] object.
+#' It reads in a pGlycoQuant result file and returns a [glyexp::GlycoproteomicSE()] object.
 #' Currently only label-free quantification is supported.
 #'
 #' @section Which file to use?:
@@ -33,8 +33,8 @@
 #' @inheritParams read_pglyco3_pglycoquant
 #' @inheritParams read_byonic_byologic
 #'
-#' @returns An [glyexp::experiment()] object.
-#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()]
+#' @returns An [glyexp::GlycoproteomicSE()] object.
+#' @seealso [glyexp::GlycoproteomicSE()], [glyrepr::glycan_composition()]
 #' @export
 read_byonic_pglycoquant <- function(
   fp,

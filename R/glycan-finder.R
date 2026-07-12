@@ -2,7 +2,7 @@
 #'
 #' @description
 #' GlycanFinder is a software for intact glycopeptide identification.
-#' This function reads in the result file and returns a [glyexp::experiment()] object.
+#' This function reads in the result file and returns a [glyexp::GlycoproteomicSE()] object.
 #' Currently only label-free quantification is supported.
 #'
 #' @section Which file to use?:
@@ -43,8 +43,8 @@
 #'  `var_info` as `glycan_structure` column. If `FALSE`, structure parsing
 #'  is skipped and structure-related columns are removed.
 #'
-#' @returns An [glyexp::experiment()] object.
-#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
+#' @returns An [glyexp::GlycoproteomicSE()] object.
+#' @seealso [glyexp::GlycoproteomicSE()], [glyrepr::glycan_composition()],
 #'   [glyrepr::glycan_structure()]
 #' @export
 read_glycan_finder <- function(

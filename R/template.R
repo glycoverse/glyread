@@ -4,7 +4,7 @@
 # 3. Process sample information
 # 4. Extracting variable information and expression matrix
 # 5. Parse glycan compositions and structures
-# 6. Packing an experiment
+# 6. Packing a GlycoproteomicSE
 #
 # `tidy_df` should be a long-format tibble with the following columns:
 # "sample", "value", and all other columns being variable information.
@@ -31,7 +31,7 @@
 
   # ----- 3. Process sample information -----
   samples <- unique(tidy_df$sample)
-  sample_info <- .process_sample_info(sample_info_arg, samples, glycan_type)
+  sample_info <- .process_sample_info(sample_info_arg, samples)
 
   # ----- 4. Extracting variable information and expression matrix -----
   wide_df <- tidy_df %>%
@@ -58,17 +58,152 @@
     var_info <- dplyr::select(var_info, -any_of("glycan_structure"))
   }
 
-  # ----- 6. Packing Experiment -----
-  exp <- glyexp::experiment(
+  # ----- 6. Pack GlycoproteomicSE -----
+  .new_glycoproteomic_se(
     expr_mat,
     sample_info,
     var_info,
-    exp_type = "glycoproteomics",
     glycan_type = glycan_type,
     quant_method = quant_method
   )
+}
 
-  # ----- 7. Standardize variable IDs -----
-  # standardize_variable returns a modified copy
-  glyexp::standardize_variable(exp)
+#' Create a GlycoproteomicSE from reader output
+#'
+#' @param expr_mat A numeric abundance matrix.
+#' @param sample_info A sample information data frame with a `sample` column.
+#' @param var_info A variable information data frame with a `variable` column.
+#' @param glycan_type The glycan type.
+#' @param quant_method The quantification method.
+#'
+#' @returns A [glyexp::GlycoproteomicSE()] object.
+#' @noRd
+.new_glycoproteomic_se <- function(
+  expr_mat,
+  sample_info,
+  var_info,
+  glycan_type,
+  quant_method
+) {
+  ids <- .prepare_se_ids(expr_mat, sample_info, var_info)
+  expr_mat <- ids$expr_mat
+  sample_info <- ids$sample_info
+  var_info <- ids$var_info
+
+  var_info$variable <- .standardize_glycoproteomic_variables(var_info)
+  rownames(expr_mat) <- var_info$variable
+
+  glyexp::GlycoproteomicSE(
+    expr_mat,
+    colData = .as_se_data(sample_info, "sample"),
+    rowData = .as_se_data(var_info, "variable"),
+    metadata = list(
+      exp_type = "glycoproteomics",
+      glycan_type = glycan_type,
+      quant_method = quant_method
+    )
+  )
+}
+
+#' Create a GlycomicSE from reader output
+#'
+#' @inheritParams .new_glycoproteomic_se
+#'
+#' @returns A [glyexp::GlycomicSE()] object.
+#' @noRd
+.new_glycomic_se <- function(expr_mat, sample_info, var_info, glycan_type) {
+  ids <- .prepare_se_ids(expr_mat, sample_info, var_info)
+
+  glyexp::GlycomicSE(
+    ids$expr_mat,
+    colData = .as_se_data(ids$sample_info, "sample"),
+    rowData = .as_se_data(ids$var_info, "variable"),
+    metadata = list(
+      exp_type = "glycomics",
+      glycan_type = glycan_type
+    )
+  )
+}
+
+#' Validate and align assay and dimension metadata identifiers
+#'
+#' @inheritParams .new_glycoproteomic_se
+#'
+#' @returns A list containing the aligned assay, sample information, and
+#'   variable information.
+#' @noRd
+.prepare_se_ids <- function(expr_mat, sample_info, var_info) {
+  checkmate::assert_names(colnames(sample_info), must.include = "sample")
+  checkmate::assert_names(colnames(var_info), must.include = "variable")
+  checkmate::assert_character(
+    sample_info$sample,
+    any.missing = FALSE,
+    unique = TRUE
+  )
+  checkmate::assert_character(
+    var_info$variable,
+    any.missing = FALSE,
+    unique = TRUE
+  )
+
+  if (!setequal(colnames(expr_mat), sample_info$sample)) {
+    cli::cli_abort(
+      "Sample identifiers in {.arg sample_info} must match assay column names."
+    )
+  }
+  if (!setequal(rownames(expr_mat), var_info$variable)) {
+    cli::cli_abort(
+      "Variable identifiers in {.arg var_info} must match assay row names."
+    )
+  }
+
+  list(
+    expr_mat = expr_mat[var_info$variable, sample_info$sample, drop = FALSE],
+    sample_info = sample_info,
+    var_info = var_info
+  )
+}
+
+#' Convert identifier-bearing metadata to an S4 DataFrame
+#'
+#' @param x A data frame.
+#' @param id_col The identifier column to move to row names.
+#'
+#' @returns An [S4Vectors::DataFrame()] without the identifier column.
+#' @noRd
+.as_se_data <- function(x, id_col) {
+  ids <- x[[id_col]]
+  x[[id_col]] <- NULL
+  S4Vectors::DataFrame(x, row.names = ids)
+}
+
+#' Standardize glycoproteomics variable identifiers
+#'
+#' @param var_info A variable information data frame.
+#'
+#' @returns A unique character vector of variable identifiers.
+#' @noRd
+.standardize_glycoproteomic_variables <- function(var_info) {
+  variables <- paste(
+    var_info$protein,
+    dplyr::if_else(
+      is.na(var_info$protein_site),
+      "X",
+      as.character(var_info$protein_site)
+    ),
+    as.character(var_info$glycan_composition),
+    sep = "-"
+  )
+
+  tibble::tibble(variable = variables) |>
+    dplyr::group_by(.data$variable) |>
+    dplyr::mutate(
+      variable = if (dplyr::n() > 1L) {
+        paste0(.data$variable, "-", dplyr::row_number())
+      } else {
+        .data$variable
+      }
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::pull(.data$variable)
 }

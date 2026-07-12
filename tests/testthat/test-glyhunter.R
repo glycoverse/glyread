@@ -4,9 +4,9 @@ test_that("read_glyhunter works", {
     glycan_type = "N"
   ))
 
-  expect_s3_class(exp, "glyexp_experiment")
-  expect_equal(exp$meta_data$exp_type, "glycomics")
-  expect_s3_class(exp$var_info$glycan_composition, "glyrepr_composition")
+  expect_s4_class(exp, "GlycomicSE")
+  expect_equal(.test_metadata(exp)$exp_type, "glycomics")
+  expect_s3_class(.test_var_info(exp)$glycan_composition, "glyrepr_composition")
 })
 
 test_that("read_glyhunter works for NP preset", {
@@ -16,10 +16,10 @@ test_that("read_glyhunter works for NP preset", {
     preset = "Fu_NP_2026"
   ))
 
-  expect_s3_class(exp, "glyexp_experiment")
-  expect_equal(exp$meta_data$exp_type, "glycomics")
-  expect_s3_class(exp$var_info$glycan_composition, "glyrepr_composition")
-  expect_true(all(c("nL", "nE") %in% colnames(exp$var_info)))
+  expect_s4_class(exp, "GlycomicSE")
+  expect_equal(.test_metadata(exp)$exp_type, "glycomics")
+  expect_s3_class(.test_var_info(exp)$glycan_composition, "glyrepr_composition")
+  expect_true(all(c("nL", "nE") %in% colnames(.test_var_info(exp))))
 })
 
 test_that("read_glyhunter works with sample name converter", {
@@ -31,5 +31,5 @@ test_that("read_glyhunter works with sample name converter", {
     }
   ))
 
-  expect_true(all(grepl("^Sample_", colnames(exp$expr_mat))))
+  expect_true(all(grepl("^Sample_", colnames(.test_expr_mat(exp)))))
 })
