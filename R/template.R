@@ -93,14 +93,17 @@
   var_info$variable <- .standardize_glycoproteomic_variables(var_info)
   rownames(expr_mat) <- var_info$variable
 
-  glyexp::GlycoproteomicSE(
+  .muffle_all_missing_assay_warning(
     expr_mat,
-    colData = .as_se_data(sample_info, "sample"),
-    rowData = .as_se_data(var_info, "variable"),
-    metadata = list(
-      exp_type = "glycoproteomics",
-      glycan_type = glycan_type,
-      quant_method = quant_method
+    glyexp::GlycoproteomicSE(
+      expr_mat,
+      colData = .as_se_data(sample_info, "sample"),
+      rowData = .as_se_data(var_info, "variable"),
+      metadata = list(
+        exp_type = "glycoproteomics",
+        glycan_type = glycan_type,
+        quant_method = quant_method
+      )
     )
   )
 }
@@ -114,14 +117,45 @@
 .new_glycomic_se <- function(expr_mat, sample_info, var_info, glycan_type) {
   ids <- .prepare_se_ids(expr_mat, sample_info, var_info)
 
-  glyexp::GlycomicSE(
+  .muffle_all_missing_assay_warning(
     ids$expr_mat,
-    colData = .as_se_data(ids$sample_info, "sample"),
-    rowData = .as_se_data(ids$var_info, "variable"),
-    metadata = list(
-      exp_type = "glycomics",
-      glycan_type = glycan_type
+    glyexp::GlycomicSE(
+      ids$expr_mat,
+      colData = .as_se_data(ids$sample_info, "sample"),
+      rowData = .as_se_data(ids$var_info, "variable"),
+      metadata = list(
+        exp_type = "glycomics",
+        glycan_type = glycan_type
+      )
     )
+  )
+}
+
+#' Muffle the empty-min warning for an all-missing assay
+#'
+#' The glyco SE validity methods use `min(..., na.rm = TRUE)` to reject
+#' negative abundance. Base R warns when the assay contains no non-missing
+#' values, even though such an assay is valid.
+#'
+#' @param abundance A numeric abundance matrix.
+#' @param code Code that constructs a glyco SE object.
+#'
+#' @returns The result of `code`.
+#' @noRd
+.muffle_all_missing_assay_warning <- function(abundance, code) {
+  all_missing <- all(is.na(abundance))
+
+  withCallingHandlers(
+    code,
+    warning = function(cnd) {
+      is_empty_min_warning <- startsWith(
+        conditionMessage(cnd),
+        "no non-missing arguments to min"
+      )
+      if (all_missing && is_empty_min_warning) {
+        rlang::cnd_muffle(cnd)
+      }
+    }
   )
 }
 

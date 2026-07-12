@@ -21,6 +21,7 @@
     } # Otherwise, assume it's already a tibble.
 
     checkmate::assert_names(colnames(sample_info), must.include = "sample")
+    sample_info$sample <- as.character(sample_info$sample)
     checkmate::assert_character(
       sample_info$sample,
       any.missing = FALSE,
