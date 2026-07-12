@@ -34,11 +34,11 @@ If NULL, original names are kept.}
 Default is "org.Hs.eg.db".}
 }
 \value{
-An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 }
 \description{
 Glyco-Decipher is a software for glycopeptide identification and quantification.
-This function reads in the result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+This function reads in the result file and returns a \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 Currently only label-free quantification is supported.
 }
 \section{Which file to use?}{

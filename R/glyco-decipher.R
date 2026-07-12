@@ -1,7 +1,7 @@
 #' Read glyco-decipher output
 #'
 #' Glyco-Decipher is a software for glycopeptide identification and quantification.
-#' This function reads in the result file and returns a [glyexp::experiment()] object.
+#' This function reads in the result file and returns a [glyexp::GlycoproteomicSE()] object.
 #' Currently only label-free quantification is supported.
 #'
 #' @section Which file to use?:
@@ -30,7 +30,7 @@
 #' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.
 #'  Default is "org.Hs.eg.db".
 #'
-#' @returns An [glyexp::experiment()] object.
+#' @returns An [glyexp::GlycoproteomicSE()] object.
 #' @export
 read_glyco_decipher <- function(
   fp,
@@ -56,12 +56,6 @@ read_glyco_decipher <- function(
     cli::cli_progress_step("Reading data")
     df <- .read_glyco_decipher_df(fp)
     tidy_df <- .tidy_glyco_decipher(df, orgdb)
-    # Add placeholder columns for standardize_variable() temporarily
-    tidy_df <- dplyr::mutate(
-      tidy_df,
-      peptide = "N", # Placeholder for N-glycosylation
-      peptide_site = 1L
-    )
     exp <- .read_template(
       tidy_df,
       sample_info,
@@ -72,8 +66,6 @@ read_glyco_decipher <- function(
       structure_parser = NULL,
       parse_structure = FALSE
     )
-    # Remove placeholder columns so they don't appear in final var_info
-    exp$var_info <- dplyr::select(exp$var_info, -"peptide", -"peptide_site")
   } else {
     rlang::abort("TMT quantification is not supported yet.")
   }

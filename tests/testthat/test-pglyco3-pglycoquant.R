@@ -9,7 +9,7 @@ test_that("it returns correct information (label-free)", {
   )
 
   expect_equal(
-    colnames(res$var_info),
+    colnames(.test_var_info(res)),
     c(
       "variable",
       "peptide",
@@ -20,13 +20,13 @@ test_that("it returns correct information (label-free)", {
       "glycan_composition"
     )
   )
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
-  expect_type(res$var_info$protein_site, "integer")
-  expect_equal(colnames(res$sample_info), c("sample", "group"))
-  expect_equal(colnames(res$expr_mat), c("S1", "S2"))
-  expect_equal(rownames(res$expr_mat), res$var_info$variable)
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
+  expect_type(.test_var_info(res)$protein_site, "integer")
+  expect_equal(colnames(.test_sample_info(res)), c("sample", "group"))
+  expect_equal(colnames(.test_expr_mat(res)), c("S1", "S2"))
+  expect_equal(rownames(.test_expr_mat(res)), .test_var_info(res)$variable)
   expect_equal(
-    res$meta_data,
+    .test_metadata(res),
     list(
       exp_type = "glycoproteomics",
       glycan_type = "N",
@@ -47,7 +47,7 @@ test_that("it accepts a sample_info tibble", {
       quant_method = "label-free"
     )
   })
-  expect_equal(colnames(res$sample_info), c("sample", "group"))
+  expect_equal(colnames(.test_sample_info(res)), c("sample", "group"))
 })
 
 
@@ -65,8 +65,8 @@ test_that("it accepts a sample_info data.frame", {
       quant_method = "label-free"
     )
   })
-  expect_equal(colnames(res$sample_info), c("sample", "group"))
-  expect_s3_class(res$sample_info, "tbl_df") # Should be converted to tibble
+  expect_equal(colnames(.test_sample_info(res)), c("sample", "group"))
+  expect_s3_class(.test_sample_info(res), "tbl_df") # Should be converted to tibble
 })
 
 
@@ -77,7 +77,7 @@ test_that("it provides a default sample information tibble (label-free)", {
       quant_method = "label-free"
     )
   )
-  expect_equal(res$sample_info, tibble::tibble(sample = c("S1", "S2")))
+  expect_equal(.test_sample_info(res), tibble::tibble(sample = c("S1", "S2")))
 })
 
 
@@ -104,7 +104,7 @@ test_that("zeros are replaced by NA (label-free)", {
       quant_method = "label-free"
     )
   )
-  expect_true(sum(is.na(res$expr_mat)) > 0)
+  expect_true(sum(is.na(.test_expr_mat(res))) > 0)
 })
 
 
@@ -119,8 +119,8 @@ test_that("sample name converter works", {
       sample_name_converter = sample_name_converter
     )
   )
-  expect_equal(colnames(res$expr_mat), c("Sample_1", "Sample_2"))
-  expect_equal(res$sample_info$sample, c("Sample_1", "Sample_2"))
+  expect_equal(colnames(.test_expr_mat(res)), c("Sample_1", "Sample_2"))
+  expect_equal(.test_sample_info(res)$sample, c("Sample_1", "Sample_2"))
 })
 
 # ----- Parameter validation tests -----
@@ -200,7 +200,7 @@ test_that("it handles O-linked glycan type", {
       glycan_type = "O-GalNAc"
     )
   )
-  expect_equal(res$meta_data$glycan_type, "O-GalNAc")
+  expect_equal(.test_metadata(res)$glycan_type, "O-GalNAc")
 })
 
 # ----- TMT quantification test -----
@@ -224,11 +224,11 @@ test_that("glycan composition parsing works correctly", {
   )
 
   # Check that all glycan compositions are correctly parsed
-  expect_true(all(!is.na(res$var_info$glycan_composition)))
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+  expect_true(all(!is.na(.test_var_info(res)$glycan_composition)))
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
 
   # Check specific glycan compositions from test data
-  compositions <- res$var_info$glycan_composition
+  compositions <- .test_var_info(res)$glycan_composition
   expect_true(length(compositions) > 0)
 })
 
@@ -242,8 +242,8 @@ test_that("glycan structure parsing works correctly", {
   )
 
   # Check that all glycan structures are parsed
-  expect_s3_class(res$var_info$glycan_structure, "glyrepr_structure")
-  structures <- res$var_info$glycan_structure
+  expect_s3_class(.test_var_info(res)$glycan_structure, "glyrepr_structure")
+  structures <- .test_var_info(res)$glycan_structure
   expect_true(length(structures) > 0)
 })
 
@@ -258,9 +258,9 @@ test_that("parse_structure = TRUE includes glycan_structure column", {
   )
 
   # Check that glycan_structure column exists and is parsed
-  expect_true("glycan_structure" %in% colnames(res$var_info))
-  expect_s3_class(res$var_info$glycan_structure, "glyrepr_structure")
-  expect_true(length(res$var_info$glycan_structure) > 0)
+  expect_true("glycan_structure" %in% colnames(.test_var_info(res)))
+  expect_s3_class(.test_var_info(res)$glycan_structure, "glyrepr_structure")
+  expect_true(length(.test_var_info(res)$glycan_structure) > 0)
 })
 
 
@@ -273,10 +273,10 @@ test_that("parse_structure = FALSE (default) skips glycan structure parsing", {
   )
 
   # Check that glycan_structure column does not exist (default behavior)
-  expect_false("glycan_structure" %in% colnames(res$var_info))
+  expect_false("glycan_structure" %in% colnames(.test_var_info(res)))
   # But glycan_composition should still be parsed
-  expect_true("glycan_composition" %in% colnames(res$var_info))
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+  expect_true("glycan_composition" %in% colnames(.test_var_info(res)))
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
 })
 
 
@@ -290,10 +290,10 @@ test_that("parse_structure = FALSE explicitly skips glycan structure parsing", {
   )
 
   # Check that glycan_structure column does not exist
-  expect_false("glycan_structure" %in% colnames(res$var_info))
+  expect_false("glycan_structure" %in% colnames(.test_var_info(res)))
   # But glycan_composition should still be parsed
-  expect_true("glycan_composition" %in% colnames(res$var_info))
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+  expect_true("glycan_composition" %in% colnames(.test_var_info(res)))
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
 })
 
 
@@ -305,7 +305,7 @@ test_that("protein and gene information is correctly processed", {
     )
   )
 
-  genes <- res$var_info$gene
+  genes <- .test_var_info(res)$gene
   # Check that gene names are properly processed (after protein inference)
   expect_true(all(nchar(genes) > 0))
   expect_true(all(!is.na(genes)))
@@ -320,11 +320,11 @@ test_that("expression matrix has correct dimensions and properties", {
     )
   )
 
-  expr_mat <- res$expr_mat
+  expr_mat <- .test_expr_mat(res)
 
   # Check dimensions
-  expect_equal(nrow(expr_mat), nrow(res$var_info))
-  expect_equal(ncol(expr_mat), nrow(res$sample_info))
+  expect_equal(nrow(expr_mat), nrow(.test_var_info(res)))
+  expect_equal(ncol(expr_mat), nrow(.test_sample_info(res)))
 
   # Check that matrix contains numeric values or NA
   expect_true(is.numeric(expr_mat))
@@ -341,7 +341,7 @@ test_that("variable identifiers are unique", {
     )
   )
 
-  variables <- res$var_info$variable
+  variables <- .test_var_info(res)$variable
   expect_equal(length(variables), length(unique(variables)))
   # Variables should be meaningful: protein-site-glycan pattern
   expect_true(all(stringr::str_detect(variables, ".+?-\\d+-.+")))
@@ -381,10 +381,10 @@ test_that("it handles complex sample info with multiple columns", {
   )
 
   expect_equal(
-    colnames(res$sample_info),
+    colnames(.test_sample_info(res)),
     c("sample", "group", "batch", "bio_replicate")
   )
-  expect_equal(res$sample_info$batch, factor(c(1, 2)))
+  expect_equal(.test_sample_info(res)$batch, factor(c(1, 2)))
 })
 
 # ----- Error handling tests -----
@@ -473,14 +473,14 @@ test_that("all output data types are consistent", {
   )
 
   # Check data types of variable information
-  expect_type(res$var_info$peptide, "character")
-  expect_type(res$var_info$protein, "character")
-  expect_type(res$var_info$gene, "character")
-  expect_type(res$var_info$peptide_site, "integer")
-  expect_type(res$var_info$protein_site, "integer")
+  expect_type(.test_var_info(res)$peptide, "character")
+  expect_type(.test_var_info(res)$protein, "character")
+  expect_type(.test_var_info(res)$gene, "character")
+  expect_type(.test_var_info(res)$peptide_site, "integer")
+  expect_type(.test_var_info(res)$protein_site, "integer")
 
   # Check that all rows have data
-  expect_true(all(nchar(res$var_info$peptide) > 0))
+  expect_true(all(nchar(.test_var_info(res)$peptide) > 0))
 })
 
 test_that("intensity columns are correctly extracted", {
@@ -492,7 +492,7 @@ test_that("intensity columns are correctly extracted", {
   )
 
   # Check that intensity column names are correctly processed
-  expr_mat <- res$expr_mat
+  expr_mat <- .test_expr_mat(res)
   expect_true(all(colnames(expr_mat) %in% c("S1", "S2")))
   expect_true(is.numeric(expr_mat))
 
@@ -517,7 +517,7 @@ test_that("PSMs are correctly aggregated to glycopeptides", {
   })
 
   # Check that aggregation worked correctly
-  expect_equal(nrow(res$var_info), nrow(df))
+  expect_equal(nrow(.test_var_info(res)), nrow(df))
 })
 
 # ----- Peptide sequence tests -----
@@ -530,10 +530,10 @@ test_that("J is converted to N in peptide column", {
   )
 
   # J is pGlyco3's notation for glycosylated Asn, should be converted back to N
-  expect_false(any(stringr::str_detect(res$var_info$peptide, "J")))
+  expect_false(any(stringr::str_detect(.test_var_info(res)$peptide, "J")))
 
   # Check that N is present in peptides (since all are N-glycopeptides)
-  expect_true(any(stringr::str_detect(res$var_info$peptide, "N")))
+  expect_true(any(stringr::str_detect(.test_var_info(res)$peptide, "N")))
 
   # Verify no invalid amino acids in peptides (20 standard amino acids)
   valid_aa <- c(
@@ -558,7 +558,7 @@ test_that("J is converted to N in peptide column", {
     "W",
     "Y"
   )
-  all_peptides <- paste(res$var_info$peptide, collapse = "")
+  all_peptides <- paste(.test_var_info(res)$peptide, collapse = "")
   invalid_chars <- stringr::str_remove_all(
     all_peptides,
     paste(valid_aa, collapse = "|")

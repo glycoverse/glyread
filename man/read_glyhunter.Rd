@@ -32,11 +32,11 @@ Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
 }
 \value{
-An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+An \code{\link[glyexp:GlycomicSE]{glyexp::GlycomicSE()}} object.
 }
 \description{
 This function reads in a \href{https://github.com/fubin1999/glyhunter}{GlyHunter}
-result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+result file and returns a \code{\link[glyexp:GlycomicSE]{glyexp::GlycomicSE()}} object.
 }
 \section{Which file to use?}{
 Use the "summary_area.csv" file in the GlyHunter result folder.
@@ -72,5 +72,5 @@ required for most downstream analyses
 }
 
 \seealso{
-\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}
+\code{\link[glyexp:GlycomicSE]{glyexp::GlycomicSE()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}
 }

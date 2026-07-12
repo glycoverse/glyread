@@ -1,9 +1,9 @@
-test_that("read_glycan_finder() returns a glyexp experiment object", {
+test_that("read_glycan_finder() returns a GlycoproteomicSE object", {
   result <- suppressMessages(read_glycan_finder(
     "data/glycan-finder-result.csv",
     glycan_type = "N"
   ))
-  expect_s3_class(result, "glyexp_experiment")
+  expect_s4_class(result, "GlycoproteomicSE")
 })
 
 test_that(".parse_glycan_finder_peptide() removes modifications", {
@@ -128,7 +128,7 @@ test_that("sample columns exclude summary columns like Area C3 and Area H", {
   ))
 
   # Get sample info and check columns
-  sample_info <- glyexp::get_sample_info(result)
+  sample_info <- .test_sample_info(result)
   sample_names <- sample_info$sample
 
   # Should only have replicate columns (C_3, H_3, H_1, H_2), not summary columns (C3, H)
@@ -152,8 +152,8 @@ test_that("end-to-end with mixed glycan types does not confuse N and O glycans",
     glycan_type = "O-GalNAc"
   ))
 
-  var_info_n <- glyexp::get_var_info(result_n)
-  var_info_o <- glyexp::get_var_info(result_o)
+  var_info_n <- .test_var_info(result_n)
+  var_info_o <- .test_var_info(result_o)
 
   # When reading N-glycans, we should NOT see pure O-glycan compositions
   # (e.g., single HexNAc without Hex)

@@ -40,11 +40,11 @@ If \code{TRUE} (default), glycan structures are parsed and included in the
 is skipped and structure-related columns are removed.}
 }
 \value{
-An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 }
 \description{
 GlycanFinder is a software for intact glycopeptide identification.
-This function reads in the result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+This function reads in the result file and returns a \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 Currently only label-free quantification is supported.
 }
 \section{Which file to use?}{
@@ -76,6 +76,6 @@ The following columns could be found in the variable information tibble:
 }
 
 \seealso{
-\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
+\code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
 \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}
 }

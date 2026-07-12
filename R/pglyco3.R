@@ -2,7 +2,7 @@
 #'
 #' @description
 #' pGlyco3 is a software for intact glycopeptide identification and quantification.
-#' This function reads in the result file and returns a [glyexp::experiment()] object.
+#' This function reads in the result file and returns a [glyexp::GlycoproteomicSE()] object.
 #' Currently only label-free quantification is supported.
 #'
 #' Use this function if you only use pGlyco3.
@@ -80,8 +80,8 @@
 #'  `var_info` as `glycan_structure` column. If `FALSE` (default), structure parsing
 #'  is skipped and structure-related columns are removed.
 #'
-#' @returns An [glyexp::experiment()] object.
-#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
+#' @returns An [glyexp::GlycoproteomicSE()] object.
+#' @seealso [glyexp::GlycoproteomicSE()], [glyrepr::glycan_composition()],
 #'   [glyrepr::glycan_structure()]
 #' @export
 read_pglyco3 <- function(

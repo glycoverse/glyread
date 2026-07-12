@@ -36,11 +36,11 @@ If \code{TRUE}, glycan structures are parsed and included in the
 is skipped and structure-related columns are removed.}
 }
 \value{
-An \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 }
 \description{
 pGlyco3 is a software for intact glycopeptide identification and quantification.
-This function reads in the result file and returns a \code{\link[glyexp:experiment]{glyexp::experiment()}} object.
+This function reads in the result file and returns a \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 Currently only label-free quantification is supported.
 
 Use this function if you only use pGlyco3.
@@ -106,6 +106,6 @@ because pGlyco3 does not have strict quality control on glycan structure annotat
 }
 
 \seealso{
-\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
+\code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
 \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}
 }

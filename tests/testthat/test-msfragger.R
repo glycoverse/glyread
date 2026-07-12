@@ -7,12 +7,12 @@ test_that("it returns correct information (label-free) with single sample", {
     )
   )
 
-  # Check structure of returned experiment object
-  expect_s3_class(res, "glyexp_experiment")
+  # Check structure of returned GlycoproteomicSE object
+  expect_s4_class(res, "GlycoproteomicSE")
 
   # Check variable information columns
   expect_equal(
-    colnames(res$var_info),
+    colnames(.test_var_info(res)),
     c(
       "variable",
       "peptide",
@@ -25,19 +25,19 @@ test_that("it returns correct information (label-free) with single sample", {
   )
 
   # Check glycan composition is properly parsed
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
 
   # Check sample information has correct structure
-  expect_equal(colnames(res$sample_info), "sample")
+  expect_equal(colnames(.test_sample_info(res)), "sample")
 
   # Check expression matrix dimensions and names
-  expect_equal(ncol(res$expr_mat), 3) # Three samples in new test data
-  expect_equal(nrow(res$expr_mat), nrow(res$var_info))
-  expect_equal(rownames(res$expr_mat), res$var_info$variable)
+  expect_equal(ncol(.test_expr_mat(res)), 3) # Three samples in new test data
+  expect_equal(nrow(.test_expr_mat(res)), nrow(.test_var_info(res)))
+  expect_equal(rownames(.test_expr_mat(res)), .test_var_info(res)$variable)
 
   # Check metadata
   expect_equal(
-    res$meta_data,
+    .test_metadata(res),
     list(
       exp_type = "glycoproteomics",
       glycan_type = "N",
@@ -46,8 +46,8 @@ test_that("it returns correct information (label-free) with single sample", {
   )
 
   # Check sample names are extracted correctly from directory structure
-  expect_equal(sort(colnames(res$expr_mat)), c("H_1", "H_2", "H_3"))
-  expect_equal(sort(res$sample_info$sample), c("H_1", "H_2", "H_3"))
+  expect_equal(sort(colnames(.test_expr_mat(res))), c("H_1", "H_2", "H_3"))
+  expect_equal(sort(.test_sample_info(res)$sample), c("H_1", "H_2", "H_3"))
 })
 
 test_that("it provides a default sample information tibble", {
@@ -59,8 +59,8 @@ test_that("it provides a default sample information tibble", {
   )
   # Sample names should be extracted from directory structure
   expected_samples <- c("H_1", "H_2", "H_3")
-  expect_equal(sort(res$sample_info$sample), sort(expected_samples))
-  expect_equal(ncol(res$sample_info), 1)
+  expect_equal(sort(.test_sample_info(res)$sample), sort(expected_samples))
+  expect_equal(ncol(.test_sample_info(res)), 1)
 })
 
 test_that("zeros are replaced by NA", {
@@ -72,7 +72,7 @@ test_that("zeros are replaced by NA", {
   )
   # Check if there are any NA values in the intensity data
   # (should be converted from zero intensities)
-  expect_true(sum(is.na(res$expr_mat)) >= 0)
+  expect_true(sum(is.na(.test_expr_mat(res))) >= 0)
 })
 
 test_that("it filters uncertain or multisite PSMs", {
@@ -84,9 +84,9 @@ test_that("it filters uncertain or multisite PSMs", {
   )
   # All remaining PSMs should have exactly one glycosite
   # This is verified by checking that all variables have valid data
-  expect_true(nrow(res$var_info) > 0)
-  expect_true(all(!is.na(res$var_info$peptide_site)))
-  expect_true(all(!is.na(res$var_info$protein_site)))
+  expect_true(nrow(.test_var_info(res)) > 0)
+  expect_true(all(!is.na(.test_var_info(res)$peptide_site)))
+  expect_true(all(!is.na(.test_var_info(res)$protein_site)))
 })
 
 test_that("it handles O-linked glycan type", {
@@ -97,7 +97,7 @@ test_that("it handles O-linked glycan type", {
       glycan_type = "O-GalNAc"
     )
   )
-  expect_equal(res$meta_data$glycan_type, "O-GalNAc")
+  expect_equal(.test_metadata(res)$glycan_type, "O-GalNAc")
 })
 
 # ----- Parameter validation tests -----
@@ -176,8 +176,8 @@ test_that("sample name converter works", {
     )
   )
   expected_samples <- c("Sample_H_1", "Sample_H_2", "Sample_H_3")
-  expect_equal(sort(colnames(res$expr_mat)), sort(expected_samples))
-  expect_equal(sort(res$sample_info$sample), sort(expected_samples))
+  expect_equal(sort(colnames(.test_expr_mat(res))), sort(expected_samples))
+  expect_equal(sort(.test_sample_info(res)$sample), sort(expected_samples))
 })
 
 # ----- Test glycan composition parsing -----
@@ -190,7 +190,7 @@ test_that("it correctly parses glycan compositions", {
   )
 
   # Check that glycan compositions are properly parsed
-  glycan_comps <- res$var_info$glycan_composition
+  glycan_comps <- .test_var_info(res)$glycan_composition
   expect_true(all(!is.na(glycan_comps)))
 
   # Check that compositions contain expected monosaccharides
@@ -226,10 +226,10 @@ test_that("glycan composition parsing handles complex compositions", {
   )
 
   # Check that all compositions are valid glyrepr objects
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
 
   # Check that compositions have reasonable monosaccharide counts
-  comp_strings <- as.character(res$var_info$glycan_composition)
+  comp_strings <- as.character(.test_var_info(res)$glycan_composition)
   expect_true(all(nchar(comp_strings) > 0))
 
   # Verify that percentage values are stripped (should not contain %)
@@ -245,7 +245,7 @@ test_that("it correctly extracts variable information", {
     )
   )
 
-  var_info <- res$var_info
+  var_info <- .test_var_info(res)
 
   # Check that all required columns are present and of correct type
   expect_true(all(is.character(var_info$variable)))
@@ -280,7 +280,7 @@ test_that("it correctly calculates protein sites from peptide sites", {
     )
   )
 
-  var_info <- res$var_info
+  var_info <- .test_var_info(res)
 
   # Check that protein_site calculation is correct
   # protein_site should be protein_start + peptide_site - 1
@@ -299,7 +299,7 @@ test_that("it handles missing or zero intensity values correctly", {
 
   # Check that zero intensities are converted to NA
   # and that the expression matrix has reasonable values
-  expr_mat <- res$expr_mat
+  expr_mat <- .test_expr_mat(res)
 
   # Should have some non-NA values
   expect_true(sum(!is.na(expr_mat)) > 0)
@@ -355,14 +355,17 @@ test_that("it correctly aggregates PSMs to glycopeptides", {
   )
 
   # Check that aggregation produces reasonable results
-  expect_true(nrow(res$var_info) > 0)
+  expect_true(nrow(.test_var_info(res)) > 0)
 
   # Check that all variables have unique identifiers
-  expect_equal(length(unique(res$var_info$variable)), nrow(res$var_info))
+  expect_equal(
+    length(unique(.test_var_info(res)$variable)),
+    nrow(.test_var_info(res))
+  )
 
   # Check that expression matrix matches variable info
-  expect_equal(nrow(res$expr_mat), nrow(res$var_info))
-  expect_equal(rownames(res$expr_mat), res$var_info$variable)
+  expect_equal(nrow(.test_expr_mat(res)), nrow(.test_var_info(res)))
+  expect_equal(rownames(.test_expr_mat(res)), .test_var_info(res)$variable)
 })
 
 test_that("it preserves sample information structure", {
@@ -382,11 +385,14 @@ test_that("it preserves sample information structure", {
   )
 
   # Check that sample info is preserved correctly
-  expect_equal(nrow(res$sample_info), 3)
-  expect_equal(colnames(res$sample_info), c("sample", "condition", "replicate"))
+  expect_equal(nrow(.test_sample_info(res)), 3)
   expect_equal(
-    res$sample_info$condition,
+    colnames(.test_sample_info(res)),
+    c("sample", "condition", "replicate")
+  )
+  expect_equal(
+    .test_sample_info(res)$condition,
     c("control", "treatment", "treatment")
   )
-  expect_equal(res$sample_info$replicate, c(1, 1, 2))
+  expect_equal(.test_sample_info(res)$replicate, c(1, 1, 2))
 })

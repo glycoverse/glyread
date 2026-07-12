@@ -22,13 +22,13 @@ If \code{TRUE} (default), glycan structures are parsed and included in the
 is skipped and the structure column is removed.}
 }
 \value{
-An \code{\link[glyexp:experiment]{glyexp::experiment()}} object with a binary (0/1) expression matrix,
+An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object with a binary (0/1) expression matrix,
 where 1 indicates the glycopeptide was identified in that sample and 0 indicates it was not.
 }
 \description{
 StrucGP is a software for intact glycopeptide identification.
 As StrucGP doesn't support quantification,
-this function returns an \code{\link[glyexp:experiment]{glyexp::experiment()}} object with a binary (0/1) expression matrix
+this function returns an \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object with a binary (0/1) expression matrix
 indicating whether each glycopeptide was identified in each sample.
 }
 \section{Variable information}{
@@ -59,6 +59,6 @@ required for most downstream analyses
 }
 
 \seealso{
-\code{\link[glyexp:experiment]{glyexp::experiment()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
+\code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}}, \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}},
 \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}
 }

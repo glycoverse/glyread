@@ -14,11 +14,11 @@ test_that("it returns correct information (label-free)", {
     "protein_site",
     "glycan_composition"
   )
-  expect_true(all(expected_cols %in% colnames(res$var_info)))
+  expect_true(all(expected_cols %in% colnames(.test_var_info(res))))
 
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
-  expect_type(res$var_info$protein_site, "integer")
-  expect_equal(colnames(res$sample_info), c("sample"))
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
+  expect_type(.test_var_info(res)$protein_site, "integer")
+  expect_equal(colnames(.test_sample_info(res)), c("sample"))
 
   # Check sample names and data structure
   expected_samples <- c(
@@ -26,11 +26,11 @@ test_that("it returns correct information (label-free)", {
     "20241224-LXJ-Nglyco-H_2",
     "20241224-LXJ-Nglyco-H_3"
   )
-  expect_true(all(expected_samples %in% colnames(res$expr_mat)))
-  expect_equal(rownames(res$expr_mat), res$var_info$variable)
+  expect_true(all(expected_samples %in% colnames(.test_expr_mat(res))))
+  expect_equal(rownames(.test_expr_mat(res)), .test_var_info(res)$variable)
 
   expect_equal(
-    res$meta_data,
+    .test_metadata(res),
     list(
       exp_type = "glycoproteomics",
       glycan_type = "N",
@@ -50,12 +50,12 @@ test_that("protein inference and site resolution work correctly", {
   )
 
   # Proteins should be properly inferred (no semicolons, proper format)
-  proteins <- res$var_info$protein
+  proteins <- .test_var_info(res)$protein
   expect_false(any(stringr::str_detect(proteins, ";")))
   expect_true(all(stringr::str_detect(proteins, "^[A-Z0-9]+$")))
 
   # Protein sites should be integers, some may be NA for uncertain sites
-  protein_sites <- res$var_info$protein_site
+  protein_sites <- .test_var_info(res)$protein_site
   expect_type(protein_sites, "integer")
   expect_true(any(!is.na(protein_sites))) # Some sites should be determined
 })
@@ -69,7 +69,7 @@ test_that("glycan compositions are correctly processed", {
     )
   )
 
-  compositions <- res$var_info$glycan_composition
+  compositions <- .test_var_info(res)$glycan_composition
   expect_s3_class(compositions, "glyrepr_composition")
 
   # Check that Fuc is converted to dHex and adducts are removed
@@ -89,13 +89,13 @@ test_that("expression matrix and variables are correctly processed", {
   )
 
   # Check expression matrix
-  expect_true(is.numeric(res$expr_mat))
-  expect_equal(nrow(res$expr_mat), nrow(res$var_info))
-  expect_equal(ncol(res$expr_mat), nrow(res$sample_info))
-  expect_true(all(is.na(res$expr_mat) | res$expr_mat > 0))
+  expect_true(is.numeric(.test_expr_mat(res)))
+  expect_equal(nrow(.test_expr_mat(res)), nrow(.test_var_info(res)))
+  expect_equal(ncol(.test_expr_mat(res)), nrow(.test_sample_info(res)))
+  expect_true(all(is.na(.test_expr_mat(res)) | .test_expr_mat(res) > 0))
 
   # Check variable naming
-  variables <- res$var_info$variable
+  variables <- .test_var_info(res)$variable
   # Variables should be meaningful: protein-site-glycan pattern
   # Note: glyco-decipher may have uncertain sites (e.g., "X") so use X instead of N\\d+
   expect_true(all(stringr::str_detect(variables, ".+?-(X|\\d+)-.+")))
@@ -120,8 +120,8 @@ test_that("it handles sample information correctly", {
     "20241224-LXJ-Nglyco-H_2",
     "20241224-LXJ-Nglyco-H_3"
   )
-  expect_true(all(expected_samples %in% res1$sample_info$sample))
-  expect_equal(colnames(res1$sample_info), c("sample"))
+  expect_true(all(expected_samples %in% .test_sample_info(res1)$sample))
+  expect_equal(colnames(.test_sample_info(res1)), c("sample"))
 
   # Custom sample info
   sample_info <- tibble::tibble(
@@ -135,7 +135,7 @@ test_that("it handles sample information correctly", {
       quant_method = "label-free"
     )
   )
-  expect_equal(colnames(res2$sample_info), c("sample", "group"))
+  expect_equal(colnames(.test_sample_info(res2)), c("sample", "group"))
 })
 
 
@@ -167,7 +167,7 @@ test_that("sample name converter works", {
   )
 
   expected_samples <- c("Sample_1", "Sample_2", "Sample_3")
-  expect_true(all(expected_samples %in% colnames(res$expr_mat)))
+  expect_true(all(expected_samples %in% colnames(.test_expr_mat(res))))
 })
 
 
@@ -207,7 +207,7 @@ test_that("it handles different glycan types and orgdb parameters", {
       glycan_type = "O-GalNAc"
     )
   )
-  expect_equal(res1$meta_data$glycan_type, "O-GalNAc")
+  expect_equal(.test_metadata(res1)$glycan_type, "O-GalNAc")
 
   # Custom orgdb (should work even if package not available)
   suppressMessages(
@@ -217,5 +217,5 @@ test_that("it handles different glycan types and orgdb parameters", {
       orgdb = "org.Mm.eg.db"
     )
   )
-  expect_s3_class(res2, "glyexp_experiment")
+  expect_s4_class(res2, "GlycoproteomicSE")
 })

@@ -11,12 +11,13 @@ Description: Provides a unified interface for reading and processing
     The package standardizes raw data from different sources, performs
     peptide-spectrum match (PSM) aggregation, parses glycan compositions
     and structures, and converts the data into a standardized
-    experiment object from the 'glyexp' package for downstream analysis
-    within the glycoverse ecosystem.
+    'GlycomicSE' and 'GlycoproteomicSE' objects from the 'glyexp' package
+    for downstream analysis within the glycoverse ecosystem.
 License: MIT + file LICENSE
 Suggests: 
     knitr,
     rmarkdown,
+    SummarizedExperiment,
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3
@@ -30,7 +31,7 @@ Imports:
     cli,
     dplyr,
     fs,
-    glyexp (>= 0.12.1),
+    glyexp (>= 0.15.0),
     glyparse (>= 0.5.3),
     glyrepr (>= 0.7.4),
     janitor,
@@ -39,6 +40,7 @@ Imports:
     readr,
     readxl,
     rlang,
+    S4Vectors,
     stringr,
     tibble,
     tidyr,

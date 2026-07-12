@@ -16,19 +16,19 @@ test_that("it returns correct information (label-free)", {
     "glycan_composition",
     "peptide_site"
   )
-  expect_true(all(expected_cols %in% colnames(res$var_info)))
+  expect_true(all(expected_cols %in% colnames(.test_var_info(res))))
 
   # Gene column is optional (requires clusterProfiler and org.Hs.eg.db)
-  if ("gene" %in% colnames(res$var_info)) {
-    expect_type(res$var_info$gene, "character")
+  if ("gene" %in% colnames(.test_var_info(res))) {
+    expect_type(.test_var_info(res)$gene, "character")
   }
 
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
-  expect_equal(colnames(res$sample_info), c("sample"))
-  expect_equal(colnames(res$expr_mat), c("20241224-lxj-nglyco-h_1"))
-  expect_equal(rownames(res$expr_mat), res$var_info$variable)
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
+  expect_equal(colnames(.test_sample_info(res)), c("sample"))
+  expect_equal(colnames(.test_expr_mat(res)), c("20241224-lxj-nglyco-h_1"))
+  expect_equal(rownames(.test_expr_mat(res)), .test_var_info(res)$variable)
   expect_equal(
-    res$meta_data,
+    .test_metadata(res),
     list(
       exp_type = "glycoproteomics",
       glycan_type = "N",
@@ -47,16 +47,16 @@ test_that("multisite glycopeptides are handled correctly in full workflow", {
   )
 
   # All entries should be present (multisite glycopeptides are no longer filtered out)
-  expect_true(nrow(res$var_info) > 0)
+  expect_true(nrow(.test_var_info(res)) > 0)
 
   # Multisite glycopeptides should be expanded before composition parsing,
   # so parsed output should not retain comma-separated compositions.
-  compositions <- as.character(res$var_info$glycan_composition)
+  compositions <- as.character(.test_var_info(res)$glycan_composition)
   multisite_entries <- stringr::str_detect(compositions, ",")
   expect_false(any(multisite_entries))
 
   # Expanded entries should have valid protein_site values.
-  expect_true(all(!is.na(res$var_info$protein_site)))
+  expect_true(all(!is.na(.test_var_info(res)$protein_site)))
 })
 
 test_that("multisite Byonic-pGlycoQuant glycopeptides are expanded into site-specific rows", {
@@ -80,18 +80,18 @@ test_that("multisite Byonic-pGlycoQuant glycopeptides are expanded into site-spe
     )
   )
 
-  res$var_info <- dplyr::arrange(res$var_info, .data$protein_site)
+  var_info <- dplyr::arrange(.test_var_info(res), .data$protein_site)
 
-  expect_equal(nrow(res$var_info), 2L)
-  expect_false("gp_id" %in% colnames(res$var_info))
-  expect_equal(res$var_info$peptide_site, c(5L, 9L))
-  expect_equal(res$var_info$protein_site, c(239L, 243L))
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
+  expect_equal(nrow(var_info), 2L)
+  expect_false("gp_id" %in% colnames(var_info))
+  expect_equal(var_info$peptide_site, c(5L, 9L))
+  expect_equal(var_info$protein_site, c(239L, 243L))
+  expect_s3_class(var_info$glycan_composition, "glyrepr_composition")
   expect_equal(
-    as.character(res$var_info$glycan_composition),
+    as.character(var_info$glycan_composition),
     c("HexNAc(1)dHex(1)", "Hex(5)HexNAc(4)dHex(1)NeuAc(1)")
   )
-  expect_equal(as.numeric(res$expr_mat[, "Sample1"]), c(100, 100))
+  expect_equal(as.numeric(.test_expr_mat(res)[, "Sample1"]), c(100, 100))
 })
 
 test_that("multisite Byonic-pGlycoQuant glycopeptides can be dropped", {
@@ -125,11 +125,14 @@ test_that("multisite Byonic-pGlycoQuant glycopeptides can be dropped", {
     )
   )
 
-  expect_equal(nrow(res$var_info), 1L)
-  expect_equal(res$var_info$peptide_site, 1L)
-  expect_equal(res$var_info$protein_site, 186L)
-  expect_equal(as.character(res$var_info$glycan_composition), "HexNAc(1)")
-  expect_equal(as.numeric(res$expr_mat[, "Sample1"]), 50)
+  expect_equal(nrow(.test_var_info(res)), 1L)
+  expect_equal(.test_var_info(res)$peptide_site, 1L)
+  expect_equal(.test_var_info(res)$protein_site, 186L)
+  expect_equal(
+    as.character(.test_var_info(res)$glycan_composition),
+    "HexNAc(1)"
+  )
+  expect_equal(as.numeric(.test_expr_mat(res)[, "Sample1"]), 50)
 })
 
 test_that("Byonic-pGlycoQuant rows without glycosite markers fail clearly", {
@@ -157,17 +160,17 @@ test_that("peptide_site and protein_site are correctly calculated", {
   )
 
   # Check that peptide_site column exists and contains valid integers
-  expect_true("peptide_site" %in% colnames(res$var_info))
-  expect_type(res$var_info$peptide_site, "integer")
-  expect_true(all(res$var_info$peptide_site > 0))
+  expect_true("peptide_site" %in% colnames(.test_var_info(res)))
+  expect_type(.test_var_info(res)$peptide_site, "integer")
+  expect_true(all(.test_var_info(res)$peptide_site > 0))
 
   # Check that protein_site column exists and contains integers
-  expect_true("protein_site" %in% colnames(res$var_info))
-  expect_type(res$var_info$protein_site, "integer")
-  expect_true(all(res$var_info$protein_site > 0))
+  expect_true("protein_site" %in% colnames(.test_var_info(res)))
+  expect_type(.test_var_info(res)$protein_site, "integer")
+  expect_true(all(.test_var_info(res)$protein_site > 0))
 
   # Check that peptide sequences are properly processed (no modification marks)
-  peptides <- res$var_info$peptide
+  peptides <- .test_var_info(res)$peptide
   expect_true(all(nchar(peptides) > 0))
   expect_false(any(stringr::str_detect(peptides, "\\["))) # No modification brackets
   expect_false(any(stringr::str_detect(peptides, "\\."))) # No prefix/suffix dots
@@ -182,7 +185,7 @@ test_that("protein accessions are correctly extracted", {
   )
 
   # Check protein extraction from UniProt format
-  proteins <- res$var_info$protein
+  proteins <- .test_var_info(res)$protein
   expect_true(all(nchar(proteins) > 0))
 
   # Check some specific examples we know should be in the data
@@ -200,13 +203,13 @@ test_that("glycan compositions are correctly processed and parsed", {
   )
 
   # Check that all glycan compositions are valid glyrepr objects
-  expect_s3_class(res$var_info$glycan_composition, "glyrepr_composition")
-  expect_true(all(!is.na(res$var_info$glycan_composition)))
+  expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")
+  expect_true(all(!is.na(.test_var_info(res)$glycan_composition)))
 
   # Check that Fuc has been converted to dHex in the compositions
   # This is verified by checking that the compositions are properly parsed by glyrepr
   # which expects dHex, not Fuc notation
-  compositions_str <- as.character(res$var_info$glycan_composition)
+  compositions_str <- as.character(.test_var_info(res)$glycan_composition)
   expect_true(all(nchar(compositions_str) > 0))
 
   # Verify that standard monosaccharide nomenclature is used
@@ -223,7 +226,7 @@ test_that("variables are correctly named with meaningful IDs", {
     )
   )
 
-  variables <- res$var_info$variable
+  variables <- .test_var_info(res)$variable
   # Variables should be meaningful: protein-site-glycan pattern
   expect_true(all(stringr::str_detect(variables, ".+?-\\d+-.+")))
   # And contain glycan composition info
@@ -241,7 +244,7 @@ test_that("intensity values are correctly processed", {
     )
   )
 
-  expr_mat <- res$expr_mat
+  expr_mat <- .test_expr_mat(res)
 
   # Check that zero values are converted to NA
   expect_true(all(is.na(expr_mat) | expr_mat > 0))
@@ -250,8 +253,8 @@ test_that("intensity values are correctly processed", {
   expect_true(is.numeric(expr_mat))
 
   # Check dimensions
-  expect_equal(nrow(expr_mat), nrow(res$var_info))
-  expect_equal(ncol(expr_mat), nrow(res$sample_info))
+  expect_equal(nrow(expr_mat), nrow(.test_var_info(res)))
+  expect_equal(ncol(expr_mat), nrow(.test_sample_info(res)))
 })
 
 # ----- Sample name extraction -----
@@ -264,8 +267,8 @@ test_that("sample names are correctly extracted from intensity columns", {
   )
 
   # Check that sample name matches the expected pattern
-  expect_equal(res$sample_info$sample, "20241224-lxj-nglyco-h_1")
-  expect_equal(colnames(res$expr_mat), "20241224-lxj-nglyco-h_1")
+  expect_equal(.test_sample_info(res)$sample, "20241224-lxj-nglyco-h_1")
+  expect_equal(colnames(.test_expr_mat(res)), "20241224-lxj-nglyco-h_1")
 })
 
 # ----- Error handling -----
@@ -287,7 +290,7 @@ test_that("it handles O-linked glycan type", {
       glycan_type = "O-GalNAc"
     )
   )
-  expect_equal(res$meta_data$glycan_type, "O-GalNAc")
+  expect_equal(.test_metadata(res)$glycan_type, "O-GalNAc")
 })
 
 # ----- Data consistency -----
@@ -300,18 +303,18 @@ test_that("all output data types are consistent", {
   )
 
   # Check data types of variable information
-  expect_type(res$var_info$peptide, "character")
-  expect_type(res$var_info$protein, "character")
-  expect_type(res$var_info$protein_site, "integer")
-  expect_type(res$var_info$peptide_site, "integer")
+  expect_type(.test_var_info(res)$peptide, "character")
+  expect_type(.test_var_info(res)$protein, "character")
+  expect_type(.test_var_info(res)$protein_site, "integer")
+  expect_type(.test_var_info(res)$peptide_site, "integer")
 
   # Check that all rows have data
-  expect_true(all(nchar(res$var_info$peptide) > 0))
-  expect_true(all(nchar(res$var_info$protein) > 0))
-  expect_true(all(!is.na(res$var_info$protein_site)))
-  expect_true(all(!is.na(res$var_info$peptide_site)))
-  expect_true(all(res$var_info$protein_site > 0))
-  expect_true(all(res$var_info$peptide_site > 0))
+  expect_true(all(nchar(.test_var_info(res)$peptide) > 0))
+  expect_true(all(nchar(.test_var_info(res)$protein) > 0))
+  expect_true(all(!is.na(.test_var_info(res)$protein_site)))
+  expect_true(all(!is.na(.test_var_info(res)$peptide_site)))
+  expect_true(all(.test_var_info(res)$protein_site > 0))
+  expect_true(all(.test_var_info(res)$peptide_site > 0))
 })
 
 # ----- Sample name converter -----
@@ -328,8 +331,8 @@ test_that("sample name converter works", {
     )
   )
 
-  expect_equal(colnames(res$expr_mat), "Sample_1")
-  expect_equal(res$sample_info$sample, "Sample_1")
+  expect_equal(colnames(.test_expr_mat(res)), "Sample_1")
+  expect_equal(.test_sample_info(res)$sample, "Sample_1")
 })
 
 # ----- Parameter validation (minimal, since common validation is tested in pglyco3) -----
@@ -363,5 +366,5 @@ test_that("PSMs are correctly aggregated to glycopeptides", {
     ))
   )
   # Check that aggregation worked correctly
-  expect_equal(nrow(res$var_info), 5)
+  expect_equal(nrow(.test_var_info(res)), 5)
 })

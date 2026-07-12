@@ -2,7 +2,7 @@
 #'
 #' If you used pGlyco3 for intact glycopeptide identification,
 #' and used pGlycoQuant for quantification, this is the function for you.
-#' It reads in a pGlycoQuant result file and returns a [glyexp::experiment()] object.
+#' It reads in a pGlycoQuant result file and returns a [glyexp::GlycoproteomicSE()] object.
 #' Currently only label-free quantification is supported.
 #'
 #' @details
@@ -44,8 +44,8 @@
 #'  `var_info` as `glycan_structure` column. If `FALSE` (default), structure parsing
 #'  is skipped and structure-related columns are removed.
 #'
-#' @returns An [glyexp::experiment()] object.
-#' @seealso [glyexp::experiment()], [glyrepr::glycan_composition()],
+#' @returns An [glyexp::GlycoproteomicSE()] object.
+#' @seealso [glyexp::GlycoproteomicSE()], [glyrepr::glycan_composition()],
 #'   [glyrepr::glycan_structure()]
 #' @export
 read_pglyco3_pglycoquant <- function(
