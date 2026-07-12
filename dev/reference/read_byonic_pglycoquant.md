@@ -3,7 +3,7 @@
 If you used Byonic for intact glycopeptide identification, and used
 pGlycoQuant for quantification, this is the function for you. It reads
 in a pGlycoQuant result file and returns a
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
 object. Currently only label-free quantification is supported.
 
 ## Usage
@@ -72,7 +72,7 @@ read_byonic_pglycoquant(
 ## Value
 
 An
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
 object.
 
 ## Which file to use?
@@ -139,5 +139,5 @@ belong to this glycopeptide.
 
 ## See also
 
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html),
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html),
 [`glyrepr::glycan_composition()`](https://glycoverse.github.io/glyrepr/reference/glycan_composition.html)

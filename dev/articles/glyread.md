@@ -1,11 +1,13 @@
 # Get Started with glyread
 
-Glycomics and glycoproteomics data find their home in `experiment()`
-objects from [glyexp](https://github.com/glycoverse/glyexp)—a tidy,
-structured format designed specifically for glycobiology workflows.
-Working with glycopeptide identification tools like `pGlyco3` or
-`MSFragger-Glyco`? You can seamlessly import your results into
-`experiment()` objects with just a few lines of code using `glyread`.
+Glycomics and glycoproteomics data find their home in `GlycomicSE` and
+`GlycoproteomicSE` objects from
+[glyexp](https://github.com/glycoverse/glyexp)—a tidy, structured format
+designed specifically for glycobiology workflows. Working with
+glycopeptide identification tools like `pGlyco3` or `MSFragger-Glyco`?
+You can seamlessly import your results into `GlycomicSE` and
+`GlycoproteomicSE` objects with just a few lines of code using
+`glyread`.
 
 ## One function, two files — that’s it
 
@@ -57,10 +59,10 @@ in `samples.csv`:
 
 ``` r
 
-exp <- read_pglyco3_pglycoquant("pglyco3_result.csv", sample_info = "samples.csv")
+se <- read_pglyco3_pglycoquant("pglyco3_result.csv", sample_info = "samples.csv")
 ```
 
-That’s it — your data is now ready for analysis in a tidy `experiment()`
+That’s it — your data is now ready for analysis in a `GlycoproteomicSE`
 object.
 
 ## What’s next?

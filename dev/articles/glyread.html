@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Get Started with glyread • glyread</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Get Started with glyread">
 <meta name="robots" content="noindex">
@@ -60,12 +60,13 @@
     
     
 <p>Glycomics and glycoproteomics data find their home in
-<code>experiment()</code> objects from <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a>—a tidy,
+<code>GlycomicSE</code> and <code>GlycoproteomicSE</code> objects from
+<a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a>—a tidy,
 structured format designed specifically for glycobiology workflows.
 Working with glycopeptide identification tools like <code>pGlyco3</code>
 or <code>MSFragger-Glyco</code>? You can seamlessly import your results
-into <code>experiment()</code> objects with just a few lines of code
-using <code>glyread</code>.</p>
+into <code>GlycomicSE</code> and <code>GlycoproteomicSE</code> objects
+with just a few lines of code using <code>glyread</code>.</p>
 <div class="section level2">
 <h2 id="one-function-two-files-thats-it">One function, two files — that’s it<a class="anchor" aria-label="anchor" href="#one-function-two-files-thats-it"></a>
 </h2>
@@ -123,9 +124,9 @@ pGlycoQuant for quantification, with results in
 <code>pglyco3_result.csv</code> and sample details in
 <code>samples.csv</code>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant</a></span><span class="op">(</span><span class="st">"pglyco3_result.csv"</span>, sample_info <span class="op">=</span> <span class="st">"samples.csv"</span><span class="op">)</span></span></code></pre></div>
-<p>That’s it — your data is now ready for analysis in a tidy
-<code>experiment()</code> object.</p>
+<code class="sourceCode R"><span><span class="va">se</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant</a></span><span class="op">(</span><span class="st">"pglyco3_result.csv"</span>, sample_info <span class="op">=</span> <span class="st">"samples.csv"</span><span class="op">)</span></span></code></pre></div>
+<p>That’s it — your data is now ready for analysis in a
+<code>GlycoproteomicSE</code> object.</p>
 </div>
 <div class="section level2">
 <h2 id="whats-next">What’s next?<a class="anchor" aria-label="anchor" href="#whats-next"></a>
@@ -148,7 +149,7 @@ to fine-tune your data import.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

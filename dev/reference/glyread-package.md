@@ -6,9 +6,9 @@ including Byonic (ByoLogic, pGlycoQuant), StrucGP, pGlyco3
 (pGlycoQuant), Glyco-Decipher, GlyHunter, and MSFragger. The package
 standardizes raw data from different sources, performs peptide-spectrum
 match (PSM) aggregation, parses glycan compositions and structures, and
-converts the data into a standardized experiment object from the
-'glyexp' package for downstream analysis within the glycoverse
-ecosystem.
+converts the data into a standardized 'GlycomicSE' and
+'GlycoproteomicSE' objects from the 'glyexp' package for downstream
+analysis within the glycoverse ecosystem.
 
 ## See also
 

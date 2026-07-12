@@ -3,7 +3,7 @@
 This function reads in a
 [GlyHunter](https://github.com/fubin1999/glyhunter) result file and
 returns a
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycomicSE.html)
 object.
 
 ## Usage
@@ -51,7 +51,7 @@ read_glyhunter(
 ## Value
 
 An
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycomicSE.html)
 object.
 
 ## Which file to use?
@@ -90,5 +90,5 @@ Recommended columns are:
 
 ## See also
 
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html),
+[`glyexp::GlycomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycomicSE.html),
 [`glyrepr::glycan_composition()`](https://glycoverse.github.io/glyrepr/reference/glycan_composition.html)

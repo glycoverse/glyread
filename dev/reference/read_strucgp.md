@@ -2,7 +2,7 @@
 
 StrucGP is a software for intact glycopeptide identification. As StrucGP
 doesn't support quantification, this function returns an
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
 object with a binary (0/1) expression matrix indicating whether each
 glycopeptide was identified in each sample.
 
@@ -39,7 +39,7 @@ read_strucgp(fp, sample_info = NULL, glycan_type = "N", parse_structure = TRUE)
 ## Value
 
 An
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
 object with a binary (0/1) expression matrix, where 1 indicates the
 glycopeptide was identified in that sample and 0 indicates it was not.
 
@@ -80,6 +80,6 @@ Recommended columns are:
 
 ## See also
 
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html),
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html),
 [`glyrepr::glycan_composition()`](https://glycoverse.github.io/glyrepr/reference/glycan_composition.html),
 [`glyrepr::glycan_structure()`](https://glycoverse.github.io/glyrepr/reference/glycan_structure.html)
