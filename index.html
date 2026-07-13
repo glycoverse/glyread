@@ -7,12 +7,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Read and process glycomics and glycoproteomics data • glyread</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Read and process glycomics and glycoproteomics data">
-<meta name="description" content="Provides a unified interface for reading and processing quantification results from various glycomics and glycoproteomics software tools, including Byonic (ByoLogic, pGlycoQuant), StrucGP, pGlyco3 (pGlycoQuant), Glyco-Decipher, GlyHunter, and MSFragger. The package standardizes raw data from different sources, performs peptide-spectrum match (PSM) aggregation, parses glycan compositions and structures, and converts the data into a standardized experiment object from the glyexp package for downstream analysis within the glycoverse ecosystem.">
-<meta property="og:description" content="Provides a unified interface for reading and processing quantification results from various glycomics and glycoproteomics software tools, including Byonic (ByoLogic, pGlycoQuant), StrucGP, pGlyco3 (pGlycoQuant), Glyco-Decipher, GlyHunter, and MSFragger. The package standardizes raw data from different sources, performs peptide-spectrum match (PSM) aggregation, parses glycan compositions and structures, and converts the data into a standardized experiment object from the glyexp package for downstream analysis within the glycoverse ecosystem.">
+<meta name="description" content="Provides a unified interface for reading and processing quantification results from various glycomics and glycoproteomics software tools, including Byonic (ByoLogic, pGlycoQuant), StrucGP, pGlyco3 (pGlycoQuant), Glyco-Decipher, GlyHunter, and MSFragger. The package standardizes raw data from different sources, performs peptide-spectrum match (PSM) aggregation, parses glycan compositions and structures, and converts the data into a standardized GlycomicSE and GlycoproteomicSE objects from the glyexp package for downstream analysis within the glycoverse ecosystem.">
+<meta property="og:description" content="Provides a unified interface for reading and processing quantification results from various glycomics and glycoproteomics software tools, including Byonic (ByoLogic, pGlycoQuant), StrucGP, pGlyco3 (pGlycoQuant), Glyco-Decipher, GlyHunter, and MSFragger. The package standardizes raw data from different sources, performs peptide-spectrum match (PSM) aggregation, parses glycan compositions and structures, and converts the data into a standardized GlycomicSE and GlycoproteomicSE objects from the glyexp package for downstream analysis within the glycoverse ecosystem.">
 <meta property="og:image" content="https://glycoverse.github.io/glyread/logo.png">
 </head>
 <body>
@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">glyread</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,7 @@
 </div>
 <!-- badges: start -->
 
-<p>The goal of glyread is to read and process quantification results from common glycomics and glycoproteomics software, such as Byonic, StrucGP, or pGlyco, and convert them into a <code>glyexp::expriment()</code> object (from the <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a> package) for further analysis.</p>
+<p>The goal of glyread is to read and process quantification results from common glycomics and glycoproteomics software, such as Byonic, StrucGP, or pGlyco, and convert them into <code><a href="https://glycoverse.github.io/glyexp/reference/GlycomicSE.html" class="external-link">glyexp::GlycomicSE</a></code> or <code><a href="https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html" class="external-link">glyexp::GlycoproteomicSE</a></code> objects (from the <a href="https://github.com/glycoverse/glyexp" class="external-link">glyexp</a> package) for further analysis.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -96,7 +96,7 @@
 <h2 id="role-in-glycoverse">Role in <code>glycoverse</code>
 <a class="anchor" aria-label="anchor" href="#role-in-glycoverse"></a>
 </h2>
-<p><code>glyread</code> is the entry point for the <code>glycoverse</code> ecosystem. It provides a unified interface for reading and processing data from various glycomics and glycoproteomics software, and converting them into a <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> object for further analysis.</p>
+<p><code>glyread</code> is the entry point for the <code>glycoverse</code> ecosystem. It provides a unified interface for reading and processing data from various glycomics and glycoproteomics software, and converting them into <code><a href="https://glycoverse.github.io/glyexp/reference/GlycomicSE.html" class="external-link">glyexp::GlycomicSE</a></code> or <code><a href="https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html" class="external-link">glyexp::GlycoproteomicSE</a></code> objects for further analysis.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -155,7 +155,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

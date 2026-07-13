@@ -2,7 +2,7 @@
 
 Glyco-Decipher is a software for glycopeptide identification and
 quantification. This function reads in the result file and returns a
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
 object. Currently only label-free quantification is supported.
 
 ## Usage
@@ -53,7 +53,7 @@ read_glyco_decipher(
 ## Value
 
 An
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
 object.
 
 ## Which file to use?

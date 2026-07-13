@@ -1,5 +1,18 @@
 # Changelog
 
+## glyread 0.12.0
+
+### Breaking changes
+
+- All `read_*()` functions now return
+  [`glyexp::GlycomicSE`](https://glycoverse.github.io/glyexp/reference/GlycomicSE.html)
+  or
+  [`glyexp::GlycoproteomicSE`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
+  objects; code using legacy
+  [`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+  fields must migrate to `SummarizedExperiment` assays, `rowData`,
+  `colData`, and metadata. (#14)
+
 ## glyread 0.11.0
 
 ### New features

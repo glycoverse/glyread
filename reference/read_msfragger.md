@@ -2,7 +2,7 @@
 
 MSFragger-Glyco is a software for glycopeptide identification and
 quantification. This function reads in the result file and returns a
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
 object.
 
 ## Usage
@@ -47,7 +47,7 @@ read_msfragger(
 ## Value
 
 An
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html)
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
 object.
 
 ## Details
@@ -77,5 +77,5 @@ The following columns could be found in the variable information tibble:
 
 ## See also
 
-[`glyexp::experiment()`](https://glycoverse.github.io/glyexp/reference/experiment.html),
+[`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html),
 [`glyrepr::glycan_composition()`](https://glycoverse.github.io/glyrepr/reference/glycan_composition.html)
