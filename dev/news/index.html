@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">glyread</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.11.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.12.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,14 +33,12 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="glyread-development-version">glyread (development version)<a class="anchor" aria-label="anchor" href="#glyread-development-version"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.12.0" id="glyread-0120">glyread 0.12.0<a class="anchor" aria-label="anchor" href="#glyread-0120"></a></h2>
 <div class="section level3">
-<h3 id="breaking-changes-development-version">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
-<ul><li>All <code>read_*()</code> functions now return <code><a href="https://glycoverse.github.io/glyexp/reference/GlycomicSE.html" class="external-link">glyexp::GlycomicSE</a></code> or <code><a href="https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html" class="external-link">glyexp::GlycoproteomicSE</a></code> objects; code using legacy <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> fields must migrate to <code>SummarizedExperiment</code> assays, <code>rowData</code>, <code>colData</code>, and metadata. This is Stage II of glyexp#15. (#14)</li>
-</ul></div>
-<div class="section level3">
-<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
-<ul><li>
-<code><a href="../reference/read_glyhunter.html">read_glyhunter()</a></code> now returns <code><a href="https://glycoverse.github.io/glyexp/reference/GlycomicSE.html" class="external-link">glyexp::GlycomicSE</a></code>, while all glycoproteomics readers return <code><a href="https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html" class="external-link">glyexp::GlycoproteomicSE</a></code>. (#14)</li>
+<h3 id="breaking-changes-0-12-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-12-0"></a></h3>
+<ul><li>All <code>read_*()</code> functions now return <code><a href="https://glycoverse.github.io/glyexp/reference/GlycomicSE.html" class="external-link">glyexp::GlycomicSE</a></code> or <code><a href="https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html" class="external-link">glyexp::GlycoproteomicSE</a></code> objects; code using legacy <code><a href="https://glycoverse.github.io/glyexp/reference/experiment.html" class="external-link">glyexp::experiment()</a></code> fields must migrate to <code>SummarizedExperiment</code> assays, <code>rowData</code>, <code>colData</code>, and metadata. (#14)</li>
 </ul></div>
 </div>
     <div class="section level2">
