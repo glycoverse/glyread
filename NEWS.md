@@ -1,6 +1,6 @@
 # glyread (development version)
 
-* The minimum `glyexp` version is now 0.16.0 for the Stage II container migration in glycoverse/glyexp#15.
+* The minimum `glyexp` version is now 0.16.0 for the Stage II container migration in glycoverse/glyexp#15. (#15)
 
 # glyread 0.12.0
 
