@@ -2,6 +2,9 @@
 
 ## glyread (development version)
 
+- Fix pGlyco3 composition parsing so `G` represents NeuGc instead of
+  HexA.
+
 ## glyread 0.12.1
 
 - The minimum `glyexp` version is now 0.16.0 for the Stage II container
