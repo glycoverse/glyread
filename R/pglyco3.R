@@ -179,7 +179,7 @@ read_pglyco3 <- function(
     "H" = "Hex", # Hexose
     "N" = "HexNAc", # N-Acetylhexosamine
     "A" = "NeuAc", # N-Acetylneuraminic acid
-    "G" = "HexA", # Hexuronic acid
+    "G" = "NeuGc", # N-Glycolylneuraminic acid
     "F" = "dHex", # Deoxyhexose (Fucose)
     "aH" = "HexN" # Hexosamine
   )

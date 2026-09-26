@@ -454,13 +454,17 @@ test_that(".convert_glycan_composition handles complex compositions", {
   test_comps <- c(
     "H(5)N(4)A(1)F(1)", # Complex composition with sialic acid
     "H(6)N(5)F(2)", # High mannose with fucose
-    "H(3)N(2)G(1)" # With hexuronic acid
+    "H(3)N(2)G(1)" # With NeuGc
   )
   result <- glyread:::.convert_pglyco3_comp(test_comps)
 
   expect_s3_class(result, "glyrepr_composition")
   expect_equal(length(result), 3)
   expect_true(all(!is.na(result)))
+  expect_equal(
+    result[3],
+    glyrepr::as_glycan_composition("Hex(3)HexNAc(2)NeuGc(1)")
+  )
 })
 
 # ----- Data consistency tests -----
