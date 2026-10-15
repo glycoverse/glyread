@@ -1,5 +1,10 @@
 # Changelog
 
+## glyread 0.12.2
+
+- [`read_pglyco3()`](https://glycoverse.github.io/glyread/reference/read_pglyco3.md)
+  now parses `G` as NeuGc instead of HexA in glycan compositions.
+
 ## glyread 0.12.1
 
 - The minimum `glyexp` version is now 0.16.0 for the Stage II container
