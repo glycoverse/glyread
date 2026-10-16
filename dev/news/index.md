@@ -2,8 +2,10 @@
 
 ## glyread (development version)
 
-- Fix pGlyco3 composition parsing so `G` represents NeuGc instead of
-  HexA.
+## glyread 0.12.2
+
+- [`read_pglyco3()`](https://glycoverse.github.io/glyread/dev/reference/read_pglyco3.md)
+  now parses `G` as NeuGc instead of HexA in glycan compositions.
 
 ## glyread 0.12.1
 
