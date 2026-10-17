@@ -202,6 +202,7 @@
   # Update var_info with protein inference results
   new_old_map <- pep_df %>%
     dplyr::mutate(
+      protein_group = .data$proteins,
       protein = inferred_vectors$proteins,
       gene = inferred_vectors$genes,
       protein_site = as.integer(inferred_vectors$protein_sites)

@@ -17,7 +17,8 @@ test_that("it returns correct information (label-free)", {
       "protein",
       "protein_site",
       "gene",
-      "glycan_composition"
+      "glycan_composition",
+      "protein_group"
     )
   )
   expect_s3_class(.test_var_info(res)$glycan_composition, "glyrepr_composition")

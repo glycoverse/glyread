@@ -22,6 +22,9 @@
 #'
 #' The following columns could be found in the variable information tibble:
 #' - `protein`: character, protein accession (after protein inference)
+#' - `protein_group`: character, all protein accessions before inference,
+#'   separated by `;`, retained in `rowData`. Accessions are combined across
+#'   records and samples when they map to the same glycopeptide.
 #' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
 #' - `gene`: character, gene name (symbol) (after protein inference)
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
@@ -91,6 +94,7 @@ read_glyco_decipher <- function(
   sites <- .resolve_glyco_decipher_sites(df$Site)
   df <- df %>%
     dplyr::mutate(
+      protein_group = sites$protein_group,
       protein = sites$protein,
       protein_site = sites$protein_site
     ) %>%
@@ -109,7 +113,12 @@ read_glyco_decipher <- function(
   # Pivot longer
   # Determine which columns to exclude from pivot_longer
   # gene column might not exist if gene conversion failed
-  exclude_cols <- c("protein", "protein_site", "glycan_composition")
+  exclude_cols <- c(
+    "protein",
+    "protein_group",
+    "protein_site",
+    "glycan_composition"
+  )
   if ("gene" %in% colnames(df)) {
     exclude_cols <- c(exclude_cols, "gene")
   }
@@ -159,7 +168,14 @@ read_glyco_decipher <- function(
     }
     return(NA_integer_)
   })
-  list(protein = protein, protein_site = protein_site)
+  list(
+    protein = protein,
+    protein_site = protein_site,
+    protein_group = purrr::map_chr(
+      proteins,
+      ~ paste(unique(.x), collapse = ";")
+    )
+  )
 }
 
 #' Find leader proteins for uncertain proteins in glyco-decipher output

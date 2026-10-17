@@ -37,6 +37,9 @@ The following columns could be found in the variable information tibble:
 \item \code{peptide}: character, peptide sequence
 \item \code{protein}: character, protein accession
 \item \code{gene}: character, gene name (symbol)
+\item \code{protein_group}: character, all protein accessions before inference,
+separated by \verb{;}, retained in \code{rowData}. Accessions are combined across
+records and samples when they map to the same glycopeptide.
 \item \code{protein_site}: integer, site of glycosylation on protein
 \item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
 \item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures (if \code{parse_structure = TRUE}).

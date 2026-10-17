@@ -12,6 +12,9 @@
 #' - `peptide`: character, peptide sequence
 #' - `protein`: character, protein accession
 #' - `gene`: character, gene name (symbol)
+#' - `protein_group`: character, all protein accessions before inference,
+#'   separated by `;`, retained in `rowData`. Accessions are combined across
+#'   records and samples when they map to the same glycopeptide.
 #' - `protein_site`: integer, site of glycosylation on protein
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
@@ -65,6 +68,10 @@ read_strucgp <- function(
   df <- readxl::read_excel(fp)
   tidy_df <- .tidy_strucgp(df, parse_structure)
 
+  group_keys <- setdiff(names(tidy_df), c("sample", "protein_group"))
+  groups <- .protein_group_annotations(tidy_df, group_keys)
+  tidy_df <- tidy_df |> dplyr::select(-"protein_group")
+
   # ----- Extract unique samples -----
   samples <- unique(tidy_df$sample)
 
@@ -96,6 +103,8 @@ read_strucgp <- function(
     sample_id <- tidy_df_with_var$sample[i]
     expr_mat[var_id, sample_id] <- 1
   }
+
+  var_info <- dplyr::left_join(var_info, groups, by = group_keys)
 
   # ----- Pack GlycoproteomicSE -----
   cli::cli_progress_step("Creating GlycoproteomicSE object")
@@ -141,6 +150,7 @@ read_strucgp <- function(
   protein_vectors <- .infer_proteins(protein_vectors)
   result <- dplyr::mutate(
     result,
+    protein_group = .data$protein,
     protein = protein_vectors$protein,
     gene = protein_vectors$gene,
     protein_site = as.integer(protein_vectors$protein_site)
