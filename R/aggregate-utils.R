@@ -17,10 +17,33 @@
     "protein_sites"
   )
 
-  df %>%
+  result <- df %>%
     dplyr::summarise(
       value = sum(.data$value, na.rm = TRUE),
       .by = any_of(c(aggr_cols, "sample"))
     ) %>%
     dplyr::mutate(value = dplyr::if_else(.data$value == 0, NA, .data$value))
+  if ("protein_group" %in% names(df)) {
+    keys <- intersect(aggr_cols, names(df))
+    result <- dplyr::left_join(
+      result,
+      .protein_group_annotations(df, keys),
+      by = keys
+    )
+  }
+  result
+}
+
+# Combine source protein accessions without changing feature or sample grouping.
+.protein_group_annotations <- function(df, keys) {
+  df |>
+    dplyr::summarise(
+      protein_group = {
+        groups <- .data$protein_group[!is.na(.data$protein_group)]
+        proteins <- unique(unlist(strsplit(groups, ";", fixed = TRUE)))
+        proteins <- proteins[nzchar(proteins)]
+        if (length(proteins)) paste(proteins, collapse = ";") else NA_character_
+      },
+      .by = tidyselect::all_of(keys)
+    )
 }

@@ -23,6 +23,9 @@
 #' - `peptide`: character, peptide sequence
 #' - `peptide_site`: integer, site of glycosylation on peptide
 #' - `protein`: character, protein accession (after protein inference)
+#' - `protein_group`: character, all protein accessions before inference,
+#'   separated by `;`, retained in `rowData`. Accessions are combined across
+#'   records and samples when they map to the same glycopeptide.
 #' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
 #' - `gene`: character, gene name (symbol) (after protein inference)
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.

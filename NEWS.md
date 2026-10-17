@@ -1,5 +1,7 @@
 # glyread (development version)
 
+* `read_pglyco3()`, `read_pglyco3_pglycoquant()`, `read_strucgp()`, and `read_glyco_decipher()` now retain pre-inference protein accessions in the `protein_group` column of `rowData`, combining candidates for aggregated glycopeptides without changing quantification.
+
 * Fix pGlyco3 composition parsing so `G` represents NeuGc instead of HexA.
 
 # glyread 0.12.1
