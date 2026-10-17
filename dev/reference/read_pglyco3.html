@@ -140,6 +140,9 @@ we sum up the quantifications of all PSMs that belong to this glycopeptide.</p>
     <p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
 <li><p><code>peptide_site</code>: integer, site of glycosylation on peptide</p></li>
 <li><p><code>protein</code>: character, protein accession (after protein inference)</p></li>
+<li><p><code>protein_group</code>: character, all protein accessions before inference,
+separated by <code>;</code>, retained in <code>rowData</code>. Accessions are combined across
+records and samples when they map to the same glycopeptide.</p></li>
 <li><p><code>protein_site</code>: integer, site of glycosylation on protein (after protein inference)</p></li>
 <li><p><code>gene</code>: character, gene name (symbol) (after protein inference)</p></li>
 <li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>

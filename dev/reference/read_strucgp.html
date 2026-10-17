@@ -86,6 +86,9 @@ where 1 indicates the glycopeptide was identified in that sample and 0 indicates
     <p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
 <li><p><code>protein</code>: character, protein accession</p></li>
 <li><p><code>gene</code>: character, gene name (symbol)</p></li>
+<li><p><code>protein_group</code>: character, all protein accessions before inference,
+separated by <code>;</code>, retained in <code>rowData</code>. Accessions are combined across
+records and samples when they map to the same glycopeptide.</p></li>
 <li><p><code>protein_site</code>: integer, site of glycosylation on protein</p></li>
 <li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>
 <li><p><code>glycan_structure</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_structure.html" class="external-link">glyrepr::glycan_structure()</a></code>, glycan structures (if <code>parse_structure = TRUE</code>).</p></li>
