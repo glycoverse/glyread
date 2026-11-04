@@ -125,6 +125,10 @@ read_glycan_finder <- function(
 }
 
 .parse_glycan_finder_composition <- function(x) {
+  if (length(x) == 0L) {
+    return(glyrepr::glycan_composition())
+  }
+
   # Extract monosaccharide counts from format like "(HexNAc)4(Hex)5(NeuAc)1"
   # Note: We map Fuc -> dHex and Pent -> Pen to match glyrepr's naming conventions
   extract_n_mono <- function(comp, mono) {
@@ -157,7 +161,7 @@ read_glycan_finder <- function(
     counts <- c(...)
     counts <- counts[counts > 0]
     if (length(counts) == 0) {
-      return(glyrepr::as_glycan_composition(integer(0)))
+      return(glyrepr::glycan_composition(NA))
     }
     glyrepr::as_glycan_composition(counts)
   })

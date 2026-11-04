@@ -1,5 +1,7 @@
 # glyread (development version)
 
+* Preserve missing composition rows in the pGlyco3 and GlycanFinder readers instead of shifting later compositions onto the wrong rows.
+
 * `read_pglyco3()`, `read_pglyco3_pglycoquant()`, `read_strucgp()`, and `read_glyco_decipher()` now retain pre-inference protein accessions in the `protein_group` column of `rowData`, combining candidates for aggregated glycopeptides without changing quantification.
 
 # glyread 0.12.2

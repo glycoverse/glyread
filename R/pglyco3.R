@@ -177,6 +177,10 @@ read_pglyco3 <- function(
 }
 
 .convert_pglyco3_comp <- function(x) {
+  if (length(x) == 0L) {
+    return(glyrepr::glycan_composition())
+  }
+
   # Define mapping from pGlyco3 notation to generic monosaccharides
   pglyco_to_generic <- c(
     "H" = "Hex", # Hexose
@@ -211,7 +215,7 @@ read_pglyco3 <- function(
     counts <- c(...)
     counts <- counts[counts > 0]
     if (length(counts) == 0) {
-      return(glyrepr::as_glycan_composition(integer(0)))
+      return(glyrepr::glycan_composition(NA))
     }
     glyrepr::as_glycan_composition(counts)
   })
