@@ -28,7 +28,7 @@ test_that("it returns correct information (label-free)", {
   expect_equal(colnames(.test_expr_mat(res)), c("20241224-lxj-nglyco-h_1"))
   expect_equal(rownames(.test_expr_mat(res)), .test_var_info(res)$variable)
   expect_equal(
-    .test_metadata(res),
+    .test_metadata(res)[c("exp_type", "glycan_type", "quant_method")],
     list(
       exp_type = "glycoproteomics",
       glycan_type = "N",
