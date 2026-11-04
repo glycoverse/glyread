@@ -400,3 +400,22 @@ test_that("J is converted to N in peptide column", {
   )
   expect_equal(nchar(invalid_chars), 0L)
 })
+
+test_that("modified pGlyco residues do not also match unmodified hexose", {
+  comps <- c(
+    "pH(2)N(1)",
+    "aH(2)N(1)",
+    "pH(2)H(3)aH(1)N(1)",
+    "aH(1)pH(2)H(3)N(1)",
+    "pH(2)N(1)"
+  )
+  expected <- glyrepr::as_glycan_composition(c(
+    "Hex(2)HexNAc(1)P(2)",
+    "HexN(2)HexNAc(1)",
+    "Hex(5)HexN(1)HexNAc(1)P(2)",
+    "Hex(5)HexN(1)HexNAc(1)P(2)",
+    "Hex(2)HexNAc(1)P(2)"
+  ))
+
+  expect_equal(.convert_pglyco3_comp(comps), expected)
+})
