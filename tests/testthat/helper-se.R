@@ -19,3 +19,8 @@
 .test_metadata <- function(x) {
   S4Vectors::metadata(x)
 }
+
+.expect_reader_metadata <- function(x, expected) {
+  # Readers own these fields; glyexp may add other constructor metadata.
+  testthat::expect_equal(.test_metadata(x)[names(expected)], expected)
+}
