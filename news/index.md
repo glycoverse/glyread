@@ -1,5 +1,19 @@
 # Changelog
 
+## glyread 0.12.3
+
+- Package checks now accept additional `glyexp` metadata fields,
+  including `scale`, while retaining validation of reader metadata.
+  (#23)
+- [`read_pglyco3()`](https://glycoverse.github.io/glyread/reference/read_pglyco3.md),
+  [`read_pglyco3_pglycoquant()`](https://glycoverse.github.io/glyread/reference/read_pglyco3_pglycoquant.md),
+  [`read_strucgp()`](https://glycoverse.github.io/glyread/reference/read_strucgp.md),
+  and
+  [`read_glyco_decipher()`](https://glycoverse.github.io/glyread/reference/read_glyco_decipher.md)
+  now retain pre-inference protein accessions in the `protein_group`
+  column of `rowData`, combining candidates for aggregated glycopeptides
+  without changing quantification.
+
 ## glyread 0.12.2
 
 - [`read_pglyco3()`](https://glycoverse.github.io/glyread/reference/read_pglyco3.md)
