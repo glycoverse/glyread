@@ -29,8 +29,8 @@ test_that("it returns correct information (label-free)", {
     c("20250315_LiangYuying_GP09_1", "20250315_LiangYuying_GP09_2")
   )
   expect_equal(rownames(.test_expr_mat(res)), .test_var_info(res)$variable)
-  expect_equal(
-    .test_metadata(res),
+  .expect_reader_metadata(
+    res,
     list(
       exp_type = "glycoproteomics",
       glycan_type = "N",
