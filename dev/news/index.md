@@ -2,6 +2,11 @@
 
 ## glyread (development version)
 
+## glyread 0.12.3
+
+- Package checks now accept additional `glyexp` metadata fields,
+  including `scale`, while retaining validation of reader metadata.
+  (#23)
 - [`read_pglyco3()`](https://glycoverse.github.io/glyread/dev/reference/read_pglyco3.md),
   [`read_pglyco3_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_pglyco3_pglycoquant.md),
   [`read_strucgp()`](https://glycoverse.github.io/glyread/dev/reference/read_strucgp.md),
