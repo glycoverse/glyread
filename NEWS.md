@@ -1,3 +1,5 @@
+# glyread (development version)
+
 # glyread 0.12.3
 
 * Package checks now accept additional `glyexp` metadata fields, including `scale`, while retaining validation of reader metadata. (#23)
