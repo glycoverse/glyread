@@ -1,7 +1,10 @@
 # glyread (development version)
 
-* pGlyco composition parsing now distinguishes `H` from `pH` and `aH`, preventing extra hexoses when modified residues appear first or without unmodified hexose.
+* pGlyco composition parsing now distinguishes `H` from `pH` and `aH`, preventing extra hexoses when modified residues appear first or without unmodified hexose. (#19)
 
+# glyread 0.12.3
+
+* Package checks now accept additional `glyexp` metadata fields, including `scale`, while retaining validation of reader metadata. (#23)
 * `read_pglyco3()`, `read_pglyco3_pglycoquant()`, `read_strucgp()`, and `read_glyco_decipher()` now retain pre-inference protein accessions in the `protein_group` column of `rowData`, combining candidates for aggregated glycopeptides without changing quantification.
 
 # glyread 0.12.2
