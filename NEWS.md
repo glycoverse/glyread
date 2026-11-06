@@ -1,5 +1,7 @@
 # glyread (development version)
 
+* pGlyco composition parsing now distinguishes `H` from `pH` and `aH`, preventing extra hexoses when modified residues appear first or without unmodified hexose. (#19)
+
 # glyread 0.12.3
 
 * Package checks now accept additional `glyexp` metadata fields, including `scale`, while retaining validation of reader metadata. (#23)

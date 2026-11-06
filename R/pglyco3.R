@@ -188,7 +188,9 @@ read_pglyco3 <- function(
   )
 
   extract_n_mono <- function(comp, mono) {
-    n <- stringr::str_extract(comp, paste0(mono, "\\((\\d+)\\)"), group = 1)
+    # H must not match the suffix of modified-residue tokens such as pH/aH.
+    pattern <- paste0("(?<![A-Za-z])", mono, "\\((\\d+)\\)")
+    n <- stringr::str_extract(comp, pattern, group = 1)
     dplyr::if_else(is.na(n), 0L, as.integer(n))
   }
 
