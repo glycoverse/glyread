@@ -1,6 +1,6 @@
 Package: glyread
 Title: Read and process glycomics and glycoproteomics data
-Version: 0.12.3.9000
+Version: 0.12.4
 Authors@R: 
     person("Bin", "Fu", , "23110220018@m.fudan.edu.cn", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8567-2997"))
@@ -31,7 +31,7 @@ Imports:
     cli,
     dplyr,
     fs,
-    glyexp (>= 0.16.0),
+    glyexp (>= 0.20.0),
     glyparse (>= 0.5.3),
     glyrepr (>= 0.7.4),
     janitor,

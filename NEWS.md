@@ -1,6 +1,9 @@
-# glyread (development version)
+# glyread 0.12.4
 
-* pGlyco composition parsing now distinguishes `H` from `pH` and `aH`, preventing extra hexoses when modified residues appear first or without unmodified hexose. (#19)
+## Minor improvements and bug fixes
+
+* `glyread` requires glyexp 0.20.0 or later for the current experiment name and abundance-scale contracts.
+* pGlyco composition parsing distinguishes `H` from `pH` and `aH`, preventing extra hexoses when modified residues appear first or without unmodified hexose. (#19)
 
 # glyread 0.12.3
 
