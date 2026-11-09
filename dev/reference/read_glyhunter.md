@@ -69,9 +69,9 @@ The following columns could be found in the variable information tibble:
 
 If "Fu_NP_2026" preset is used, two additional columns will be included:
 
-- `nL`: Number of α2,3-linked sialic acids.
+- `nL`: Number of a2,3-linked sialic acids.
 
-- `nE`: Number of α2,6-linked sialic acids.
+- `nE`: Number of a2,6-linked sialic acids.
 
 ## Sample information
 
