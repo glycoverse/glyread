@@ -51,8 +51,8 @@ The following columns could be found in the variable information tibble:
 
 If "Fu_NP_2026" preset is used, two additional columns will be included:
 \itemize{
-\item \code{nL}: Number of α2,3-linked sialic acids.
-\item \code{nE}: Number of α2,6-linked sialic acids.
+\item \code{nL}: Number of a2,3-linked sialic acids.
+\item \code{nE}: Number of a2,6-linked sialic acids.
 }
 }
 

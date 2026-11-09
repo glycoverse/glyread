@@ -1,5 +1,9 @@
 # glyread (development version)
 
+## Minor improvements and bug fixes
+
+* `read_glyhunter()` documentation uses LaTeX-compatible linkage labels so the PDF reference manual builds with pdflatex.
+
 # glyread 0.12.4
 
 ## Minor improvements and bug fixes

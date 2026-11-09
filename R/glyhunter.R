@@ -15,8 +15,8 @@
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #'
 #' If "Fu_NP_2026" preset is used, two additional columns will be included:
-#' - `nL`: Number of α2,3-linked sialic acids.
-#' - `nE`: Number of α2,6-linked sialic acids.
+#' - `nL`: Number of a2,3-linked sialic acids.
+#' - `nE`: Number of a2,6-linked sialic acids.
 #'
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #'
