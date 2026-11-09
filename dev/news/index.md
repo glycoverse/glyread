@@ -2,6 +2,8 @@
 
 ## glyread (development version)
 
+## glyread 0.12.5
+
 ### Minor improvements and bug fixes
 
 - [`read_glyhunter()`](https://glycoverse.github.io/glyread/dev/reference/read_glyhunter.md)
