@@ -35,9 +35,17 @@ pak::pkg_install("glyread")
 
 Or from [GitHub](https://github.com/glycoverse/glyread):
 
+Install the latest releases of this package and its required Glycoverse
+dependencies together from GitHub:
+
 ``` r
 
-pak::pkg_install("glycoverse/glyread@*release")
+pak::pkg_install(c(
+  "glycoverse/glyrepr@*release",
+  "glycoverse/glyexp@*release",
+  "glycoverse/glyparse@*release",
+  "glycoverse/glyread@*release"
+))
 ```
 
 Or install the development version (NOT recommended):
