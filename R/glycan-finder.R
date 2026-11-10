@@ -25,8 +25,7 @@
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
 #'
-#' @param fp Local path or HTTP(S) URL of the result file. GitHub file links
-#'   containing `/blob/` are also supported.
+#' @param fp Local path or HTTP(S) URL of the result file.
 #' @param sample_info Local path or HTTP(S) URL of the sample information CSV,
 #'  or a sample information data.frame/tibble.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".

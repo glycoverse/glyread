@@ -18,8 +18,7 @@
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #'
 #' @param dp A local MSFragger-Glyco result directory, or a character vector of
-#'   HTTP(S) URLs to individual samples' `psm.tsv` files. GitHub file links
-#'   containing `/blob/` are also supported.
+#'   HTTP(S) URLs to individual samples' `psm.tsv` files.
 #' @inheritParams read_pglyco3_pglycoquant
 #'
 #' @returns An [glyexp::GlycoproteomicSE()] object.

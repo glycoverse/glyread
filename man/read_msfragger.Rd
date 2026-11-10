@@ -14,8 +14,7 @@ read_msfragger(
 }
 \arguments{
 \item{dp}{A local MSFragger-Glyco result directory, or a character vector of
-HTTP(S) URLs to individual samples' \code{psm.tsv} files. GitHub file links
-containing \verb{/blob/} are also supported.}
+HTTP(S) URLs to individual samples' \code{psm.tsv} files.}
 
 \item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble.}

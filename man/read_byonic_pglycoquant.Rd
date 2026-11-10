@@ -16,8 +16,7 @@ read_byonic_pglycoquant(
 )
 }
 \arguments{
-\item{fp}{Local path or HTTP(S) URL of the result file. GitHub file links
-containing \verb{/blob/} are also supported.}
+\item{fp}{Local path or HTTP(S) URL of the result file.}
 
 \item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble.}

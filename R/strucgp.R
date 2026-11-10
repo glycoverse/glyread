@@ -32,8 +32,7 @@
 #'   required for most downstream analyses
 #' - `batch`: batch information, required for batch effect correction
 #'
-#' @param fp Local path or HTTP(S) URL of the result file. GitHub file links
-#'   containing `/blob/` are also supported.
+#' @param fp Local path or HTTP(S) URL of the result file.
 #' @param sample_info Local path or HTTP(S) URL of the sample information CSV,
 #'  or a sample information data.frame/tibble. If `NULL` (default),
 #'  a simple sample information tibble will be created.

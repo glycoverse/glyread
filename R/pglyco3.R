@@ -67,8 +67,7 @@
 #' However, please take caution with these structures,
 #' because pGlyco3 does not have strict quality control on glycan structure annotations.
 #'
-#' @param fp Local path or HTTP(S) URL of the result file. GitHub file links
-#'   containing `/blob/` are also supported.
+#' @param fp Local path or HTTP(S) URL of the result file.
 #' @param sample_info Local path or HTTP(S) URL of the sample information CSV,
 #'  or a sample information data.frame/tibble.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".

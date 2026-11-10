@@ -21,8 +21,7 @@
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #'
 #' @inheritParams read_pglyco3_pglycoquant
-#' @param fp Local path or HTTP(S) URL of the result file. GitHub file links
-#'   containing `/blob/` are also supported.
+#' @param fp Local path or HTTP(S) URL of the result file.
 #' @param preset "Fu_NC_2026" (default) or "Fu_NP_2026".
 #'   Use "Fu_NC_2026" to use the configuration following "DOI: 10.1038/s41467-026-68579-x".
 #'   Use "Fu_NP_2026" to use the configuration in an unpublished Nature Protocols paper.
