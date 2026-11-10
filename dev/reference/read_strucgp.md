@@ -16,11 +16,11 @@ read_strucgp(fp, sample_info = NULL, glycan_type = "N", parse_structure = TRUE)
 
 - fp:
 
-  File path of the StrucGP result file.
+  Local path or HTTP(S) URL of the result file.
 
 - sample_info:
 
-  File path of the sample information file (csv), or a sample
+  Local path or HTTP(S) URL of the sample information CSV, or a sample
   information data.frame/tibble. If `NULL` (default), a simple sample
   information tibble will be created.
 

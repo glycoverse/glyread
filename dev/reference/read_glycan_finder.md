@@ -23,11 +23,11 @@ read_glycan_finder(
 
 - fp:
 
-  File path of the GlycanFinder result file.
+  Local path or HTTP(S) URL of the result file.
 
 - sample_info:
 
-  File path of the sample information file (csv), or a sample
+  Local path or HTTP(S) URL of the sample information CSV, or a sample
   information data.frame/tibble.
 
 - quant_method:
