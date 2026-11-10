@@ -1,5 +1,7 @@
 # glyread (development version)
 
+* `read_*()` now accepts HTTP(S) URLs for result files and sample information CSVs, including GitHub file links. (#24)
+
 # glyread 0.12.5
 
 ## Minor improvements and bug fixes
