@@ -13,9 +13,11 @@ read_msfragger(
 )
 }
 \arguments{
-\item{dp}{The directory path of the MSFragger-Glyco result folder.}
+\item{dp}{A local MSFragger-Glyco result directory, or a character vector of
+HTTP(S) URLs to individual samples' \code{psm.tsv} files. GitHub file links
+containing \verb{/blob/} are also supported.}
 
-\item{sample_info}{File path of the sample information file (csv),
+\item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble.}
 
 \item{quant_method}{Quantification method. Either "label-free" or "TMT".}

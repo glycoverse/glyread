@@ -44,9 +44,8 @@ read_glyco_decipher <- function(
   orgdb = "org.Hs.eg.db"
 ) {
   # ----- Check arguments -----
+  fp <- .read_file_input(fp, ".csv")
   .validate_read_args(
-    fp = fp,
-    file_extensions = ".csv",
     sample_info = sample_info,
     quant_method = quant_method,
     glycan_type = glycan_type,

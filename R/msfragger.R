@@ -17,7 +17,9 @@
 #' - `gene`: character, gene name (symbol)
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #'
-#' @param dp The directory path of the MSFragger-Glyco result folder.
+#' @param dp A local MSFragger-Glyco result directory, or a character vector of
+#'   HTTP(S) URLs to individual samples' `psm.tsv` files. GitHub file links
+#'   containing `/blob/` are also supported.
 #' @inheritParams read_pglyco3_pglycoquant
 #'
 #' @returns An [glyexp::GlycoproteomicSE()] object.
@@ -31,9 +33,13 @@ read_msfragger <- function(
   sample_name_converter = NULL
 ) {
   # ----- Check arguments -----
+  remote <- is.character(dp) &&
+    length(dp) > 0L &&
+    all(vapply(dp, .is_http_url, logical(1)))
+  if (!remote) {
+    checkmate::assert_directory_exists(dp, access = "r")
+  }
   .validate_read_args(
-    fp = dp,
-    is_directory = TRUE,
     sample_info = sample_info,
     quant_method = quant_method,
     glycan_type = glycan_type,
@@ -43,7 +49,11 @@ read_msfragger <- function(
   # ----- Read data -----
   if (quant_method == "label-free") {
     cli::cli_progress_step("Reading data")
-    fps <- fs::dir_ls(dp, glob = "*/psm.tsv", recurse = TRUE)
+    fps <- if (remote) {
+      .raw_file_url(dp)
+    } else {
+      fs::dir_ls(dp, glob = "*/psm.tsv", recurse = TRUE)
+    }
     if (length(fps) == 0) {
       rlang::abort("No psm.tsv files found in the specified directory.")
     }
@@ -91,8 +101,13 @@ read_msfragger <- function(
     classes = "vroom_mismatched_column_name"
   )
 
-  df <- dplyr::mutate(df, sample = basename(dirname(.data$file)))
-  df
+  paths <- unique(df$file)
+  if (length(paths) && .is_http_url(paths[[1L]])) {
+    samples <- utils::URLdecode(basename(dirname(sub("[?#].*$", "", paths))))
+  } else {
+    samples <- basename(dirname(paths))
+  }
+  dplyr::mutate(df, sample = samples[match(.data$file, paths)])
 }
 
 .tidy_msfragger <- function(df) {

@@ -16,9 +16,10 @@ read_byonic_pglycoquant(
 )
 }
 \arguments{
-\item{fp}{File path of the pGlycoQuant result file.}
+\item{fp}{Local path or HTTP(S) URL of the result file. GitHub file links
+containing \verb{/blob/} are also supported.}
 
-\item{sample_info}{File path of the sample information file (csv),
+\item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble.}
 
 \item{quant_method}{Quantification method. Either "label-free" or "TMT".}

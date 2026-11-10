@@ -67,8 +67,9 @@
 #' However, please take caution with these structures,
 #' because pGlyco3 does not have strict quality control on glycan structure annotations.
 #'
-#' @param fp File path of the pGlyco3 result file.
-#' @param sample_info File path of the sample information file (csv),
+#' @param fp Local path or HTTP(S) URL of the result file. GitHub file links
+#'   containing `/blob/` are also supported.
+#' @param sample_info Local path or HTTP(S) URL of the sample information CSV,
 #'  or a sample information data.frame/tibble.
 #' @param quant_method Quantification method. Either "label-free" or "TMT".
 #' @param glycan_type Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or "O-Glc".
@@ -96,9 +97,8 @@ read_pglyco3 <- function(
   parse_structure = FALSE
 ) {
   # ----- Check arguments -----
+  fp <- .read_file_input(fp, ".txt")
   .validate_read_args(
-    fp = fp,
-    file_extensions = ".txt",
     sample_info = sample_info,
     quant_method = quant_method,
     glycan_type = glycan_type,

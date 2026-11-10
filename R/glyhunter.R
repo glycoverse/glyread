@@ -21,7 +21,8 @@
 #' @inheritSection read_pglyco3_pglycoquant Sample information
 #'
 #' @inheritParams read_pglyco3_pglycoquant
-#' @param fp File path of the GlyHunter result file.
+#' @param fp Local path or HTTP(S) URL of the result file. GitHub file links
+#'   containing `/blob/` are also supported.
 #' @param preset "Fu_NC_2026" (default) or "Fu_NP_2026".
 #'   Use "Fu_NC_2026" to use the configuration following "DOI: 10.1038/s41467-026-68579-x".
 #'   Use "Fu_NP_2026" to use the configuration in an unpublished Nature Protocols paper.
@@ -37,9 +38,8 @@ read_glyhunter <- function(
   sample_name_converter = NULL
 ) {
   # ----- Check arguments -----
+  fp <- .read_file_input(fp, ".csv")
   .validate_read_args(
-    fp = fp,
-    file_extensions = ".csv",
     sample_info = sample_info,
     glycan_type = glycan_type,
     sample_name_converter = sample_name_converter

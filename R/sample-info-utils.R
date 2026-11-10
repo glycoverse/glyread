@@ -15,7 +15,9 @@
     )
   } else {
     if (is.character(sample_info)) {
-      # Read from file
+      if (.is_http_url(sample_info)) {
+        sample_info <- .raw_file_url(sample_info)
+      }
       sample_info <- suppressMessages(readr::read_csv(sample_info))
     } else if (is.data.frame(sample_info)) {
       # Convert data.frame to tibble
