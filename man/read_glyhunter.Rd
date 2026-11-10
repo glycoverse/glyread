@@ -13,9 +13,9 @@ read_glyhunter(
 )
 }
 \arguments{
-\item{fp}{File path of the GlyHunter result file.}
+\item{fp}{Local path or HTTP(S) URL of the result file.}
 
-\item{sample_info}{File path of the sample information file (csv),
+\item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble.}
 
 \item{preset}{"Fu_NC_2026" (default) or "Fu_NP_2026".

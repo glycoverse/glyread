@@ -47,9 +47,8 @@ read_byonic_pglycoquant <- function(
   multisite = "expand"
 ) {
   # ----- Check arguments -----
+  fp <- .read_file_input(fp, ".list")
   .validate_read_args(
-    fp = fp,
-    file_extensions = ".list",
     sample_info = sample_info,
     quant_method = quant_method,
     glycan_type = glycan_type,

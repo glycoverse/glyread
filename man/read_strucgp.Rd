@@ -7,9 +7,9 @@
 read_strucgp(fp, sample_info = NULL, glycan_type = "N", parse_structure = TRUE)
 }
 \arguments{
-\item{fp}{File path of the StrucGP result file.}
+\item{fp}{Local path or HTTP(S) URL of the result file.}
 
-\item{sample_info}{File path of the sample information file (csv),
+\item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble. If \code{NULL} (default),
 a simple sample information tibble will be created.}
 

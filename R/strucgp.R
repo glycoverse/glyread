@@ -32,8 +32,8 @@
 #'   required for most downstream analyses
 #' - `batch`: batch information, required for batch effect correction
 #'
-#' @param fp File path of the StrucGP result file.
-#' @param sample_info File path of the sample information file (csv),
+#' @param fp Local path or HTTP(S) URL of the result file.
+#' @param sample_info Local path or HTTP(S) URL of the sample information CSV,
 #'  or a sample information data.frame/tibble. If `NULL` (default),
 #'  a simple sample information tibble will be created.
 #' @param glycan_type Glycan type. One of "N", "O-GalNAc", "O-GlcNAc", "O-Man", "O-Fuc", or "O-Glc".
@@ -55,9 +55,8 @@ read_strucgp <- function(
   parse_structure = TRUE
 ) {
   # ----- Check arguments -----
+  fp <- .read_file_input(fp, c(".xlsx", ".xls"))
   .validate_read_args(
-    fp = fp,
-    file_extensions = c(".xlsx", ".xls"),
     sample_info = sample_info,
     glycan_type = glycan_type,
     parse_structure = parse_structure
@@ -65,6 +64,12 @@ read_strucgp <- function(
 
   # ----- Read and tidy data -----
   cli::cli_progress_step("Reading data")
+  if (.is_http_url(fp)) {
+    workbook <- tempfile()
+    on.exit(unlink(workbook), add = TRUE)
+    curl::curl_download(fp, workbook, quiet = TRUE)
+    fp <- workbook
+  }
   df <- readxl::read_excel(fp)
   tidy_df <- .tidy_strucgp(df, parse_structure)
 
