@@ -1,6 +1,6 @@
 # glyread (development version)
 
-* New `read_glycresoft()` imports verified GlycReSoft identification CSVs, counts shared signals once, and retains ambiguous compositions and localization candidates.
+* New `read_glycresoft()` imports verified GlycReSoft identification CSVs, counts shared signals once, and retains ambiguous compositions and localization candidates. (#29)
 * `read_*()` now accepts HTTP(S) URLs for result files and sample information CSVs, including GitHub file links. (#24)
 
 # glyread 0.12.5
