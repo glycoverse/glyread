@@ -16,7 +16,8 @@
 #' Different groups with the same feature
 #' identity are summed. Feature identity includes the inferred leader protein,
 #' all candidate modified glycopeptides/compositions, and the leader's candidate
-#' peptide positions. It excludes sample-local group IDs and localization
+#' peptide positions, preserving each composition-to-position pairing. It
+#' excludes sample-local group IDs and localization
 #' probabilities, allowing equivalent candidate sets to align across samples.
 #'
 #' Protein inference uses parsimony. Occupied sites come from the
@@ -378,7 +379,9 @@ read_glycresoft <- function(
   selected <- which(e$row_proteins == leader)
   one <- function(x) if (length(unique(x)) == 1L) unique(x) else NA
   tuples <- paste(e$annotated, e$row_compositions, sep = "{")
-  positions <- paste(e$annotated[selected], e$starts[selected], sep = "@")
+  # Keep the composition attached to its leader position: the separate sets
+  # of compositions and positions cannot distinguish swapped assignments.
+  positions <- paste(tuples[selected], e$starts[selected], sep = "@")
   e$feature_signature <- paste(
     leader,
     paste(sort(unique(tuples)), collapse = "|"),

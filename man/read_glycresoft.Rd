@@ -42,7 +42,8 @@ Zero signal and features not observed in a sample are missing abundance
 Different groups with the same feature
 identity are summed. Feature identity includes the inferred leader protein,
 all candidate modified glycopeptides/compositions, and the leader's candidate
-peptide positions. It excludes sample-local group IDs and localization
+peptide positions, preserving each composition-to-position pairing. It
+excludes sample-local group IDs and localization
 probabilities, allowing equivalent candidate sets to align across samples.
 
 Protein inference uses parsimony. Occupied sites come from the

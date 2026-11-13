@@ -278,3 +278,46 @@ test_that("semicolons in FASTA descriptions do not change protein accessions", {
     .test_var_info(changed)$protein_site
   )
 })
+
+
+test_that("candidate composition and leader position stay paired", {
+  # Boundary case derived from the real two-composition shared signal: move
+  # the two candidates to different occurrences of the same peptide, then
+  # swap their compositions. These are distinct candidate sets, not new data.
+  original <- readr::read_csv(
+    glycresoft_fixture("Normal_3"),
+    col_types = readr::cols(.default = "c")
+  )
+  original <- original[original$group_id == "331", ][1:2, ]
+  expect_equal(length(unique(original$glycopeptide)), 2L)
+  original$protein_name <- original$protein_name[[1]]
+  starts <- c(10L, 40L)
+  lengths <- as.integer(original$peptide_end) -
+    as.integer(original$peptide_start)
+  original$peptide_start <- as.character(starts)
+  original$peptide_end <- as.character(starts + lengths)
+  original$n_glycosylation_sites <- NA_character_
+  swapped <- original
+  swapped$glycopeptide <- rev(original$glycopeptide)
+  swapped$group_id <- "9001"
+  first <- tempfile(fileext = ".csv")
+  second <- tempfile(fileext = ".csv")
+  readr::write_csv(rbind(original, swapped), first)
+  equivalent <- rbind(original[2:1, ], original[1, ])
+  equivalent$analysis <- "equivalent.candidates"
+  equivalent$group_id <- "9002"
+  readr::write_csv(equivalent, second)
+
+  x <- read_glycresoft(c(first, second))
+  expect_equal(dim(x), c(2L, 2L))
+  info <- .test_var_info(x)
+  expect_true(all(is.na(info$glycan_composition)))
+  expect_equal(length(unique(info$feature_signature)), 2L)
+  mat <- .test_expr_mat(x)
+  expect_equal(unname(mat[, 1]), rep(as.numeric(original$total_signal[1]), 2))
+  expect_equal(sum(!is.na(mat[, 2])), 1L)
+  aligned <- which(!is.na(mat[, 2]))
+  expect_equal(unname(mat[aligned, 2]), as.numeric(original$total_signal[1]))
+  expect_false(any(info$source_annotations[[aligned]]$group_id == "9001"))
+  expect_true(any(info$source_annotations[[aligned]]$group_id == "331"))
+})
