@@ -13,17 +13,18 @@ import zipfile
 pxd, yeast, output = map(pathlib.Path, sys.argv[1:])
 output.mkdir(parents=True, exist_ok=True)
 archives = [
-    (pxd, "8f0fca7aebdac30f63af12c205c3210c", {
+    (pxd, "8bf9b5e77116034398ff87d16e1c7992d7d2e3b41db24e3269db207ddb33b4d2", {
         "20160301_Serum_SA_glycopeptide_HCC_2.glycopeptides.csv": ("HCC_2.csv", {"1", "81", "118", "371"}),
         "20160301_Serum_SA_glycopeptide_HCC_3.glycopeptides.csv": ("HCC_3.csv", {"1", "289"}),
         "20160301_Serum_SA_glycopeptide_Normal_3.glycopeptides.csv": ("Normal_3.csv", {"1", "331", "372"}),
     }),
-    (yeast, "5b0790a2dc71eef22c22b649e4ff2731", {
+    (yeast, "c88f01f8fb78a9a95c9de67a7e54db09dcd95b7bf9a5939a788f5e66bcda6c35", {
         "cwq_mix2-1_726.glycopeptides.csv": ("cwq_mix2-1.csv", {"1", "481", "832"}),
     }),
 ]
 for archive, checksum, selected in archives:
-    assert hashlib.md5(archive.read_bytes()).hexdigest() == checksum
+    if hashlib.sha256(archive.read_bytes()).hexdigest() != checksum:
+        raise ValueError(f"SHA-256 mismatch for {archive}")
     with zipfile.ZipFile(archive) as z:
         for member, (name, groups) in selected.items():
             content = z.read(member)
