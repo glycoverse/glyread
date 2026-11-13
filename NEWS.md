@@ -1,5 +1,7 @@
 # glyread (development version)
 
+* `read_ms_decipher()` imports legacy O-Search Excel reports as binary glycopeptide detection matrices without guessing unreported glycosylation sites.
+
 * `read_*()` now accepts HTTP(S) URLs for result files and sample information CSVs, including GitHub file links. (#24)
 
 # glyread 0.12.5
