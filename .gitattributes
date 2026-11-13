@@ -1,0 +1,3 @@
+# Preserve original exported fixture bytes and their published SHA-256 hashes.
+/tests/testthat/data/glycresoft/*.csv -text
+/inst/extdata/glycresoft.csv -text

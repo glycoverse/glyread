@@ -27,9 +27,9 @@ available even when composition or occupied site is unknown.
 \description{
 Read label-free N-glycopeptide exports in the format verified against the
 GlycReSoft 0.4.23 paper's public search results (doi:10.6084/m9.figshare.24578857).
-This does not read spectrum-match CSVs or SQLite databases. Later formats,
-including the development format with \code{index:sequon} site annotations, have
-not been validated and are not accepted. Each \code{protein_name} must be a
+This does not read spectrum-match CSVs or SQLite databases. Other software
+versions have not been validated; incompatible development exports with
+\code{index:sequon} site annotations are rejected. Each \code{protein_name} must be a
 UniProt-style FASTA title (\code{sp|accession|...} or \code{tr|accession|...}).
 }
 \details{
