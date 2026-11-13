@@ -194,3 +194,15 @@ test_that("invalid classifications fail and empty decoy identity does not block 
     suppressMessages(read_opair(.opair_write(df)))
   )
 })
+
+
+test_that("repeating one spectrum cannot change leader inference", {
+  df <- .opair_fixture()[1:3, ]
+  df[["Protein Accession"]] <- c("P01326|P55095", "P01326", "P55095")
+  a <- suppressMessages(read_opair(.opair_write(df)))
+  b <- suppressMessages(read_opair(.opair_write(dplyr::bind_rows(
+    df,
+    df[rep(3, 20), ]
+  ))))
+  expect_equal(a, b)
+})

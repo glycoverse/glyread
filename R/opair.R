@@ -228,6 +228,9 @@ read_opair <- function(
     site_probabilities = raw("AllSiteSpecificLocalizationProbability")
   )
   tidy$protein_site <- .opair_single_site(df)
-  tidy$protein <- .infer_proteins(list(protein = tidy$protein_group))$protein
-  tidy
+  mappings <- dplyr::distinct(tidy, .data$peptide, .data$protein_group)
+  mappings$protein <- .infer_proteins(list(
+    protein = mappings$protein_group
+  ))$protein
+  dplyr::left_join(tidy, mappings, by = c("peptide", "protein_group"))
 }
