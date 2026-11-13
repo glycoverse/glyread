@@ -1,5 +1,6 @@
 # glyread (development version)
 
+* New `read_opair()` imports native MetaMorpheus O-Pair identifications as binary whole-glycopeptide detections while retaining ambiguous localization annotations.
 * `read_*()` now accepts HTTP(S) URLs for result files and sample information CSVs, including GitHub file links. (#24)
 
 # glyread 0.12.5
