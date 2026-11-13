@@ -1,5 +1,7 @@
 # glyread (development version)
 
+* New `read_protein_prospector()` imports Search Compare PSM precursor intensities with explicit documentation distinguishing them from integrated XIC/LFQ abundances.
+
 * `read_*()` now accepts HTTP(S) URLs for result files and sample information CSVs, including GitHub file links. (#24)
 
 # glyread 0.12.5
