@@ -7,7 +7,7 @@ Authors@R:
 Description: Provides a unified interface for reading and processing
     quantification results from various glycomics and glycoproteomics
     software tools, including Byonic (ByoLogic, pGlycoQuant), StrucGP,
-    pGlyco3 (pGlycoQuant), Glyco-Decipher, GlyHunter, and MSFragger.
+    pGlyco3 (pGlycoQuant), Glyco-Decipher, GlyHunter, MSFragger, and GlycReSoft.
     The package standardizes raw data from different sources, performs
     peptide-spectrum match (PSM) aggregation, parses glycan compositions
     and structures, and converts the data into a standardized
