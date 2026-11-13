@@ -1,5 +1,7 @@
 # glyread (development version)
 
+* `read_gprodia()` imports GproDIA long-format and TRIC-aligned TSV reports with MS2 abundance and paired protein-site annotations.
+
 * `read_*()` now accepts HTTP(S) URLs for result files and sample information CSVs, including GitHub file links. (#24)
 
 # glyread 0.12.5
