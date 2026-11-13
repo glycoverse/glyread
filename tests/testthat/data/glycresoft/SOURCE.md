@@ -42,6 +42,12 @@ examples; its provenance and license are also installed beside it.
 
 ## SHA-256
 
+The extraction script verifies these SHA-256 archive digests before reading
+any members. The MD5 values above are retained only as Figshare metadata.
+
+- PXD009654 ZIP: `8bf9b5e77116034398ff87d16e1c7992d7d2e3b41db24e3269db207ddb33b4d2`
+- Yeast ZIP: `c88f01f8fb78a9a95c9de67a7e54db09dcd95b7bf9a5939a788f5e66bcda6c35`
+
 | File | Full original CSV | Fixture |
 |---|---|---|
 | HCC_2 | b05775d45638d660fe56e0778b72fd230c2e20c614488c84da4ab948afd49057 | f5f85b8657a6803b7ea6dd3cc0bc6ae0bbdd6c1782227e814f4d8723d0dd8198 |
