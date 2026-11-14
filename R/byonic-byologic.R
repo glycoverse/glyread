@@ -4,6 +4,7 @@
 #' and used Byologic for quantification, this is the function for you.
 #' It reads in a result file and returns a [glyexp::GlycoproteomicSE()] object.
 #' Currently only label-free quantification is supported.
+#' Rows whose protein field contains the literal marker `>Reverse` are excluded.
 #'
 #' @section Which file to use?:
 #' Open the .blgc file in the result folder with PMI-Byos.
@@ -104,6 +105,7 @@ read_byonic_byologic <- function(
 
 .tidy_byonic_byologic <- function(df, orgdb, multisite = "expand") {
   df %>%
+    .drop_byonic_reverse_rows("protein_name") %>%
     dplyr::filter(!is.na(.data$glycans)) %>%
     .collapse_byologic_rows() %>%
     .handle_byologic_multisite_rows(multisite) %>%

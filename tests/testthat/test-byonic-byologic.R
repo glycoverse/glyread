@@ -45,6 +45,32 @@ test_that("it returns correct information (label-free)", {
 })
 
 
+test_that("reverse identifications are excluded before quantification", {
+  path <- withr::local_tempfile(fileext = ".csv")
+  proteins <- c(
+    ">sp|P12345|TEST Reverse transcriptase",
+    ">Reverse sp|P12345|TEST",
+    ">sp|P12345|TEST;>Reverse sp|P12345|TEST"
+  )
+  readr::write_csv(
+    tibble::tibble(
+      row_number = as.character(1:3),
+      protein_name = proteins,
+      sequence = "K.nGTR.G",
+      glycans = "HexNAc(1)",
+      xic_area_summed = c(10, 20, 30),
+      ms_alias_name = "Sample1",
+      mod_summary = "N1(NGlycan/203.07937)",
+      start_aa = 10L
+    ),
+    path
+  )
+
+  res <- read_byonic_byologic(path, orgdb = "missing.OrgDb")
+  expect_equal(.test_var_info(res)$protein, "P12345")
+  expect_equal(as.numeric(.test_expr_mat(res)[, "Sample1"]), 10)
+})
+
 # ----- Multisite glycopeptide handling -----
 test_that("multisite glycopeptides are handled correctly in full workflow", {
   suppressMessages(

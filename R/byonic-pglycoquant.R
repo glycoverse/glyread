@@ -4,6 +4,7 @@
 #' and used pGlycoQuant for quantification, this is the function for you.
 #' It reads in a pGlycoQuant result file and returns a [glyexp::GlycoproteomicSE()] object.
 #' Currently only label-free quantification is supported.
+#' Rows whose protein field contains the literal marker `>Reverse` are excluded.
 #'
 #' @section Which file to use?:
 #' Use `Quant.site.list` (recommended) to import the site-specific glycan
@@ -122,6 +123,7 @@ read_byonic_pglycoquant <- function(
 
 .tidy_byonic_pglycoquant <- function(df, orgdb, multisite = "expand") {
   df %>%
+    .drop_byonic_reverse_rows("Protein Name") %>%
     .handle_byonic_pglycoquant_multisite_rows(multisite) %>%
     .standardize_byonic_pglycoquant_columns() %>%
     .add_gene_symbols(orgdb) %>%
@@ -190,6 +192,7 @@ read_byonic_pglycoquant <- function(
     col_types = paste0(types, collapse = ""),
     name_repair = "minimal"
   )
+  df <- .drop_byonic_reverse_rows(df, "Protein")
   abundance <- as.matrix(df[, samples, drop = FALSE])
   if (!is.null(sample_name_converter)) {
     samples <- sample_name_converter(samples)

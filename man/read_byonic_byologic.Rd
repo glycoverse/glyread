@@ -48,6 +48,7 @@ If you used Byonic for intact glycopeptide identification,
 and used Byologic for quantification, this is the function for you.
 It reads in a result file and returns a \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 Currently only label-free quantification is supported.
+Rows whose protein field contains the literal marker \verb{>Reverse} are excluded.
 }
 \section{Which file to use?}{
 
