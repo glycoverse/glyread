@@ -11,8 +11,12 @@
 #' Use `Quant.site.list` (recommended) for the reported site-specific glycan
 #' abundances, or `Quant.spectra.list` for peptide-level data. The reader
 #' detects the format from the column headers.
-#' Site files report protein, protein site and glycan composition directly;
-#' protein inference, PSM aggregation and structure parsing apply only to spectra files.
+#' Site files report protein, protein site and glycan composition directly.
+#' Protein inference and PSM aggregation apply only to spectra files.
+#'
+#' `Quant.site.list` omits glycan structures. If you need the structures
+#' reported by pGlyco3, read `Quant.spectra.list` with `parse_structure = TRUE`.
+#'
 #' Files from pGlyco3 result folder are not needed.
 #' For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
