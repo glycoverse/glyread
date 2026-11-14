@@ -1,6 +1,6 @@
 # glyread (development version)
 
-* `read_byonic_pglycoquant()` now matches glycans to peptide modifications by monoisotopic mass on any residue, retains unresolved assignments with a summary warning, and calculates protein sites from the peptide start.
+* `read_byonic_pglycoquant()` now matches glycans to peptide modifications by monoisotopic mass on any residue, retains unresolved assignments with a summary warning, and calculates protein sites from the peptide start. (#30)
 * `read_*()` now accepts HTTP(S) URLs for result files and sample information CSVs, including GitHub file links. (#24)
 
 # glyread 0.12.5
