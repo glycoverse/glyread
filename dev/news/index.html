@@ -34,6 +34,8 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="glyread-development-version">glyread (development version)<a class="anchor" aria-label="anchor" href="#glyread-development-version"></a></h2>
 <ul><li>
+<code><a href="../reference/read_byonic_byologic.html">read_byonic_byologic()</a></code> and <code><a href="../reference/read_byonic_pglycoquant.html">read_byonic_pglycoquant()</a></code> now exclude identifications whose protein field contains <code>&gt;Reverse</code> before calculating abundances. (#32)</li>
+<li>
 <code><a href="../reference/read_byonic_pglycoquant.html">read_byonic_pglycoquant()</a></code> now reads <code>Quant.site.list</code>, the recommended input for site-specific glycan abundances. <code>Quant.spectra.list</code> remains available for peptide-level analysis. (#31)</li>
 <li>
 <code><a href="../reference/read_byonic_pglycoquant.html">read_byonic_pglycoquant()</a></code> now matches glycans to peptide modifications by monoisotopic mass on any residue and retains unresolved assignments with a summary warning. (#30)</li>

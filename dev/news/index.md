@@ -2,6 +2,11 @@
 
 ## glyread (development version)
 
+- [`read_byonic_byologic()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_byologic.md)
+  and
+  [`read_byonic_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_pglycoquant.md)
+  now exclude identifications whose protein field contains `>Reverse`
+  before calculating abundances. (#32)
 - [`read_byonic_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_pglycoquant.md)
   now reads `Quant.site.list`, the recommended input for site-specific
   glycan abundances. `Quant.spectra.list` remains available for

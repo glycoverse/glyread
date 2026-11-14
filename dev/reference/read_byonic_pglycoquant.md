@@ -4,7 +4,8 @@ If you used Byonic for intact glycopeptide identification, and used
 pGlycoQuant for quantification, this is the function for you. It reads
 in a pGlycoQuant result file and returns a
 [`glyexp::GlycoproteomicSE()`](https://glycoverse.github.io/glyexp/reference/GlycoproteomicSE.html)
-object. Currently only label-free quantification is supported.
+object. Currently only label-free quantification is supported. Rows
+whose protein field contains the literal marker `>Reverse` are excluded.
 
 ## Usage
 
