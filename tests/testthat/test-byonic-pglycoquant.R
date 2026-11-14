@@ -453,3 +453,45 @@ test_that("PSMs are correctly aggregated to glycopeptides", {
   # Check that aggregation worked correctly
   expect_equal(nrow(.test_var_info(res)), 5)
 })
+
+test_that("site tables import reported sites and sample abundances directly", {
+  path <- withr::local_tempfile(fileext = ".list")
+  writeLines(
+    c(
+      "Protein\tSite\tGlycan(N,H,A,G,F)\tEmpty_Separator\trun-1\trun-2\t",
+      ">sp|P19652-1|A1AG2_HUMAN\t  102\t[2  3  1  0  1]\t\t0.0\t32.5\t",
+      ">sp|P19652-1|A1AG2_HUMAN\t  102\t[2  3  0  1  0]\t\t11.25\t\t"
+    ),
+    path
+  )
+
+  res <- read_byonic_pglycoquant(
+    path,
+    sample_info = data.frame(sample = c("2", "1")),
+    sample_name_converter = function(x) sub("run-", "", x),
+    orgdb = "missing.OrgDb",
+    multisite = "drop"
+  )
+  info <- .test_var_info(res)
+  expect_equal(info$protein, rep("P19652-1", 2))
+  expect_identical(info$protein_site, c(102L, 102L))
+  expect_false(any(c("peptide", "peptide_site") %in% names(info)))
+  expect_s3_class(info$glycan_composition, "glyrepr_composition")
+  expect_equal(
+    as.character(info$glycan_composition),
+    c(
+      "Hex(3)HexNAc(2)dHex(1)NeuAc(1)",
+      "Hex(3)HexNAc(2)NeuGc(1)"
+    )
+  )
+  mat <- .test_expr_mat(res)
+  expect_identical(colnames(mat), c("2", "1"))
+  expect_equal(unname(mat), matrix(c(32.5, NA, NA, 11.25), nrow = 2))
+})
+
+test_that("site compositions require a count for every declared sugar", {
+  expect_error(
+    .parse_byonic_site_composition("[3  2]", "Glycan(H,N,F)"),
+    "one nonnegative count per monosaccharide"
+  )
+})

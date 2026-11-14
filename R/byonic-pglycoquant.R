@@ -6,13 +6,17 @@
 #' Currently only label-free quantification is supported.
 #'
 #' @section Which file to use?:
-#' You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
+#' Use `Quant.site.list` (recommended) to import the site-specific glycan
+#' abundances reported by pGlycoQuant. Each row describes a protein accession,
+#' protein site and glycan composition. Use `Quant.spectra.list` when you
+#' need peptide sequences or peptide-level site assignments.
+#' The reader detects the format from the column headers.
 #' Files from Byonic result folder are not needed.
 #' For instructions on how to use Byonic and pGlycoQuant, please refer to
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
 #' @section Glycosylation sites:
-#' For each PSM, the reader matches the monoisotopic residue mass of each
+#' For each PSM in `Quant.spectra.list`, the reader matches the monoisotopic residue mass of each
 #' reported glycan to a bracketed peptide modification within 0.001 Da.
 #' Each peptide position can carry one reported glycan. All amino acids are
 #' eligible. Protein positions are `Position + peptide_site - 1`, where
@@ -24,23 +28,34 @@
 #' assignments give the same output feature, its PSM intensity is counted once.
 #'
 #' @section Multisite glycopeptides:
-#' Some glycopeptides can have more than one glycosylation site.
+#' In spectra files, some glycopeptides can have more than one glycosylation site.
 #' By default, they are expanded into multiple rows with the same quantification value
 #' but different `protein_site` and `glycan_composition`.
 #' Set `multisite = "drop"` to remove multisite glycopeptides instead.
 #'
-#' @inheritSection read_pglyco3_pglycoquant Sample information
-#' @inheritSection read_pglyco3_pglycoquant Aggregation
+#' @section Sample information:
+#' In site files, sample names are the column headers after `Empty_Separator`.
+#' In spectra files, they are taken from `Intensity(sample)` headers.
+#' The `sample` column in `sample_info` must match these names after any
+#' `sample_name_converter` is applied.
+#'
+#' @section Quantification:
+#' Site files supply one abundance per site-specific glycan and sample.
+#' Spectra files are aggregated by summing PSM intensities per glycopeptide
+#' and sample. In both formats, zero abundance is recorded as `NA`.
 #'
 #' @section Variable information:
 #' The following columns could be found in the variable information tibble:
-#' - `peptide`: character, peptide sequence
-#' - `peptide_site`: integer, site of glycosylation on peptide
+#' - `peptide`: character, peptide sequence (spectra files only)
+#' - `peptide_site`: integer, site of glycosylation on peptide (spectra files only)
 #' - `protein`: character, protein accession
 #' - `protein_site`: integer, site of glycosylation on protein
-#' - `gene`: character, gene name (symbol)
+#' - `gene`: character, gene name (symbol), when available
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
-#' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
+#'
+#' @param multisite For spectra files, expand multisite glycopeptides into
+#'   site-specific rows (`"expand"`) or remove them (`"drop"`).
+#' @param parse_structure Reserved for compatibility. Both formats report compositions.
 #'
 #' @inheritParams read_pglyco3_pglycoquant
 #' @inheritParams read_byonic_byologic
@@ -70,11 +85,26 @@ read_byonic_pglycoquant <- function(
   checkmate::assert_choice(multisite, c("expand", "drop"))
 
   # ----- Read data -----
-  # Keep all PSM-level columns for variable info
   if (quant_method == "label-free") {
     cli::cli_progress_step("Reading data")
-    df <- .read_byonic_df(fp)
-    tidy_df <- .tidy_byonic_pglycoquant(df, orgdb, multisite)
+    headers <- names(readr::read_tsv(
+      fp,
+      n_max = 0,
+      col_types = readr::cols(),
+      name_repair = "minimal"
+    ))
+    if (all(c("Protein", "Site", "Empty_Separator") %in% headers)) {
+      return(.read_byonic_site_table(
+        fp,
+        headers,
+        sample_info,
+        glycan_type,
+        quant_method,
+        sample_name_converter,
+        orgdb
+      ))
+    }
+    tidy_df <- .tidy_byonic_pglycoquant(.read_byonic_df(fp), orgdb, multisite)
     exp <- .read_template(
       tidy_df,
       sample_info,
@@ -126,6 +156,103 @@ read_byonic_pglycoquant <- function(
     )),
     classes = "vroom_mismatched_column_name"
   )
+}
+
+# Site files already contain a wide abundance matrix in source row order.
+.read_byonic_site_table <- function(
+  fp,
+  headers,
+  sample_info,
+  glycan_type,
+  quant_method,
+  sample_name_converter,
+  orgdb
+) {
+  glycan_col <- grep("^Glycan\\(.*\\)$", headers, value = TRUE)
+  if (length(glycan_col) != 1L) {
+    cli::cli_abort(
+      "Expected one Glycan(...) column in the pGlycoQuant site file."
+    )
+  }
+  sample_cols <- which(
+    seq_along(headers) > match("Empty_Separator", headers) & nzchar(headers)
+  )
+  samples <- headers[sample_cols]
+  if (!length(samples)) {
+    cli::cli_abort("Expected sample columns after Empty_Separator.")
+  }
+  types <- rep("_", length(headers))
+  types[headers %in% c("Protein", glycan_col)] <- "c"
+  types[headers == "Site"] <- "i"
+  types[sample_cols] <- "d"
+  df <- readr::read_tsv(
+    fp,
+    col_types = paste0(types, collapse = ""),
+    name_repair = "minimal"
+  )
+  abundance <- as.matrix(df[, samples, drop = FALSE])
+  if (!is.null(sample_name_converter)) {
+    samples <- sample_name_converter(samples)
+  }
+  checkmate::assert_character(
+    samples,
+    len = length(sample_cols),
+    any.missing = FALSE,
+    unique = TRUE
+  )
+  sample_info <- .process_sample_info(sample_info, samples)
+  abundance[abundance == 0] <- NA_real_
+  colnames(abundance) <- samples
+
+  var_info <- tibble::tibble(
+    variable = paste0("GP", seq_len(nrow(df))),
+    protein = .extract_uniprot_accession(df$Protein),
+    protein_site = df$Site,
+    glycan_composition = .parse_byonic_site_composition(
+      df[[glycan_col]],
+      glycan_col
+    )
+  ) |>
+    .add_gene_symbols(orgdb)
+  rownames(abundance) <- var_info$variable
+  .new_glycoproteomic_se(
+    abundance,
+    sample_info,
+    var_info,
+    glycan_type,
+    quant_method
+  )
+}
+
+.parse_byonic_site_composition <- function(x, header) {
+  codes <- trimws(strsplit(
+    sub("^Glycan\\((.*)\\)$", "\\1", header),
+    ",",
+    fixed = TRUE
+  )[[1]])
+  if (
+    anyDuplicated(codes) ||
+      !all(codes %in% c("H", "N", "A", "G", "F", "aH", "pH"))
+  ) {
+    cli::cli_abort("Unsupported monosaccharide labels in {.val {header}}.")
+  }
+  # Capture one count per header label, in the order used by this export.
+  pattern <- paste0(
+    "^\\[\\s*",
+    paste(rep("(\\d+)", length(codes)), collapse = "\\s+"),
+    "\\s*\\]$"
+  )
+  distinct <- unique(x)
+  counts <- stringr::str_match(distinct, pattern)
+  if (anyNA(counts)) {
+    cli::cli_abort(
+      "Expected one nonnegative count per monosaccharide in {.val {header}}."
+    )
+  }
+  pglyco <- apply(counts[, -1, drop = FALSE], 1, function(row) {
+    paste0(codes, "(", row, ")", collapse = "")
+  })
+  .convert_pglyco3_comp(pglyco)[match(x, distinct)]
 }
 
 # Expand PSMs before sample intensities are pivoted or aggregated.
