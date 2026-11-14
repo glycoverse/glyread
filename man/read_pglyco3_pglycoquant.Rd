@@ -10,7 +10,8 @@ read_pglyco3_pglycoquant(
   quant_method = "label-free",
   glycan_type = "N",
   sample_name_converter = NULL,
-  parse_structure = FALSE
+  parse_structure = FALSE,
+  orgdb = "org.Hs.eg.db"
 )
 }
 \arguments{
@@ -34,6 +35,9 @@ If NULL, original names are kept.}
 If \code{TRUE}, glycan structures are parsed and included in the
 \code{var_info} as \code{glycan_structure} column. If \code{FALSE} (default), structure parsing
 is skipped and structure-related columns are removed.}
+
+\item{orgdb}{Name of the OrgDb package for mapping site-file protein accessions
+to gene symbols. Spectra files supply their own gene annotations.}
 }
 \value{
 An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
@@ -45,7 +49,15 @@ It reads in a pGlycoQuant result file and returns a \code{\link[glyexp:Glycoprot
 Currently only label-free quantification is supported.
 }
 \section{Which file to use?}{
-You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
+Use \code{Quant.site.list} (recommended) for the reported site-specific glycan
+abundances, or \code{Quant.spectra.list} for peptide-level data. The reader
+detects the format from the column headers.
+Site files report protein, protein site and glycan composition directly.
+Protein inference and PSM aggregation apply only to spectra files.
+
+\code{Quant.site.list} omits glycan structures. If you need the structures
+reported by pGlyco3, read \code{Quant.spectra.list} with \code{parse_structure = TRUE}.
+
 Files from pGlyco3 result folder are not needed.
 For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%20for\%20pGlycoQuant_v202211.pdf}{pGlycoQuant}.
@@ -53,7 +65,8 @@ the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%2
 
 \section{Variable information}{
 
-The following columns could be found in the variable information tibble:
+Site files provide \code{protein}, \code{protein_site}, \code{glycan_composition}, and
+\code{gene} when available. Spectra files can provide the following columns:
 \itemize{
 \item \code{peptide}: character, peptide sequence
 \item \code{peptide_site}: integer, site of glycosylation on peptide
@@ -69,18 +82,11 @@ records and samples when they map to the same glycopeptide.
 }
 
 \section{Sample information}{
-The sample information file should be a \code{csv} file with the first column
-named \code{sample}, and the rest of the columns being sample information.
-The \code{sample} column must match the \code{RawName} column in the pGlyco3 result file,
-although the order can be different.
 
-You can put any useful information in the sample information file.
-Recommended columns are:
-\itemize{
-\item \code{group}: grouping or conditions, e.g. "control" or "tumor",
-required for most downstream analyses
-\item \code{batch}: batch information, required for batch effect correction
-}
+In site files, sample names are the column headers after \code{Empty_Separator}.
+In spectra files, they are taken from \code{Intensity(sample)} headers.
+The \code{sample} column in \code{sample_info} must match these names after any
+\code{sample_name_converter} is applied.
 }
 
 \section{Protein inference}{

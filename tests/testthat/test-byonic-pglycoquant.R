@@ -515,7 +515,7 @@ test_that("site tables import reported sites and sample abundances directly", {
 
 test_that("site compositions require a count for every declared sugar", {
   expect_error(
-    .parse_byonic_site_composition("[3  2]", "Glycan(H,N,F)"),
+    .parse_pglycoquant_site_composition("[3  2]", "Glycan(H,N,F)"),
     "one nonnegative count per monosaccharide"
   )
 })
@@ -529,5 +529,5 @@ test_that("an all-reverse site table reports why no identifications remain", {
     ),
     path
   )
-  expect_error(read_byonic_pglycoquant(path), "All Byonic identifications")
+  expect_error(read_byonic_pglycoquant(path), "All pGlycoQuant identifications")
 })

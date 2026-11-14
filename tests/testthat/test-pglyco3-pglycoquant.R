@@ -570,3 +570,27 @@ test_that("J is converted to N in peptide column", {
   )
   expect_equal(nchar(invalid_chars), 0L)
 })
+
+test_that("pGlyco3 and Byonic import the same site-level quantification", {
+  path <- withr::local_tempfile(fileext = ".list")
+  writeLines(
+    c(
+      "Protein\tSite\tGlycan(N,H)\tEmpty_Separator\trun-A\trun-B",
+      ">sp|P19652|A1AG2_HUMAN\t102\t[2 3]\t\t0\t32.5"
+    ),
+    path
+  )
+  read_site <- function(reader, ...) {
+    reader(
+      path,
+      sample_info = data.frame(sample = c("B", "A")),
+      sample_name_converter = function(x) sub("run-", "", x),
+      orgdb = "missing.OrgDb",
+      ...
+    )
+  }
+  result <- read_site(read_pglyco3_pglycoquant, parse_structure = TRUE)
+  expect_equal(result, read_site(read_byonic_pglycoquant))
+  expect_equal(unname(.test_expr_mat(result)), matrix(c(32.5, NA), nrow = 1))
+  expect_false("glycan_structure" %in% names(.test_var_info(result)))
+})
