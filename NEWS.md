@@ -1,6 +1,6 @@
 # glyread (development version)
 
-* `read_byonic_pglycoquant()` now reads `Quant.site.list`, the recommended input for site-specific glycan abundances. `Quant.spectra.list` remains available for peptide-level analysis.
+* `read_byonic_pglycoquant()` now reads `Quant.site.list`, the recommended input for site-specific glycan abundances. `Quant.spectra.list` remains available for peptide-level analysis. (#31)
 
 * `read_byonic_pglycoquant()` now matches glycans to peptide modifications by monoisotopic mass on any residue and retains unresolved assignments with a summary warning. (#30)
 * `read_byonic_pglycoquant()` now calculates protein sites from the peptide start and the position of the modified residue within the peptide. (#30)
