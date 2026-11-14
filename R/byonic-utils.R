@@ -35,10 +35,7 @@
     )
   }
 
-  df %>%
-    dplyr::mutate(.byonic_is_multisite = is_multisite) %>%
-    dplyr::filter(!.data$.byonic_is_multisite) %>%
-    dplyr::select(-all_of(".byonic_is_multisite"))
+  dplyr::slice(df, which(!is_multisite | is.na(is_multisite)))
 }
 
 #' Check glycan-site pairing in expanded Byonic rows
