@@ -2,6 +2,9 @@
 
 ## glyread (development version)
 
+- [`read_pglyco3_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_pglyco3_pglycoquant.md)
+  now reads site-specific glycan abundances from `Quant.site.list`.
+  (#33)
 - [`read_byonic_byologic()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_byologic.md)
   and
   [`read_byonic_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_pglycoquant.md)

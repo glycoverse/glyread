@@ -15,7 +15,8 @@ read_pglyco3_pglycoquant(
   quant_method = "label-free",
   glycan_type = "N",
   sample_name_converter = NULL,
-  parse_structure = FALSE
+  parse_structure = FALSE,
+  orgdb = "org.Hs.eg.db"
 )
 ```
 
@@ -53,6 +54,11 @@ read_pglyco3_pglycoquant(
   `glycan_structure` column. If `FALSE` (default), structure parsing is
   skipped and structure-related columns are removed.
 
+- orgdb:
+
+  Name of the OrgDb package for mapping site-file protein accessions to
+  gene symbols. Spectra files supply their own gene annotations.
+
 ## Value
 
 An
@@ -61,15 +67,24 @@ object.
 
 ## Which file to use?
 
-You should use the "Quant.spectra.list" file in the pGlycoQuant result
-folder. Files from pGlyco3 result folder are not needed. For
-instructions on how to use pGlyco3 and pGlycoQuant, please refer to the
-manual:
+Use `Quant.site.list` (recommended) for the reported site-specific
+glycan abundances, or `Quant.spectra.list` for peptide-level data. The
+reader detects the format from the column headers. Site files report
+protein, protein site and glycan composition directly. Protein inference
+and PSM aggregation apply only to spectra files.
+
+`Quant.site.list` omits glycan structures. If you need the structures
+reported by pGlyco3, read `Quant.spectra.list` with
+`parse_structure = TRUE`.
+
+Files from pGlyco3 result folder are not needed. For instructions on how
+to use pGlyco3 and pGlycoQuant, please refer to the manual:
 [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 
 ## Variable information
 
-The following columns could be found in the variable information tibble:
+Site files provide `protein`, `protein_site`, `glycan_composition`, and
+`gene` when available. Spectra files can provide the following columns:
 
 - `peptide`: character, peptide sequence
 
@@ -96,18 +111,10 @@ The following columns could be found in the variable information tibble:
 
 ## Sample information
 
-The sample information file should be a `csv` file with the first column
-named `sample`, and the rest of the columns being sample information.
-The `sample` column must match the `RawName` column in the pGlyco3
-result file, although the order can be different.
-
-You can put any useful information in the sample information file.
-Recommended columns are:
-
-- `group`: grouping or conditions, e.g. "control" or "tumor", required
-  for most downstream analyses
-
-- `batch`: batch information, required for batch effect correction
+In site files, sample names are the column headers after
+`Empty_Separator`. In spectra files, they are taken from
+`Intensity(sample)` headers. The `sample` column in `sample_info` must
+match these names after any `sample_name_converter` is applied.
 
 ## Protein inference
 

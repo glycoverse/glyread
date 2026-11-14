@@ -53,7 +53,8 @@ Currently only label-free quantification is supported.</p>
 <span>  quant_method <span class="op">=</span> <span class="st">"label-free"</span>,</span>
 <span>  glycan_type <span class="op">=</span> <span class="st">"N"</span>,</span>
 <span>  sample_name_converter <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  parse_structure <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  parse_structure <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  orgdb <span class="op">=</span> <span class="st">"org.Hs.eg.db"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -93,6 +94,11 @@ If <code>TRUE</code>, glycan structures are parsed and included in the
 <code>var_info</code> as <code>glycan_structure</code> column. If <code>FALSE</code> (default), structure parsing
 is skipped and structure-related columns are removed.</p></dd>
 
+
+<dt id="arg-orgdb">orgdb<a class="anchor" aria-label="anchor" href="#arg-orgdb"></a></dt>
+<dd><p>Name of the OrgDb package for mapping site-file protein accessions
+to gene symbols. Spectra files supply their own gene annotations.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -100,8 +106,14 @@ is skipped and structure-related columns are removed.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="which-file-to-use-">Which file to use?<a class="anchor" aria-label="anchor" href="#which-file-to-use-"></a></h2>
-    <p>You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
-Files from pGlyco3 result folder are not needed.
+    <p>Use <code>Quant.site.list</code> (recommended) for the reported site-specific glycan
+abundances, or <code>Quant.spectra.list</code> for peptide-level data. The reader
+detects the format from the column headers.
+Site files report protein, protein site and glycan composition directly.
+Protein inference and PSM aggregation apply only to spectra files.</p>
+<p><code>Quant.site.list</code> omits glycan structures. If you need the structures
+reported by pGlyco3, read <code>Quant.spectra.list</code> with <code>parse_structure = TRUE</code>.</p>
+<p>Files from pGlyco3 result folder are not needed.
 For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 the manual: <a href="https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf" class="external-link">pGlycoQuant</a>.</p>
     </div>
@@ -109,7 +121,8 @@ the manual: <a href="https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual
     <h2 id="variable-information">Variable information<a class="anchor" aria-label="anchor" href="#variable-information"></a></h2>
 
 
-<p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
+<p>Site files provide <code>protein</code>, <code>protein_site</code>, <code>glycan_composition</code>, and
+<code>gene</code> when available. Spectra files can provide the following columns:</p><ul><li><p><code>peptide</code>: character, peptide sequence</p></li>
 <li><p><code>peptide_site</code>: integer, site of glycosylation on peptide</p></li>
 <li><p><code>protein</code>: character, protein accession (after protein inference)</p></li>
 <li><p><code>protein_group</code>: character, all protein accessions before inference,
@@ -122,15 +135,13 @@ records and samples when they map to the same glycopeptide.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="sample-information">Sample information<a class="anchor" aria-label="anchor" href="#sample-information"></a></h2>
-    <p>The sample information file should be a <code>csv</code> file with the first column
-named <code>sample</code>, and the rest of the columns being sample information.
-The <code>sample</code> column must match the <code>RawName</code> column in the pGlyco3 result file,
-although the order can be different.</p>
-<p>You can put any useful information in the sample information file.
-Recommended columns are:</p><ul><li><p><code>group</code>: grouping or conditions, e.g. "control" or "tumor",
-required for most downstream analyses</p></li>
-<li><p><code>batch</code>: batch information, required for batch effect correction</p></li>
-</ul></div>
+
+
+<p>In site files, sample names are the column headers after <code>Empty_Separator</code>.
+In spectra files, they are taken from <code>Intensity(sample)</code> headers.
+The <code>sample</code> column in <code>sample_info</code> must match these names after any
+<code>sample_name_converter</code> is applied.</p>
+    </div>
     <div class="section level2">
     <h2 id="protein-inference">Protein inference<a class="anchor" aria-label="anchor" href="#protein-inference"></a></h2>
     <p>pGlyco3 reports protein groups.
