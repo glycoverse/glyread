@@ -82,6 +82,20 @@ folder. Files from Byonic result folder are not needed. For instructions
 on how to use Byonic and pGlycoQuant, please refer to the manual:
 [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 
+## Glycosylation sites
+
+For each PSM, the reader matches the monoisotopic residue mass of each
+reported glycan to a bracketed peptide modification within 0.001 Da.
+Each peptide position can carry one reported glycan. All amino acids are
+eligible. Protein positions are `Position + peptide_site - 1`, where
+`Position` is the start of the peptide in the protein.
+
+The reader retains assignments shared by all maximum one-to-one matches.
+Unresolved sites or site-specific compositions are recorded as `NA`,
+with one warning summarizing the affected PSMs. If several unresolved
+assignments give the same output feature, its PSM intensity is counted
+once.
+
 ## Multisite glycopeptides
 
 Some glycopeptides can have more than one glycosylation site. By
