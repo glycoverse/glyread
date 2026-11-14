@@ -1,10 +1,10 @@
-.drop_byonic_reverse_rows <- function(df, protein_col) {
+.drop_reverse_rows <- function(df, protein_col, source = "Byonic") {
   targets <- dplyr::filter(
     df,
     !grepl(">Reverse", .data[[protein_col]], fixed = TRUE)
   )
   if (nrow(df) > 0L && nrow(targets) == 0L) {
-    cli::cli_abort("All Byonic identifications contain the >Reverse marker.")
+    cli::cli_abort("All {source} identifications contain the >Reverse marker.")
   }
   targets
 }

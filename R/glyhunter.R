@@ -18,7 +18,7 @@
 #' - `nL`: Number of a2,3-linked sialic acids.
 #' - `nE`: Number of a2,6-linked sialic acids.
 #'
-#' @inheritSection read_pglyco3_pglycoquant Sample information
+#' @inheritSection read_pglyco3 Sample information
 #'
 #' @inheritParams read_pglyco3_pglycoquant
 #' @param fp Local path or HTTP(S) URL of the result file.

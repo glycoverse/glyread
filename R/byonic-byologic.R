@@ -18,7 +18,7 @@
 #' but different `protein_site` and `glycan_composition`.
 #' Set `multisite = "drop"` to remove multisite glycopeptides instead.
 #'
-#' @inheritSection read_pglyco3_pglycoquant Sample information
+#' @inheritSection read_pglyco3 Sample information
 #' @inheritSection read_pglyco3_pglycoquant Aggregation
 #'
 #' @section Variable information:
@@ -105,7 +105,7 @@ read_byonic_byologic <- function(
 
 .tidy_byonic_byologic <- function(df, orgdb, multisite = "expand") {
   df %>%
-    .drop_byonic_reverse_rows("protein_name") %>%
+    .drop_reverse_rows("protein_name") %>%
     dplyr::filter(!is.na(.data$glycans)) %>%
     .collapse_byologic_rows() %>%
     .handle_byologic_multisite_rows(multisite) %>%

@@ -8,18 +8,23 @@
 #' @details
 #' # Which file to use?
 #'
-#' You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
+#' Use `Quant.site.list` (recommended) for the reported site-specific glycan
+#' abundances, or `Quant.spectra.list` for peptide-level data. The reader
+#' detects the format from the column headers.
+#' Site files report protein, protein site and glycan composition directly;
+#' protein inference, PSM aggregation and structure parsing apply only to spectra files.
 #' Files from pGlyco3 result folder are not needed.
 #' For instructions on how to use pGlyco3 and pGlycoQuant, please refer to
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
-#' @inheritSection read_pglyco3 Sample information
+#' @inheritSection read_byonic_pglycoquant Sample information
 #' @inheritSection read_pglyco3 Protein inference
 #' @inheritSection read_pglyco3 Aggregation
 #' @inheritSection read_pglyco3 Glycan structures
 #'
 #' @section Variable information:
-#' The following columns could be found in the variable information tibble:
+#' Site files provide `protein`, `protein_site`, `glycan_composition`, and
+#' `gene` when available. Spectra files can provide the following columns:
 #' - `peptide`: character, peptide sequence
 #' - `peptide_site`: integer, site of glycosylation on peptide
 #' - `protein`: character, protein accession (after protein inference)
@@ -31,6 +36,8 @@
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #' - `glycan_structure`: [glyrepr::glycan_structure()], glycan structures (if `parse_structure = TRUE`).
 #'
+#' @param orgdb Name of the OrgDb package for mapping site-file protein accessions
+#'   to gene symbols. Spectra files supply their own gene annotations.
 #' @param fp Local path or HTTP(S) URL of the result file.
 #' @param sample_info Local path or HTTP(S) URL of the sample information CSV,
 #'  or a sample information data.frame/tibble.
@@ -57,7 +64,8 @@ read_pglyco3_pglycoquant <- function(
   quant_method = "label-free",
   glycan_type = "N",
   sample_name_converter = NULL,
-  parse_structure = FALSE
+  parse_structure = FALSE,
+  orgdb = "org.Hs.eg.db"
 ) {
   # ----- Check arguments -----
   fp <- .read_file_input(fp, ".list")
@@ -66,13 +74,26 @@ read_pglyco3_pglycoquant <- function(
     quant_method = quant_method,
     glycan_type = glycan_type,
     sample_name_converter = sample_name_converter,
-    parse_structure = parse_structure
+    parse_structure = parse_structure,
+    orgdb = orgdb
   )
 
   # ----- Read data -----
   # Keep all PSM-level columns for variable info
   if (quant_method == "label-free") {
     cli::cli_progress_step("Reading data")
+    headers <- .pglycoquant_site_headers(fp)
+    if (!is.null(headers)) {
+      return(.read_pglycoquant_site_table(
+        fp,
+        headers,
+        sample_info,
+        glycan_type,
+        quant_method,
+        sample_name_converter,
+        orgdb
+      ))
+    }
     df <- .read_pglyco3_df(fp)
     tidy_df <- .tidy_pglyco3_pglycoquant(df)
     exp <- .read_template(
