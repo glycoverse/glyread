@@ -55,19 +55,12 @@ read_byonic_pglycoquant(
 
 - parse_structure:
 
-  Logical. Whether to parse glycan structures. If `TRUE`, glycan
-  structures are parsed and included in the `var_info` as
-  `glycan_structure` column. If `FALSE` (default), structure parsing is
-  skipped and structure-related columns are removed.
+  Reserved for compatibility. Both formats report compositions.
 
 - multisite:
 
-  How to handle multisite glycopeptides.
-
-  - "expand" (default) expands each multisite glycopeptide into
-    site-specific rows.
-
-  - "drop" removes multisite glycopeptides.
+  For spectra files, expand multisite glycopeptides into site-specific
+  rows (`"expand"`) or remove them (`"drop"`).
 
 ## Value
 
@@ -77,18 +70,23 @@ object.
 
 ## Which file to use?
 
-You should use the "Quant.spectra.list" file in the pGlycoQuant result
-folder. Files from Byonic result folder are not needed. For instructions
-on how to use Byonic and pGlycoQuant, please refer to the manual:
+Use `Quant.site.list` (recommended) to import the site-specific glycan
+abundances reported by pGlycoQuant. Each row describes a protein
+accession, protein site and glycan composition. Use `Quant.spectra.list`
+when you need peptide sequences or peptide-level site assignments. The
+reader detects the format from the column headers. Files from Byonic
+result folder are not needed. For instructions on how to use Byonic and
+pGlycoQuant, please refer to the manual:
 [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 
 ## Glycosylation sites
 
-For each PSM, the reader matches the monoisotopic residue mass of each
-reported glycan to a bracketed peptide modification within 0.001 Da.
-Each peptide position can carry one reported glycan. All amino acids are
-eligible. Protein positions are `Position + peptide_site - 1`, where
-`Position` is the start of the peptide in the protein.
+For each PSM in `Quant.spectra.list`, the reader matches the
+monoisotopic residue mass of each reported glycan to a bracketed peptide
+modification within 0.001 Da. Each peptide position can carry one
+reported glycan. All amino acids are eligible. Protein positions are
+`Position + peptide_site - 1`, where `Position` is the start of the
+peptide in the protein.
 
 The reader retains assignments shared by all maximum one-to-one matches.
 Unresolved sites or site-specific compositions are recorded as `NA`,
@@ -98,58 +96,43 @@ once.
 
 ## Multisite glycopeptides
 
-Some glycopeptides can have more than one glycosylation site. By
-default, they are expanded into multiple rows with the same
-quantification value but different `protein_site` and
+In spectra files, some glycopeptides can have more than one
+glycosylation site. By default, they are expanded into multiple rows
+with the same quantification value but different `protein_site` and
 `glycan_composition`. Set `multisite = "drop"` to remove multisite
 glycopeptides instead.
+
+## Sample information
+
+In site files, sample names are the column headers after
+`Empty_Separator`. In spectra files, they are taken from
+`Intensity(sample)` headers. The `sample` column in `sample_info` must
+match these names after any `sample_name_converter` is applied.
+
+## Quantification
+
+Site files supply one abundance per site-specific glycan and sample.
+Spectra files are aggregated by summing PSM intensities per glycopeptide
+and sample. In both formats, zero abundance is recorded as `NA`.
 
 ## Variable information
 
 The following columns could be found in the variable information tibble:
 
-- `peptide`: character, peptide sequence
+- `peptide`: character, peptide sequence (spectra files only)
 
-- `peptide_site`: integer, site of glycosylation on peptide
+- `peptide_site`: integer, site of glycosylation on peptide (spectra
+  files only)
 
 - `protein`: character, protein accession
 
 - `protein_site`: integer, site of glycosylation on protein
 
-- `gene`: character, gene name (symbol)
+- `gene`: character, gene name (symbol), when available
 
 - `glycan_composition`:
   [`glyrepr::glycan_composition()`](https://glycoverse.github.io/glyrepr/reference/glycan_composition.html),
   glycan compositions.
-
-- `glycan_structure`:
-  [`glyrepr::glycan_structure()`](https://glycoverse.github.io/glyrepr/reference/glycan_structure.html),
-  glycan structures (if `parse_structure = TRUE`).
-
-## Sample information
-
-The sample information file should be a `csv` file with the first column
-named `sample`, and the rest of the columns being sample information.
-The `sample` column must match the `RawName` column in the pGlyco3
-result file, although the order can be different.
-
-You can put any useful information in the sample information file.
-Recommended columns are:
-
-- `group`: grouping or conditions, e.g. "control" or "tumor", required
-  for most downstream analyses
-
-- `batch`: batch information, required for batch effect correction
-
-## Aggregation
-
-pGlyco3 performs quantification on the PSM level. This level of
-information is too detailed for most downstream analyses. This function
-aggregate PSMs into glycopeptides through summation. For each
-glycopeptide (unique combination of "peptide", "peptide_site",
-"protein", "protein_site", "gene", "glycan_composition",
-"glycan_structure"), we sum up the quantifications of all PSMs that
-belong to this glycopeptide.
 
 ## See also
 

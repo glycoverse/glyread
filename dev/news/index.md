@@ -3,6 +3,10 @@
 ## glyread (development version)
 
 - [`read_byonic_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_pglycoquant.md)
+  now reads `Quant.site.list`, the recommended input for site-specific
+  glycan abundances. `Quant.spectra.list` remains available for
+  peptide-level analysis. (#31)
+- [`read_byonic_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_byonic_pglycoquant.md)
   now matches glycans to peptide modifications by monoisotopic mass on
   any residue and retains unresolved assignments with a summary warning.
   (#30)
