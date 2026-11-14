@@ -37,6 +37,29 @@ test_that("it returns correct information (label-free)", {
   )
 })
 
+test_that("reverse identifications are excluded before quantification", {
+  path <- withr::local_tempfile(fileext = ".list")
+  proteins <- c(
+    ">sp|P12345|TEST Reverse transcriptase",
+    ">Reverse sp|P12345|TEST",
+    ">sp|P12345|TEST;>Reverse sp|P12345|TEST"
+  )
+  readr::write_tsv(
+    tibble::tibble(
+      `Protein Name` = proteins,
+      Peptide = "K.N[+203.07937]GTR.G",
+      Composition = "HexNAc(1)",
+      Position = 10L,
+      `Intensity(Sample1)` = c(10, 20, 30)
+    ),
+    path
+  )
+
+  res <- read_byonic_pglycoquant(path, orgdb = "missing.OrgDb")
+  expect_equal(.test_var_info(res)$protein, "P12345")
+  expect_equal(as.numeric(.test_expr_mat(res)[, "Sample1"]), 10)
+})
+
 # ----- Multisite glycopeptide handling -----
 test_that("multisite glycopeptides are handled correctly in full workflow", {
   suppressMessages(
@@ -460,6 +483,7 @@ test_that("site tables import reported sites and sample abundances directly", {
     c(
       "Protein\tSite\tGlycan(N,H,A,G,F)\tEmpty_Separator\trun-1\trun-2\t",
       ">sp|P19652-1|A1AG2_HUMAN\t  102\t[2  3  1  0  1]\t\t0.0\t32.5\t",
+      ">sp|P19652-1|A1AG2_HUMAN;>Reverse sp|P19652|A1AG2\t102\t[1 0 0 0 0]\t\t99\t99\t",
       ">sp|P19652-1|A1AG2_HUMAN\t  102\t[2  3  0  1  0]\t\t11.25\t\t"
     ),
     path
@@ -494,4 +518,16 @@ test_that("site compositions require a count for every declared sugar", {
     .parse_byonic_site_composition("[3  2]", "Glycan(H,N,F)"),
     "one nonnegative count per monosaccharide"
   )
+})
+
+test_that("an all-reverse site table reports why no identifications remain", {
+  path <- withr::local_tempfile(fileext = ".list")
+  writeLines(
+    c(
+      "Protein\tSite\tGlycan(H,N)\tEmpty_Separator\tSample1",
+      ">Reverse sp|P12345|TEST\t10\t[3 2]\t\t99"
+    ),
+    path
+  )
+  expect_error(read_byonic_pglycoquant(path), "All Byonic identifications")
 })

@@ -1,3 +1,14 @@
+.drop_byonic_reverse_rows <- function(df, protein_col) {
+  targets <- dplyr::filter(
+    df,
+    !grepl(">Reverse", .data[[protein_col]], fixed = TRUE)
+  )
+  if (nrow(df) > 0L && nrow(targets) == 0L) {
+    cli::cli_abort("All Byonic identifications contain the >Reverse marker.")
+  }
+  targets
+}
+
 #' Split Byonic glycan compositions by glycosylation site
 #'
 #' @param glycans A single comma-separated Byonic glycan composition string.
