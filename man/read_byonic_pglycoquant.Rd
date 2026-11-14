@@ -35,16 +35,10 @@ If NULL, original names are kept.}
 \item{orgdb}{name of the OrgDb package to use for UniProt to gene symbol conversion.
 Default is "org.Hs.eg.db".}
 
-\item{parse_structure}{Logical. Whether to parse glycan structures.
-If \code{TRUE}, glycan structures are parsed and included in the
-\code{var_info} as \code{glycan_structure} column. If \code{FALSE} (default), structure parsing
-is skipped and structure-related columns are removed.}
+\item{parse_structure}{Reserved for compatibility. Both formats report compositions.}
 
-\item{multisite}{How to handle multisite glycopeptides.
-\itemize{
-\item "expand" (default) expands each multisite glycopeptide into site-specific rows.
-\item "drop" removes multisite glycopeptides.
-}}
+\item{multisite}{For spectra files, expand multisite glycopeptides into
+site-specific rows (\code{"expand"}) or remove them (\code{"drop"}).}
 }
 \value{
 An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
@@ -57,7 +51,11 @@ Currently only label-free quantification is supported.
 }
 \section{Which file to use?}{
 
-You should use the "Quant.spectra.list" file in the pGlycoQuant result folder.
+Use \code{Quant.site.list} (recommended) to import the site-specific glycan
+abundances reported by pGlycoQuant. Each row describes a protein accession,
+protein site and glycan composition. Use \code{Quant.spectra.list} when you
+need peptide sequences or peptide-level site assignments.
+The reader detects the format from the column headers.
 Files from Byonic result folder are not needed.
 For instructions on how to use Byonic and pGlycoQuant, please refer to
 the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%20for\%20pGlycoQuant_v202211.pdf}{pGlycoQuant}.
@@ -65,7 +63,7 @@ the manual: \href{https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual\%2
 
 \section{Glycosylation sites}{
 
-For each PSM, the reader matches the monoisotopic residue mass of each
+For each PSM in \code{Quant.spectra.list}, the reader matches the monoisotopic residue mass of each
 reported glycan to a bracketed peptide modification within 0.001 Da.
 Each peptide position can carry one reported glycan. All amino acids are
 eligible. Protein positions are \code{Position + peptide_site - 1}, where
@@ -79,48 +77,38 @@ assignments give the same output feature, its PSM intensity is counted once.
 
 \section{Multisite glycopeptides}{
 
-Some glycopeptides can have more than one glycosylation site.
+In spectra files, some glycopeptides can have more than one glycosylation site.
 By default, they are expanded into multiple rows with the same quantification value
 but different \code{protein_site} and \code{glycan_composition}.
 Set \code{multisite = "drop"} to remove multisite glycopeptides instead.
+}
+
+\section{Sample information}{
+
+In site files, sample names are the column headers after \code{Empty_Separator}.
+In spectra files, they are taken from \code{Intensity(sample)} headers.
+The \code{sample} column in \code{sample_info} must match these names after any
+\code{sample_name_converter} is applied.
+}
+
+\section{Quantification}{
+
+Site files supply one abundance per site-specific glycan and sample.
+Spectra files are aggregated by summing PSM intensities per glycopeptide
+and sample. In both formats, zero abundance is recorded as \code{NA}.
 }
 
 \section{Variable information}{
 
 The following columns could be found in the variable information tibble:
 \itemize{
-\item \code{peptide}: character, peptide sequence
-\item \code{peptide_site}: integer, site of glycosylation on peptide
+\item \code{peptide}: character, peptide sequence (spectra files only)
+\item \code{peptide_site}: integer, site of glycosylation on peptide (spectra files only)
 \item \code{protein}: character, protein accession
 \item \code{protein_site}: integer, site of glycosylation on protein
-\item \code{gene}: character, gene name (symbol)
+\item \code{gene}: character, gene name (symbol), when available
 \item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
-\item \code{glycan_structure}: \code{\link[glyrepr:glycan_structure]{glyrepr::glycan_structure()}}, glycan structures (if \code{parse_structure = TRUE}).
 }
-}
-
-\section{Sample information}{
-The sample information file should be a \code{csv} file with the first column
-named \code{sample}, and the rest of the columns being sample information.
-The \code{sample} column must match the \code{RawName} column in the pGlyco3 result file,
-although the order can be different.
-
-You can put any useful information in the sample information file.
-Recommended columns are:
-\itemize{
-\item \code{group}: grouping or conditions, e.g. "control" or "tumor",
-required for most downstream analyses
-\item \code{batch}: batch information, required for batch effect correction
-}
-}
-
-\section{Aggregation}{
-pGlyco3 performs quantification on the PSM level.
-This level of information is too detailed for most downstream analyses.
-This function aggregate PSMs into glycopeptides through summation.
-For each glycopeptide (unique combination of "peptide", "peptide_site", "protein", "protein_site",
-"gene", "glycan_composition", "glycan_structure"),
-we sum up the quantifications of all PSMs that belong to this glycopeptide.
 }
 
 \seealso{

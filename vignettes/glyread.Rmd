@@ -22,7 +22,7 @@ Working with glycopeptide identification tools like `pGlyco3` or `MSFragger-Glyc
 Getting started is straightforward. First, pick the function that matches your identification software. `glyread` currently plays nicely with these popular tools:
 
 - Byonic (quantification with Byologic): `read_byonic_byologic()`
-- Byonic (quantification with pGlycoQuant): `read_byonic_pglycoquant()`
+- Byonic (quantification with pGlycoQuant): `read_byonic_pglycoquant()` with `Quant.site.list` (recommended for site-specific glycans)
 - Peaks GlycanFinder: `read_glycan_finder()`
 - Glyco-Decipher: `read_glyco_decipher()`
 - MSFragger-Glyco: `read_msfragger()`
