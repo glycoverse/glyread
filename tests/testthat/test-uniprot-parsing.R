@@ -11,8 +11,8 @@ test_that(".standardize_byonic_pglycoquant_columns correctly extracts UniProt ac
       ">tr|Q9Y6R7-2|FCGBP_HUMAN", # TrEMBL with isoform
       ">sp|P19652|A1AG2_HUMAN" # Another standard format
     ),
-    Peptide = c("K.nGTR.G", "K.nGTR.G", "K.nGTR.G", "K.nGTR.G", "K.nGTR.G"),
-    Composition = rep("HexNAc(4)Hex(4)Fuc(1)NeuAc(1)", 5),
+    Peptide = rep("K.N[+203.07937]GTR.G", 5),
+    Composition = rep("HexNAc(1)", 5),
     Position = rep(123L, 5)
   )
 
@@ -113,8 +113,8 @@ test_that("UniProt parsing handles edge cases correctly", {
       ">sp||EMPTY_ACCESSION",
       NA_character_
     ),
-    Peptide = rep("K.nGTR.G", 4),
-    Composition = rep("HexNAc(4)Hex(4)Fuc(1)NeuAc(1)", 4),
+    Peptide = rep("K.N[+203.07937]GTR.G", 4),
+    Composition = rep("HexNAc(1)", 4),
     Position = rep(123L, 4)
   )
 

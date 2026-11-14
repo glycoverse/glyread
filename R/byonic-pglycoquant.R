@@ -11,6 +11,18 @@
 #' For instructions on how to use Byonic and pGlycoQuant, please refer to
 #' the manual: [pGlycoQuant](https://github.com/Power-Quant/pGlycoQuant/blob/main/Manual%20for%20pGlycoQuant_v202211.pdf).
 #'
+#' @section Glycosylation sites:
+#' For each PSM, the reader matches the monoisotopic residue mass of each
+#' reported glycan to a bracketed peptide modification within 0.001 Da.
+#' Each peptide position can carry one reported glycan. All amino acids are
+#' eligible. Protein positions are `Position + peptide_site - 1`, where
+#' `Position` is the start of the peptide in the protein.
+#'
+#' The reader retains assignments shared by all maximum one-to-one matches.
+#' Unresolved sites or site-specific compositions are recorded as `NA`,
+#' with one warning summarizing the affected PSMs. If several unresolved
+#' assignments give the same output feature, its PSM intensity is counted once.
+#'
 #' @section Multisite glycopeptides:
 #' Some glycopeptides can have more than one glycosylation site.
 #' By default, they are expanded into multiple rows with the same quantification value
@@ -116,56 +128,39 @@ read_byonic_pglycoquant <- function(
   )
 }
 
-#' Expand Byonic-pGlycoQuant multisite glycopeptides
-#'
-#' pGlycoQuant reports Byonic multisite glycopeptides as one row with
-#' comma-separated glycan compositions and multiple modified N residues in
-#' `Peptide`. This helper expands those rows to one row per glycosylation site.
-#'
-#' @param df A Byonic-pGlycoQuant tibble.
-#'
-#' @returns A tibble with one row per glycosylation site.
-#' @noRd
+# Expand PSMs before sample intensities are pivoted or aggregated.
 .expand_byonic_pglycoquant_multisite_rows <- function(df) {
-  # Identify multisite glycopeptides (those with commas in Composition column)
-  is_multisite <- stringr::str_detect(df$Composition, stringr::fixed(","))
-  n_multisite <- sum(is_multisite)
-
-  if (n_multisite > 0) {
-    perc_multisite <- round(n_multisite / nrow(df) * 100, 1)
+  compositions <- lapply(df$Composition, .split_byonic_glycan_compositions)
+  n_multisite <- sum(lengths(compositions) > 1L)
+  if (n_multisite > 0L) {
     cli::cli_alert_info(
-      "Found {.val {n_multisite}} of {.val {nrow(df)}} ({.val {perc_multisite}}%) multisite PSMs. Expanding these entries to site-specific rows."
+      "Expanding {n_multisite} multisite Byonic-pGlycoQuant PSM{?s} to site-specific rows."
     )
   }
 
-  df %>%
-    dplyr::mutate(
-      glycan_composition = purrr::map(
-        .data$Composition,
-        .split_byonic_glycan_compositions
-      ),
-      peptide_site = purrr::map(
-        .data$Peptide,
-        .extract_byonic_pglycoquant_glycosites
-      ),
-      n_glycans = purrr::map_int(.data$glycan_composition, length),
-      n_sites = purrr::map_int(.data$peptide_site, length)
-    ) %>%
-    .check_byonic_glycan_site_pairing(
-      source = "Byonic-pGlycoQuant",
-      site_column = "Peptide"
-    ) %>%
-    dplyr::mutate(
-      first_peptide_site = purrr::map_int(.data$peptide_site, min)
-    ) %>%
-    tidyr::unnest_longer(c("glycan_composition", "peptide_site")) %>%
-    dplyr::mutate(
-      peptide_site = as.integer(.data$peptide_site),
-      protein_site = as.integer(
-        .data$Position + .data$peptide_site - .data$first_peptide_site
-      )
-    ) %>%
-    dplyr::select(-all_of(c("first_peptide_site", "n_glycans", "n_sites")))
+  # Parse each distinct source composition once across all spectra.
+  lookup <- .byonic_glycan_lookup(unique(as.character(unlist(compositions))))
+  pairs <- Map(
+    function(peptide, glycans) {
+      ix <- match(glycans, lookup$source)
+      .pair_byonic_glycans(peptide, lookup$composition[ix], lookup$mass[ix])
+    },
+    df$Peptide,
+    compositions
+  )
+
+  unresolved <- sum(vapply(pairs, anyNA, logical(1)))
+  if (unresolved > 0L) {
+    cli::cli_warn(
+      "Unresolved glycan-site assignments in {unresolved} of {nrow(df)} Byonic-pGlycoQuant PSMs. Unknown sites or compositions were retained as NA.",
+      class = "glyread_unresolved_byonic_sites"
+    )
+  }
+
+  df |>
+    dplyr::mutate(pairs = unname(pairs)) |>
+    tidyr::unnest("pairs", ptype = list(pairs = .byonic_site_pairs())) |>
+    dplyr::mutate(protein_site = .data$Position + .data$peptide_site - 1L)
 }
 
 #' Standardize expanded Byonic-pGlycoQuant columns
@@ -191,34 +186,6 @@ read_byonic_pglycoquant <- function(
       protein = .extract_uniprot_accession(.data$`Protein Name`)
     ) %>%
     dplyr::select(all_of(var_cols), tidyselect::starts_with("Intensity"))
-}
-
-#' Extract glycosylated peptide sites from a Byonic peptide
-#'
-#' @param peptide A Byonic peptide string with flanking residues.
-#'
-#' @returns An integer vector of peptide positions carrying glycans.
-#' @noRd
-.extract_byonic_pglycoquant_glycosites <- function(peptide) {
-  if (is.na(peptide)) {
-    return(NA_integer_)
-  }
-
-  peptide_core <- .extract_byonic_pglycoquant_peptide_core(peptide)
-  glycan_matches <- stringr::str_locate_all(peptide_core, "N\\[[^\\]]+\\]")[[1]]
-
-  if (nrow(glycan_matches) > 0) {
-    return(purrr::map_int(
-      glycan_matches[, "start"],
-      \(match_start) {
-        prefix <- stringr::str_sub(peptide_core, 1L, match_start)
-        nchar(stringr::str_remove_all(prefix, "\\[[^\\]]+\\]"))
-      }
-    ))
-  }
-
-  lowercase_n_matches <- stringr::str_locate_all(peptide_core, "n")[[1]]
-  as.integer(lowercase_n_matches[, "start"])
 }
 
 #' Remove flanking residues and modifications from a Byonic peptide

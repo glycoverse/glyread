@@ -66,7 +66,7 @@ test_that("multisite Byonic-pGlycoQuant glycopeptides are expanded into site-spe
       Peptide = "K.NLFLN[+349.13728]HSEN[+2059.73493]ATAK.D",
       `Protein Name` = ">tr|H0Y300|H0Y300_HUMAN Haptoglobin OS=Homo sapiens OX=9606 GN=HP PE=1 SV=4",
       Position = 239L,
-      Composition = "HexNAc(1)Fuc(1),HexNAc(4)Hex(5)Fuc(1)NeuAc(1)",
+      Composition = "HexNAc(4)Hex(5)Fuc(1)NeuAc(1),HexNAc(1)Fuc(1)",
       `Intensity(Sample1)` = 100
     ),
     pglycoquant_path
@@ -85,7 +85,7 @@ test_that("multisite Byonic-pGlycoQuant glycopeptides are expanded into site-spe
   expect_equal(nrow(var_info), 2L)
   expect_false("gp_id" %in% colnames(var_info))
   expect_equal(var_info$peptide_site, c(5L, 9L))
-  expect_equal(var_info$protein_site, c(239L, 243L))
+  expect_equal(var_info$protein_site, c(243L, 247L))
   expect_s3_class(var_info$glycan_composition, "glyrepr_composition")
   expect_equal(
     as.character(var_info$glycan_composition),
@@ -135,19 +135,104 @@ test_that("multisite Byonic-pGlycoQuant glycopeptides can be dropped", {
   expect_equal(as.numeric(.test_expr_mat(res)[, "Sample1"]), 50)
 })
 
-test_that("Byonic-pGlycoQuant rows without glycosite markers fail clearly", {
-  malformed_df <- tibble::tibble(
-    Peptide = "K.NLFLNHSENATAK.D",
-    `Protein Name` = ">tr|H0Y300|H0Y300_HUMAN Haptoglobin OS=Homo sapiens OX=9606 GN=HP PE=1 SV=4",
-    Position = 239L,
-    Composition = "HexNAc(1)Fuc(1),HexNAc(4)Hex(5)Fuc(1)NeuAc(1)",
-    `Intensity(Sample1)` = 100
+test_that("mass matches locate glycosylation on C, S and T among other modifications", {
+  path <- withr::local_tempfile(fileext = ".list")
+  readr::write_tsv(
+    tibble::tibble(
+      Peptide = c(
+        "K.N[+0.98402]C[+203.07937]AR.G",
+        "R.M[+15.99492]AST[+162.05282]S[+203.07937]R.K"
+      ),
+      Composition = c("HexNAc(1)", "HexNAc(1),Hex(1)"),
+      Position = c(10L, 20L),
+      `Protein Name` = ">sp|P12345|TEST",
+      `Intensity(Sample1)` = c(10, 20)
+    ),
+    path
   )
+  res <- read_byonic_pglycoquant(path, orgdb = "missing.OrgDb")
+  info <- dplyr::arrange(.test_var_info(res), .data$protein_site)
+  expect_equal(info$peptide_site, c(2L, 4L, 5L))
+  expect_equal(info$protein_site, c(11L, 23L, 24L))
+  expect_equal(
+    as.character(info$glycan_composition),
+    c("HexNAc(1)", "Hex(1)", "HexNAc(1)")
+  )
+})
 
-  expect_error(
-    glyread:::.expand_byonic_pglycoquant_multisite_rows(malformed_df),
-    "Cannot pair Byonic-pGlycoQuant glycan compositions with glycosylation sites"
+test_that("partial and ambiguous matches keep known fields and warn once per import", {
+  path <- withr::local_tempfile(fileext = ".list")
+  readr::write_tsv(
+    tibble::tibble(
+      Peptide = c(
+        "K.S[+203.07937]T[+203.07937]C[+162.05282].R",
+        "R.S[+162.05282]T[+162.05282]N[+203.07937].K",
+        "R.N[+0.98402]AST.K",
+        "R.S[+203.07937]T[+203.07937].K"
+      ),
+      Composition = c(
+        "Hex(1),HexNAc(1)",
+        "Gal(1),Glc(1),HexNAc(1)",
+        "HexNAc(1),HexNAc(1)",
+        "HexNAc(1),HexNAc(1)"
+      ),
+      Position = c(10L, 20L, 30L, 40L),
+      `Protein Name` = ">sp|P12345|TEST",
+      `Intensity(Sample1)` = c(100, 200, 300, 400)
+    ),
+    path
   )
+  expect_warning(
+    res <- read_byonic_pglycoquant(path, orgdb = "missing.OrgDb"),
+    "3 of 4",
+    class = "glyread_unresolved_byonic_sites"
+  )
+  info <- .test_var_info(res)
+  values <- as.numeric(.test_expr_mat(res)[, "Sample1"])
+  info <- info[order(values, info$peptide_site), ]
+  expect_equal(sort(values), c(100, 100, 200, 200, 200, 300, 400, 400))
+  expect_equal(info$peptide_site, c(3L, NA, 1L, 2L, 3L, NA, 1L, 2L))
+  expect_equal(info$protein_site, c(12L, NA, 20L, 21L, 22L, NA, 40L, 41L))
+  expect_equal(
+    is.na(info$glycan_composition),
+    c(FALSE, FALSE, TRUE, TRUE, rep(FALSE, 4))
+  )
+  expect_equal(
+    as.character(info$glycan_composition[!is.na(info$glycan_composition)]),
+    c("Hex(1)", rep("HexNAc(1)", 5))
+  )
+})
+
+test_that("competing glycans use each site once and preserve an independent unmatched glycan", {
+  df <- tibble::tibble(
+    Peptide = "K.S[+57.02146][+162.05282]T[+203.08050].R",
+    Composition = "Gal(1),Glc(1),HexNAc(1)",
+    Position = 8L
+  )
+  expect_warning(
+    pairs <- .expand_byonic_pglycoquant_multisite_rows(df),
+    class = "glyread_unresolved_byonic_sites"
+  )
+  # The sole 162-Da site is occupied. Either hexose could occupy it.
+  expect_equal(pairs$protein_site, c(8L, NA, NA))
+  expect_true(is.na(pairs$glycan_composition[1]))
+  # The other hexose has unknown identity and site. HexNAc is outside tolerance.
+  expect_setequal(pairs$glycan_composition[-1], c(NA_character_, "HexNAc(1)"))
+})
+
+test_that("unmarked and unsupported assignments do not create sites", {
+  df <- tibble::tibble(
+    Peptide = c("K.nGTR.G", "K.N[+203.07937]T.R", "K.AT.R"),
+    Composition = c("HexNAc(1)", "Unknown(1)", NA_character_),
+    Position = 10L
+  )
+  expect_warning(
+    pairs <- .handle_byonic_pglycoquant_multisite_rows(df, "drop"),
+    "3 of 3",
+    class = "glyread_unresolved_byonic_sites"
+  )
+  expect_equal(pairs$peptide_site, rep(NA_integer_, 3))
+  expect_equal(pairs$glycan_composition, c("HexNAc(1)", NA, NA))
 })
 
 # ----- Peptide site calculation -----
