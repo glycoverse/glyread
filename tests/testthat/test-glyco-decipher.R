@@ -249,32 +249,10 @@ test_that("site summaries preserve reported rows, values and annotations", {
   expect_identical(anyDuplicated(rownames(x)), 0L)
 })
 
-test_that("peptide summaries retain modifications without inventing sites", {
-  fp <- withr::local_tempfile(fileext = ".csv")
-  writeLines(
-    c(
-      "Peptide,Glycan,Protein,run1,run2",
-      '"CNATK 1,Carbamidomethyl(+57.0215);",HexNAc(2),P02765,123,',
-      "CNATK,HexNAc(2),P02765,456,"
-    ),
-    fp
-  )
-  x <- suppressMessages(read_glyco_decipher(fp))
-  info <- .test_var_info(x)
-  expect_identical(info$peptide, rep("CNATK", 2))
-  expect_identical(
-    info$reported_peptide,
-    c("CNATK 1,Carbamidomethyl(+57.0215);", "CNATK")
-  )
-  expect_identical(info$protein, rep("P02765", 2))
-  expect_identical(info$protein_site, rep(NA_integer_, 2))
-  expect_equal(unname(.test_expr_mat(x)), matrix(c(123, 456, NA, NA), ncol = 2))
-})
-
 test_that("unrecognized summaries and missing sample columns are diagnosed", {
   fp <- withr::local_tempfile(fileext = ".csv")
-  writeLines("Peptide,Area", fp)
-  expect_error(read_glyco_decipher(fp), "Expected a Glyco-Decipher")
+  writeLines(c("Peptide,Glycan,Protein,run1", "CNATK,HexNAc(2),P02765,123"), fp)
+  expect_error(read_glyco_decipher(fp), "site[.]csv")
   writeLines("Site,Glycan", fp)
   expect_error(read_glyco_decipher(fp), "sample abundance column")
 })

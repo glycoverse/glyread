@@ -15,7 +15,7 @@ read_glyco_decipher(
 }
 \arguments{
 \item{fp}{Local result directory (reads \code{site.csv}), or a local path or
-HTTP(S) URL to a summary CSV. Files are recognized by their column headers.}
+HTTP(S) URL to a site summary CSV with \code{Site} and \code{Glycan} columns.}
 
 \item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble.}
@@ -42,12 +42,8 @@ Read Glyco-Decipher label-free quantification
 \section{Which file to use?}{
 
 Pass the result directory or its \code{site.csv} for site-specific abundances.
-Pass \code{glycopeptide.csv} for peptide-specific abundances. The latter reports
-peptide sequences and protein accessions but no protein positions, so
-\code{protein_site} is \code{NA}. Per-run area files and match-between-runs
-intermediates are not needed for either summary.
 
-Each output row corresponds to one row of the selected summary, in file
+Each output row corresponds to one row of the site summary, in file
 order. Rows remain separate even if they have the same inferred protein,
 site and parsed composition. Blank abundances and zeros are returned as \code{NA}.
 }
@@ -62,11 +58,9 @@ column names after applying \code{sample_name_converter}, if supplied.
 
 \code{rowData} contains the inferred \code{protein}, the reported accessions in
 \code{protein_group}, and \code{gene} when gene symbol mapping is available.
-In site summaries, \code{reported_site} retains all candidate sites and
+\code{reported_site} retains all candidate sites and
 \code{protein_site} is \code{NA} if multiple positions remain on the inferred protein.
-In peptide summaries, \code{peptide} contains the sequence and \code{reported_peptide}
-retains any modification annotations. In both formats, \code{reported_glycan}
-retains the original glycan label, including any mass shift, and
+\code{reported_glycan} retains the original glycan label, including any mass shift, and
 \code{glycan_composition} is the parsed base composition.
 }
 

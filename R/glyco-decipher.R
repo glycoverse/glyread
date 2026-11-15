@@ -2,12 +2,8 @@
 #'
 #' @section Which file to use?:
 #' Pass the result directory or its `site.csv` for site-specific abundances.
-#' Pass `glycopeptide.csv` for peptide-specific abundances. The latter reports
-#' peptide sequences and protein accessions but no protein positions, so
-#' `protein_site` is `NA`. Per-run area files and match-between-runs
-#' intermediates are not needed for either summary.
 #'
-#' Each output row corresponds to one row of the selected summary, in file
+#' Each output row corresponds to one row of the site summary, in file
 #' order. Rows remain separate even if they have the same inferred protein,
 #' site and parsed composition. Blank abundances and zeros are returned as `NA`.
 #'
@@ -18,16 +14,14 @@
 #' @section Variable information:
 #' `rowData` contains the inferred `protein`, the reported accessions in
 #' `protein_group`, and `gene` when gene symbol mapping is available.
-#' In site summaries, `reported_site` retains all candidate sites and
+#' `reported_site` retains all candidate sites and
 #' `protein_site` is `NA` if multiple positions remain on the inferred protein.
-#' In peptide summaries, `peptide` contains the sequence and `reported_peptide`
-#' retains any modification annotations. In both formats, `reported_glycan`
-#' retains the original glycan label, including any mass shift, and
+#' `reported_glycan` retains the original glycan label, including any mass shift, and
 #' `glycan_composition` is the parsed base composition.
 #'
 #' @inheritParams read_pglyco3
 #' @param fp Local result directory (reads `site.csv`), or a local path or
-#'   HTTP(S) URL to a summary CSV. Files are recognized by their column headers.
+#'   HTTP(S) URL to a site summary CSV with `Site` and `Glycan` columns.
 #' @param orgdb Name of the OrgDb package for mapping UniProt IDs to gene symbols.
 #' @returns A [glyexp::GlycoproteomicSE()] object.
 #' @examples
@@ -70,18 +64,10 @@ read_glyco_decipher <- function(
     name_repair = "minimal"
   ))
   checkmate::assert_names(headers, type = "unique")
-  if (
-    all(c("Site", "Glycan") %in% headers) &&
-      !all(c("Peptide", "Protein") %in% headers)
-  ) {
-    fields <- c("Site", "Glycan")
-  } else if (
-    all(c("Peptide", "Glycan", "Protein") %in% headers) && !"Site" %in% headers
-  ) {
-    fields <- c("Peptide", "Glycan", "Protein")
-  } else {
+  fields <- c("Site", "Glycan")
+  if (!all(fields %in% headers)) {
     cli::cli_abort(
-      "Expected a Glyco-Decipher site (Site, Glycan) or glycopeptide (Peptide, Glycan, Protein) summary."
+      "Expected a Glyco-Decipher site summary (site.csv) with Site and Glycan columns."
     )
   }
 
@@ -114,19 +100,8 @@ read_glyco_decipher <- function(
   }
   sample_info <- .process_sample_info(sample_info, samples)
 
-  if ("Site" %in% fields) {
-    var_info <- tibble::as_tibble(.resolve_glyco_decipher_sites(df$Site))
-    var_info$reported_site <- df$Site
-  } else {
-    proteins <- stringr::str_split(df$Protein, ";")
-    var_info <- tibble::tibble(
-      protein_group = df$Protein,
-      protein = .find_glyco_decipher_leader_proteins(proteins),
-      protein_site = NA_integer_,
-      peptide = stringr::str_remove(df$Peptide, "\\s.*"),
-      reported_peptide = df$Peptide
-    )
-  }
+  var_info <- tibble::as_tibble(.resolve_glyco_decipher_sites(df$Site))
+  var_info$reported_site <- df$Site
   var_info$reported_glycan <- df$Glycan
   var_info$glycan_composition <- glyrepr::as_glycan_composition(
     .convert_glyco_decipher_comp(df$Glycan)
