@@ -1,5 +1,6 @@
 # glyread (development version)
 
+* `read_glyco_decipher()` now reads a result directory (using `site.csv`) or either summary CSV, including `glycopeptide.csv`. It keeps one row per reported feature, so mass shifts and ambiguous site assignments can yield more rows than in earlier versions.
 * `read_pglyco3_pglycoquant()` now reads site-specific glycan abundances from `Quant.site.list`. (#33)
 * `read_byonic_byologic()` and `read_byonic_pglycoquant()` now exclude identifications whose protein field contains `>Reverse` before calculating abundances. (#32)
 * `read_byonic_pglycoquant()` now reads `Quant.site.list`, the recommended input for site-specific glycan abundances. `Quant.spectra.list` remains available for peptide-level analysis. (#31)
