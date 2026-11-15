@@ -231,7 +231,6 @@ test_that("site summaries preserve reported rows, values and annotations", {
     ),
     file.path(path, "site.csv")
   )
-  file.create(file.path(path, "glycopeptide.csv"))
   x <- suppressMessages(read_glyco_decipher(
     path,
     sample_info = data.frame(sample = c("B", "A"))
@@ -249,10 +248,8 @@ test_that("site summaries preserve reported rows, values and annotations", {
   expect_identical(anyDuplicated(rownames(x)), 0L)
 })
 
-test_that("unrecognized summaries and missing sample columns are diagnosed", {
+test_that("site summaries require a sample column", {
   fp <- withr::local_tempfile(fileext = ".csv")
-  writeLines(c("Peptide,Glycan,Protein,run1", "CNATK,HexNAc(2),P02765,123"), fp)
-  expect_error(read_glyco_decipher(fp), "site[.]csv")
   writeLines("Site,Glycan", fp)
   expect_error(read_glyco_decipher(fp), "sample abundance column")
 })

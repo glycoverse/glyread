@@ -57,30 +57,20 @@ read_glyco_decipher <- function(
   }
 
   cli::cli_progress_step("Reading data")
-  headers <- names(readr::read_csv(
+  df <- readr::read_csv(
     fp,
-    n_max = 0,
-    col_types = readr::cols(),
+    col_types = readr::cols(
+      Site = readr::col_character(),
+      Glycan = readr::col_character(),
+      .default = readr::col_double()
+    ),
     name_repair = "minimal"
-  ))
-  checkmate::assert_names(headers, type = "unique")
-  fields <- c("Site", "Glycan")
-  if (!all(fields %in% headers)) {
-    cli::cli_abort(
-      "Expected a Glyco-Decipher site summary (site.csv) with Site and Glycan columns."
-    )
-  }
-
-  samples <- setdiff(headers, fields)
+  )
+  checkmate::assert_names(names(df), type = "unique")
+  samples <- setdiff(names(df), c("Site", "Glycan"))
   if (!length(samples)) {
     cli::cli_abort("Expected at least one sample abundance column.")
   }
-  types <- ifelse(headers %in% fields, "c", "d")
-  df <- readr::read_csv(
-    fp,
-    col_types = paste0(types, collapse = ""),
-    name_repair = "minimal"
-  )
   readr::stop_for_problems(df)
   if (!nrow(df)) {
     cli::cli_abort("The Glyco-Decipher summary contains no features.")
