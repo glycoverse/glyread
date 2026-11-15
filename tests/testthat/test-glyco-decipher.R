@@ -219,3 +219,37 @@ test_that("it handles different glycan types and orgdb parameters", {
   )
   expect_s4_class(res2, "GlycoproteomicSE")
 })
+
+test_that("site summaries preserve reported rows, values and annotations", {
+  path <- withr::local_tempfile(fileext = ".csv")
+  writeLines(
+    c(
+      "Site,Glycan,A,B",
+      "P02765@176;P02765@180,Hex(5)HexNAc(4),10,0",
+      "P02765@176;P02765@180,Hex(5)HexNAc(4)+204.06,20,30",
+      "P02765@176;P02765@181,Hex(5)HexNAc(4),,40"
+    ),
+    path
+  )
+  x <- suppressMessages(read_glyco_decipher(
+    path,
+    sample_info = data.frame(sample = c("B", "A"))
+  ))
+  expect_identical(colnames(x), c("B", "A"))
+  expect_equal(
+    unname(.test_expr_mat(x)),
+    matrix(c(NA, 30, 40, 10, 20, NA), ncol = 2)
+  )
+  info <- .test_var_info(x)
+  expect_identical(info$protein_site, rep(NA_integer_, 3))
+  expect_length(unique(info$reported_site), 2)
+  expect_identical(info$reported_glycan[2], "Hex(5)HexNAc(4)+204.06")
+  expect_length(unique(as.character(info$glycan_composition)), 1)
+  expect_identical(anyDuplicated(rownames(x)), 0L)
+})
+
+test_that("site summaries require a sample column", {
+  fp <- withr::local_tempfile(fileext = ".csv")
+  writeLines("Site,Glycan", fp)
+  expect_error(read_glyco_decipher(fp), "sample abundance column")
+})

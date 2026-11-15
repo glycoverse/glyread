@@ -8,6 +8,7 @@
 #' You should use the "site.csv" file in the result folder.
 #' This file contains "Site" and "Glycan" columns,
 #' followed by quantification result for each sample.
+#' Each row is retained in file order, including records with different modifications.
 #'
 #' @inheritSection read_pglyco3 Sample information
 #'
@@ -23,10 +24,11 @@
 #' The following columns could be found in the variable information tibble:
 #' - `protein`: character, protein accession (after protein inference)
 #' - `protein_group`: character, all protein accessions before inference,
-#'   separated by `;`, retained in `rowData`. Accessions are combined across
-#'   records and samples when they map to the same glycopeptide.
+#'   separated by `;`, retained in `rowData`.
 #' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
 #' - `gene`: character, gene name (symbol) (after protein inference)
+#' - `reported_site`: character, original site label including all candidate sites
+#' - `reported_glycan`: character, original glycan label including any mass shift
 #' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #'
 #' @inheritParams read_pglyco3
@@ -53,80 +55,60 @@ read_glyco_decipher <- function(
     orgdb = orgdb
   )
 
-  # ----- Read data -----
-  if (quant_method == "label-free") {
-    cli::cli_progress_step("Reading data")
-    df <- .read_glyco_decipher_df(fp)
-    tidy_df <- .tidy_glyco_decipher(df, orgdb)
-    exp <- .read_template(
-      tidy_df,
-      sample_info,
-      glycan_type,
-      quant_method,
-      sample_name_converter,
-      composition_parser = glyrepr::as_glycan_composition,
-      structure_parser = NULL,
-      parse_structure = FALSE
-    )
-  } else {
+  if (quant_method != "label-free") {
     rlang::abort("TMT quantification is not supported yet.")
   }
 
-  exp
-}
-
-.read_glyco_decipher_df <- function(fp) {
-  col_types <- readr::cols(
-    Site = readr::col_character(),
-    Glycan = readr::col_character()
-  )
-  readr::read_csv(
+  cli::cli_progress_step("Reading data")
+  df <- readr::read_csv(
     fp,
-    progress = FALSE,
-    show_col_types = FALSE,
-    col_types = col_types
+    col_types = readr::cols(
+      Site = readr::col_character(),
+      Glycan = readr::col_character(),
+      .default = readr::col_double()
+    ),
+    name_repair = "minimal"
   )
-}
-
-.tidy_glyco_decipher <- function(df, orgdb) {
-  # Resolve sites
-  sites <- .resolve_glyco_decipher_sites(df$Site)
-  df <- df %>%
-    dplyr::mutate(
-      protein_group = sites$protein_group,
-      protein = sites$protein,
-      protein_site = sites$protein_site
-    ) %>%
-    dplyr::select(-"Site")
-
-  # Parse glycan compositions
-  df <- df %>%
-    dplyr::mutate(
-      glycan_composition = .convert_glyco_decipher_comp(.data$Glycan)
-    ) %>%
-    dplyr::select(-"Glycan")
-
-  # Add gene column
-  df <- .add_gene_symbols(df, orgdb)
-
-  # Pivot longer
-  # Determine which columns to exclude from pivot_longer
-  # gene column might not exist if gene conversion failed
-  exclude_cols <- c(
-    "protein",
-    "protein_group",
-    "protein_site",
-    "glycan_composition"
-  )
-  if ("gene" %in% colnames(df)) {
-    exclude_cols <- c(exclude_cols, "gene")
+  checkmate::assert_names(names(df), type = "unique")
+  samples <- setdiff(names(df), c("Site", "Glycan"))
+  if (!length(samples)) {
+    cli::cli_abort("Expected at least one sample abundance column.")
   }
-  df %>%
-    tidyr::pivot_longer(
-      -dplyr::all_of(exclude_cols),
-      names_to = "sample",
-      values_to = "value"
+  readr::stop_for_problems(df)
+  if (!nrow(df)) {
+    cli::cli_abort("The Glyco-Decipher summary contains no features.")
+  }
+
+  abundance <- as.matrix(df[samples])
+  abundance[abundance == 0] <- NA_real_
+  if (!is.null(sample_name_converter)) {
+    samples <- sample_name_converter(samples)
+    checkmate::assert_character(
+      samples,
+      len = ncol(abundance),
+      any.missing = FALSE,
+      unique = TRUE
     )
+    colnames(abundance) <- samples
+  }
+  sample_info <- .process_sample_info(sample_info, samples)
+
+  var_info <- tibble::as_tibble(.resolve_glyco_decipher_sites(df$Site))
+  var_info$reported_site <- df$Site
+  var_info$reported_glycan <- df$Glycan
+  var_info$glycan_composition <- glyrepr::as_glycan_composition(
+    .convert_glyco_decipher_comp(df$Glycan)
+  )
+  var_info <- .add_gene_symbols(var_info, orgdb)
+  var_info$variable <- paste0("GP", seq_len(nrow(df)))
+  rownames(abundance) <- var_info$variable
+  .new_glycoproteomic_se(
+    abundance,
+    sample_info,
+    var_info,
+    glycan_type,
+    quant_method
+  )
 }
 
 #' Resolve sites for glyco-decipher output
@@ -162,6 +144,7 @@ read_glyco_decipher <- function(
 
   # Deal with uncertain sites
   protein_site <- purrr::map_int(protein_sites, function(x) {
+    x <- unique(x)
     if (length(x) == 1L) {
       return(as.integer(x))
     }

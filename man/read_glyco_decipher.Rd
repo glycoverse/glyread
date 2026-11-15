@@ -46,6 +46,7 @@ Currently only label-free quantification is supported.
 You should use the "site.csv" file in the result folder.
 This file contains "Site" and "Glycan" columns,
 followed by quantification result for each sample.
+Each row is retained in file order, including records with different modifications.
 }
 
 \section{Protein inference and uncertain sites}{
@@ -64,10 +65,11 @@ The following columns could be found in the variable information tibble:
 \itemize{
 \item \code{protein}: character, protein accession (after protein inference)
 \item \code{protein_group}: character, all protein accessions before inference,
-separated by \verb{;}, retained in \code{rowData}. Accessions are combined across
-records and samples when they map to the same glycopeptide.
+separated by \verb{;}, retained in \code{rowData}.
 \item \code{protein_site}: integer, site of glycosylation on protein (after protein inference)
 \item \code{gene}: character, gene name (symbol) (after protein inference)
+\item \code{reported_site}: character, original site label including all candidate sites
+\item \code{reported_glycan}: character, original glycan label including any mass shift
 \item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
 }
 }
