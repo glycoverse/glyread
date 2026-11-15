@@ -1,33 +1,41 @@
-#' Read Glyco-Decipher label-free quantification
+#' Read glyco-decipher output
+#'
+#' Glyco-Decipher is a software for glycopeptide identification and quantification.
+#' This function reads in the result file and returns a [glyexp::GlycoproteomicSE()] object.
+#' Currently only label-free quantification is supported.
 #'
 #' @section Which file to use?:
-#' Pass the `site.csv` file for site-specific abundances.
+#' You should use the "site.csv" file in the result folder.
+#' This file contains "Site" and "Glycan" columns,
+#' followed by quantification result for each sample.
+#' Each row is retained in file order, including records with different modifications.
 #'
-#' Each output row corresponds to one row of the site summary, in file
-#' order. Rows remain separate even if they have the same inferred protein,
-#' site and parsed composition. Blank abundances and zeros are returned as `NA`.
+#' @inheritSection read_pglyco3 Sample information
 #'
-#' @section Sample information:
-#' The sample identifiers in `sample_info$sample` must match the abundance
-#' column names after applying `sample_name_converter`, if supplied.
+#' @section Protein inference and uncertain sites:
+#' Glyco-Decipher reports uncertain sites and proteins.
+#' This function automatically performs protein inference using the
+#' parsimony method to find the leader proteins.
+#' This ensures each glycopeptide is uniquely mapped to a single protein, gene, and glycosite.
+#' Besides, uncertain sites on proteins are assigned `NA`.
 #'
 #' @section Variable information:
-#' `rowData` contains the inferred `protein`, the reported accessions in
-#' `protein_group`, and `gene` when gene symbol mapping is available.
-#' `reported_site` retains all candidate sites and
-#' `protein_site` is `NA` if multiple positions remain on the inferred protein.
-#' `reported_glycan` retains the original glycan label, including any mass shift, and
-#' `glycan_composition` is the parsed base composition.
+#'
+#' The following columns could be found in the variable information tibble:
+#' - `protein`: character, protein accession (after protein inference)
+#' - `protein_group`: character, all protein accessions before inference,
+#'   separated by `;`, retained in `rowData`.
+#' - `protein_site`: integer, site of glycosylation on protein (after protein inference)
+#' - `gene`: character, gene name (symbol) (after protein inference)
+#' - `reported_site`: character, original site label including all candidate sites
+#' - `reported_glycan`: character, original glycan label including any mass shift
+#' - `glycan_composition`: [glyrepr::glycan_composition()], glycan compositions.
 #'
 #' @inheritParams read_pglyco3
-#' @param fp Local path or HTTP(S) URL to the Glyco-Decipher `site.csv` file.
-#' @param orgdb Name of the OrgDb package for mapping UniProt IDs to gene symbols.
-#' @returns A [glyexp::GlycoproteomicSE()] object.
-#' @examples
-#' site_file <- tempfile(fileext = ".csv")
-#' writeLines(c("Site,Glycan,run1", "P02765@176,Hex(5)HexNAc(4),1250"),
-#'            site_file)
-#' read_glyco_decipher(site_file)
+#' @param orgdb name of the OrgDb package to use for UniProt to gene symbol conversion.
+#'  Default is "org.Hs.eg.db".
+#'
+#' @returns An [glyexp::GlycoproteomicSE()] object.
 #' @export
 read_glyco_decipher <- function(
   fp,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/glyco-decipher.R
 \name{read_glyco_decipher}
 \alias{read_glyco_decipher}
-\title{Read Glyco-Decipher label-free quantification}
+\title{Read glyco-decipher output}
 \usage{
 read_glyco_decipher(
   fp,
@@ -14,7 +14,7 @@ read_glyco_decipher(
 )
 }
 \arguments{
-\item{fp}{Local path or HTTP(S) URL to the Glyco-Decipher \code{site.csv} file.}
+\item{fp}{Local path or HTTP(S) URL of the result file.}
 
 \item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble.}
@@ -30,42 +30,62 @@ and return new sample names.
 Note that sample names in \code{sample_info} should match the new names.
 If NULL, original names are kept.}
 
-\item{orgdb}{Name of the OrgDb package for mapping UniProt IDs to gene symbols.}
+\item{orgdb}{name of the OrgDb package to use for UniProt to gene symbol conversion.
+Default is "org.Hs.eg.db".}
 }
 \value{
-A \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
+An \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
 }
 \description{
-Read Glyco-Decipher label-free quantification
+Glyco-Decipher is a software for glycopeptide identification and quantification.
+This function reads in the result file and returns a \code{\link[glyexp:GlycoproteomicSE]{glyexp::GlycoproteomicSE()}} object.
+Currently only label-free quantification is supported.
 }
 \section{Which file to use?}{
 
-Pass the \code{site.csv} file for site-specific abundances.
-
-Each output row corresponds to one row of the site summary, in file
-order. Rows remain separate even if they have the same inferred protein,
-site and parsed composition. Blank abundances and zeros are returned as \code{NA}.
+You should use the "site.csv" file in the result folder.
+This file contains "Site" and "Glycan" columns,
+followed by quantification result for each sample.
+Each row is retained in file order, including records with different modifications.
 }
 
-\section{Sample information}{
+\section{Protein inference and uncertain sites}{
 
-The sample identifiers in \code{sample_info$sample} must match the abundance
-column names after applying \code{sample_name_converter}, if supplied.
+Glyco-Decipher reports uncertain sites and proteins.
+This function automatically performs protein inference using the
+parsimony method to find the leader proteins.
+This ensures each glycopeptide is uniquely mapped to a single protein, gene, and glycosite.
+Besides, uncertain sites on proteins are assigned \code{NA}.
 }
 
 \section{Variable information}{
 
-\code{rowData} contains the inferred \code{protein}, the reported accessions in
-\code{protein_group}, and \code{gene} when gene symbol mapping is available.
-\code{reported_site} retains all candidate sites and
-\code{protein_site} is \code{NA} if multiple positions remain on the inferred protein.
-\code{reported_glycan} retains the original glycan label, including any mass shift, and
-\code{glycan_composition} is the parsed base composition.
+
+The following columns could be found in the variable information tibble:
+\itemize{
+\item \code{protein}: character, protein accession (after protein inference)
+\item \code{protein_group}: character, all protein accessions before inference,
+separated by \verb{;}, retained in \code{rowData}.
+\item \code{protein_site}: integer, site of glycosylation on protein (after protein inference)
+\item \code{gene}: character, gene name (symbol) (after protein inference)
+\item \code{reported_site}: character, original site label including all candidate sites
+\item \code{reported_glycan}: character, original glycan label including any mass shift
+\item \code{glycan_composition}: \code{\link[glyrepr:glycan_composition]{glyrepr::glycan_composition()}}, glycan compositions.
+}
 }
 
-\examples{
-site_file <- tempfile(fileext = ".csv")
-writeLines(c("Site,Glycan,run1", "P02765@176,Hex(5)HexNAc(4),1250"),
-           site_file)
-read_glyco_decipher(site_file)
+\section{Sample information}{
+The sample information file should be a \code{csv} file with the first column
+named \code{sample}, and the rest of the columns being sample information.
+The \code{sample} column must match the \code{RawName} column in the pGlyco3 result file,
+although the order can be different.
+
+You can put any useful information in the sample information file.
+Recommended columns are:
+\itemize{
+\item \code{group}: grouping or conditions, e.g. "control" or "tumor",
+required for most downstream analyses
+\item \code{batch}: batch information, required for batch effect correction
 }
+}
+
