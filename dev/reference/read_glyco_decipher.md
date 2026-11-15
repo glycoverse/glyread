@@ -60,7 +60,8 @@ object.
 
 You should use the "site.csv" file in the result folder. This file
 contains "Site" and "Glycan" columns, followed by quantification result
-for each sample.
+for each sample. Each row is retained in file order, including records
+with different modifications.
 
 ## Protein inference and uncertain sites
 
@@ -77,13 +78,18 @@ The following columns could be found in the variable information tibble:
 - `protein`: character, protein accession (after protein inference)
 
 - `protein_group`: character, all protein accessions before inference,
-  separated by `;`, retained in `rowData`. Accessions are combined
-  across records and samples when they map to the same glycopeptide.
+  separated by `;`, retained in `rowData`.
 
 - `protein_site`: integer, site of glycosylation on protein (after
   protein inference)
 
 - `gene`: character, gene name (symbol) (after protein inference)
+
+- `reported_site`: character, original site label including all
+  candidate sites
+
+- `reported_glycan`: character, original glycan label including any mass
+  shift
 
 - `glycan_composition`:
   [`glyrepr::glycan_composition()`](https://glycoverse.github.io/glyrepr/reference/glycan_composition.html),

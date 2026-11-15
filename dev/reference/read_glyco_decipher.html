@@ -99,7 +99,8 @@ Default is "org.Hs.eg.db".</p></dd>
 
 <p>You should use the "site.csv" file in the result folder.
 This file contains "Site" and "Glycan" columns,
-followed by quantification result for each sample.</p>
+followed by quantification result for each sample.
+Each row is retained in file order, including records with different modifications.</p>
     </div>
     <div class="section level2">
     <h2 id="protein-inference-and-uncertain-sites">Protein inference and uncertain sites<a class="anchor" aria-label="anchor" href="#protein-inference-and-uncertain-sites"></a></h2>
@@ -118,10 +119,11 @@ Besides, uncertain sites on proteins are assigned <code>NA</code>.</p>
 
 <p>The following columns could be found in the variable information tibble:</p><ul><li><p><code>protein</code>: character, protein accession (after protein inference)</p></li>
 <li><p><code>protein_group</code>: character, all protein accessions before inference,
-separated by <code>;</code>, retained in <code>rowData</code>. Accessions are combined across
-records and samples when they map to the same glycopeptide.</p></li>
+separated by <code>;</code>, retained in <code>rowData</code>.</p></li>
 <li><p><code>protein_site</code>: integer, site of glycosylation on protein (after protein inference)</p></li>
 <li><p><code>gene</code>: character, gene name (symbol) (after protein inference)</p></li>
+<li><p><code>reported_site</code>: character, original site label including all candidate sites</p></li>
+<li><p><code>reported_glycan</code>: character, original glycan label including any mass shift</p></li>
 <li><p><code>glycan_composition</code>: <code><a href="https://glycoverse.github.io/glyrepr/reference/glycan_composition.html" class="external-link">glyrepr::glycan_composition()</a></code>, glycan compositions.</p></li>
 </ul></div>
     <div class="section level2">

@@ -2,6 +2,9 @@
 
 ## glyread (development version)
 
+- [`read_glyco_decipher()`](https://glycoverse.github.io/glyread/dev/reference/read_glyco_decipher.md)
+  now keeps one row per reported feature in `site.csv`, so records with
+  different modifications are kept intactly. (#34)
 - [`read_pglyco3_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_pglyco3_pglycoquant.md)
   now reads site-specific glycan abundances from `Quant.site.list`.
   (#33)

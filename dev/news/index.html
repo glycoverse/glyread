@@ -34,6 +34,8 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="glyread-development-version">glyread (development version)<a class="anchor" aria-label="anchor" href="#glyread-development-version"></a></h2>
 <ul><li>
+<code><a href="../reference/read_glyco_decipher.html">read_glyco_decipher()</a></code> now keeps one row per reported feature in <code>site.csv</code>, so records with different modifications are kept intactly. (#34)</li>
+<li>
 <code><a href="../reference/read_pglyco3_pglycoquant.html">read_pglyco3_pglycoquant()</a></code> now reads site-specific glycan abundances from <code>Quant.site.list</code>. (#33)</li>
 <li>
 <code><a href="../reference/read_byonic_byologic.html">read_byonic_byologic()</a></code> and <code><a href="../reference/read_byonic_pglycoquant.html">read_byonic_pglycoquant()</a></code> now exclude identifications whose protein field contains <code>&gt;Reverse</code> before calculating abundances. (#32)</li>
