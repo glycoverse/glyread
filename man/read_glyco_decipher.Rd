@@ -14,8 +14,7 @@ read_glyco_decipher(
 )
 }
 \arguments{
-\item{fp}{Local result directory (reads \code{site.csv}), or a local path or
-HTTP(S) URL to a site summary CSV with \code{Site} and \code{Glycan} columns.}
+\item{fp}{Local path or HTTP(S) URL to the Glyco-Decipher \code{site.csv} file.}
 
 \item{sample_info}{Local path or HTTP(S) URL of the sample information CSV,
 or a sample information data.frame/tibble.}
@@ -41,7 +40,7 @@ Read Glyco-Decipher label-free quantification
 }
 \section{Which file to use?}{
 
-Pass the result directory or its \code{site.csv} for site-specific abundances.
+Pass the \code{site.csv} file for site-specific abundances.
 
 Each output row corresponds to one row of the site summary, in file
 order. Rows remain separate even if they have the same inferred protein,
@@ -65,9 +64,8 @@ column names after applying \code{sample_name_converter}, if supplied.
 }
 
 \examples{
-result_dir <- tempfile()
-dir.create(result_dir)
+site_file <- tempfile(fileext = ".csv")
 writeLines(c("Site,Glycan,run1", "P02765@176,Hex(5)HexNAc(4),1250"),
-           file.path(result_dir, "site.csv"))
-read_glyco_decipher(result_dir)
+           site_file)
+read_glyco_decipher(site_file)
 }

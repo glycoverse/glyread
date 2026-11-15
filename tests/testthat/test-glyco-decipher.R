@@ -221,7 +221,7 @@ test_that("it handles different glycan types and orgdb parameters", {
 })
 
 test_that("site summaries preserve reported rows, values and annotations", {
-  path <- withr::local_tempdir()
+  path <- withr::local_tempfile(fileext = ".csv")
   writeLines(
     c(
       "Site,Glycan,A,B",
@@ -229,7 +229,7 @@ test_that("site summaries preserve reported rows, values and annotations", {
       "P02765@176;P02765@180,Hex(5)HexNAc(4)+204.06,20,30",
       "P02765@176;P02765@181,Hex(5)HexNAc(4),,40"
     ),
-    file.path(path, "site.csv")
+    path
   )
   x <- suppressMessages(read_glyco_decipher(
     path,

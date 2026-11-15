@@ -1,7 +1,7 @@
 #' Read Glyco-Decipher label-free quantification
 #'
 #' @section Which file to use?:
-#' Pass the result directory or its `site.csv` for site-specific abundances.
+#' Pass the `site.csv` file for site-specific abundances.
 #'
 #' Each output row corresponds to one row of the site summary, in file
 #' order. Rows remain separate even if they have the same inferred protein,
@@ -20,16 +20,14 @@
 #' `glycan_composition` is the parsed base composition.
 #'
 #' @inheritParams read_pglyco3
-#' @param fp Local result directory (reads `site.csv`), or a local path or
-#'   HTTP(S) URL to a site summary CSV with `Site` and `Glycan` columns.
+#' @param fp Local path or HTTP(S) URL to the Glyco-Decipher `site.csv` file.
 #' @param orgdb Name of the OrgDb package for mapping UniProt IDs to gene symbols.
 #' @returns A [glyexp::GlycoproteomicSE()] object.
 #' @examples
-#' result_dir <- tempfile()
-#' dir.create(result_dir)
+#' site_file <- tempfile(fileext = ".csv")
 #' writeLines(c("Site,Glycan,run1", "P02765@176,Hex(5)HexNAc(4),1250"),
-#'            file.path(result_dir, "site.csv"))
-#' read_glyco_decipher(result_dir)
+#'            site_file)
+#' read_glyco_decipher(site_file)
 #' @export
 read_glyco_decipher <- function(
   fp,
@@ -40,9 +38,6 @@ read_glyco_decipher <- function(
   orgdb = "org.Hs.eg.db"
 ) {
   # ----- Check arguments -----
-  if (isTRUE(dir.exists(fp))) {
-    fp <- file.path(fp, "site.csv")
-  }
   fp <- .read_file_input(fp, ".csv")
   .validate_read_args(
     sample_info = sample_info,
