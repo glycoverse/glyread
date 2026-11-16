@@ -45,7 +45,26 @@ read_glyco_decipher <- function(
   sample_name_converter = NULL,
   orgdb = "org.Hs.eg.db"
 ) {
-  # ----- Check arguments -----
+  .read_glyco_summary(
+    fp,
+    sample_info,
+    quant_method,
+    glycan_type,
+    sample_name_converter,
+    orgdb,
+    col_types = readr::cols(Site = "c", Glycan = "c", .default = "d")
+  )
+}
+
+.read_glyco_summary <- function(
+  fp,
+  sample_info,
+  quant_method,
+  glycan_type,
+  sample_name_converter,
+  orgdb,
+  col_types
+) {
   fp <- .read_file_input(fp, ".csv")
   .validate_read_args(
     sample_info = sample_info,
@@ -60,23 +79,23 @@ read_glyco_decipher <- function(
   }
 
   cli::cli_progress_step("Reading data")
-  df <- readr::read_csv(
-    fp,
-    col_types = readr::cols(
-      Site = readr::col_character(),
-      Glycan = readr::col_character(),
-      .default = readr::col_double()
-    ),
-    name_repair = "minimal"
+  if (is.null(col_types)) {
+    col_types <- .glypep_quant_col_types(fp)
+  }
+  df <- readr::read_csv(fp, col_types = col_types, name_repair = "minimal")
+  annotations <- names(col_types$cols)
+  checkmate::assert_names(
+    names(df),
+    type = "unique",
+    must.include = annotations
   )
-  checkmate::assert_names(names(df), type = "unique")
-  samples <- setdiff(names(df), c("Site", "Glycan"))
+  samples <- setdiff(names(df), annotations)
   if (!length(samples)) {
     cli::cli_abort("Expected at least one sample abundance column.")
   }
   readr::stop_for_problems(df)
   if (!nrow(df)) {
-    cli::cli_abort("The Glyco-Decipher summary contains no features.")
+    cli::cli_abort("The quantification summary contains no features.")
   }
 
   abundance <- as.matrix(df[samples])
@@ -93,8 +112,15 @@ read_glyco_decipher <- function(
   }
   sample_info <- .process_sample_info(sample_info, samples)
 
-  var_info <- tibble::as_tibble(.resolve_glyco_decipher_sites(df$Site))
-  var_info$reported_site <- df$Site
+  if ("Peptide" %in% annotations) {
+    var_info <- tibble::as_tibble(.resolve_glyco_decipher_sites(df$Protein))
+    var_info$reported_protein <- df$Protein
+    var_info$reported_peptide <- df$Peptide
+    var_info$peptide <- sub("[[:space:]].*$", "", df$Peptide)
+  } else {
+    var_info <- tibble::as_tibble(.resolve_glyco_decipher_sites(df$Site))
+    var_info$reported_site <- df$Site
+  }
   var_info$reported_glycan <- df$Glycan
   var_info$glycan_composition <- glyrepr::as_glycan_composition(
     .convert_glyco_decipher_comp(df$Glycan)
@@ -117,7 +143,7 @@ read_glyco_decipher <- function(
 #' @returns A list of character vectors of proteins and integer vectors of sites.
 #' @noRd
 .resolve_glyco_decipher_sites <- function(sites) {
-  sites <- stringr::str_split(sites, stringr::fixed(";"))
+  sites <- stringr::str_split(sub(";+$", "", sites), stringr::fixed(";"))
   proteins <- purrr::map(
     sites,
     ~ stringr::str_split_i(.x, stringr::fixed("@"), 1L)
