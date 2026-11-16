@@ -107,6 +107,9 @@ exp <- read_pglyco3_pglycoquant(
   : Read GlycanFinder result
 - [`read_glyco_decipher()`](https://glycoverse.github.io/glyread/dev/reference/read_glyco_decipher.md)
   : Read glyco-decipher output
+- [`read_glyco_decipher_glypep_quant()`](https://glycoverse.github.io/glyread/dev/reference/read_glyco_decipher_glypep_quant.md)
+  [`read_pglyco3_glypep_quant()`](https://glycoverse.github.io/glyread/dev/reference/read_glyco_decipher_glypep_quant.md)
+  : Read GlyPep-Quant label-free quantification results
 - [`read_glyhunter()`](https://glycoverse.github.io/glyread/dev/reference/read_glyhunter.md)
   : Read GlyHunter result
 - [`read_msfragger()`](https://glycoverse.github.io/glyread/dev/reference/read_msfragger.md)

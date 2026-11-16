@@ -23,10 +23,14 @@ with these popular tools:
   [`read_glycan_finder()`](https://glycoverse.github.io/glyread/dev/reference/read_glycan_finder.md)
 - Glyco-Decipher:
   [`read_glyco_decipher()`](https://glycoverse.github.io/glyread/dev/reference/read_glyco_decipher.md)
+- Glyco-Decipher (quantification with GlyPep-Quant):
+  [`read_glyco_decipher_glypep_quant()`](https://glycoverse.github.io/glyread/dev/reference/read_glyco_decipher_glypep_quant.md)
 - MSFragger-Glyco:
   [`read_msfragger()`](https://glycoverse.github.io/glyread/dev/reference/read_msfragger.md)
 - pGlyco3 (built-in quantification):
   [`read_pglyco3()`](https://glycoverse.github.io/glyread/dev/reference/read_pglyco3.md)
+- pGlyco3 (quantification with GlyPep-Quant):
+  [`read_pglyco3_glypep_quant()`](https://glycoverse.github.io/glyread/dev/reference/read_glyco_decipher_glypep_quant.md)
 - pGlyco3 (quantification with pGlycoQuant):
   [`read_pglyco3_pglycoquant()`](https://glycoverse.github.io/glyread/dev/reference/read_pglyco3_pglycoquant.md)
 - StrucGP (no quantification):
