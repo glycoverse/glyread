@@ -1,10 +1,11 @@
 test_that("site exports use the same row and sample annotations as Glyco-Decipher", {
   fp <- test_path("data/glyco-decipher-result.csv")
-  site <- read_glypep_quant(fp)
+  site <- read_glyco_decipher_glypep_quant(fp)
   expect_equal(site, read_glyco_decipher(fp))
+  expect_equal(read_pglyco3_glypep_quant(fp), site)
 })
 
-test_that("glycopeptide exports preserve modifications, candidates and abundances", {
+test_that("Glyco-Decipher glycopeptide exports preserve modifications, candidates and abundances", {
   fp <- withr::local_tempfile(fileext = ".csv")
   writeLines(
     c(
@@ -16,7 +17,7 @@ test_that("glycopeptide exports preserve modifications, candidates and abundance
     ),
     fp
   )
-  x <- read_glypep_quant(
+  x <- read_glyco_decipher_glypep_quant(
     fp,
     sample_info = data.frame(sample = c("02", "01")),
     sample_name_converter = \(s) sub("HeLa_", "", s)
@@ -42,10 +43,32 @@ test_that("glycopeptide exports preserve modifications, candidates and abundance
   expect_identical(anyDuplicated(rownames(x)), 0L)
 })
 
+test_that("pGlyco3 glycopeptide exports retain accessions without site coordinates", {
+  fp <- withr::local_tempfile(fileext = ".csv")
+  writeLines(
+    c(
+      "Peptide,Glycan,Protein,HeLa_01",
+      "AAFHNAVAVVIYNNK,Hex(8)HexNAc(2),Q86XS8,831800",
+      "EEQFNSTFR,Hex(3)HexNAc(3)Fuc(1),P01859;Q86XS8,883.8"
+    ),
+    fp
+  )
+  x <- read_pglyco3_glypep_quant(fp)
+  info <- .test_var_info(x)
+  expect_identical(info$protein, rep("Q86XS8", 2))
+  expect_identical(info$protein_group, c("Q86XS8", "P01859;Q86XS8"))
+  expect_identical(info$reported_protein, info$protein_group)
+  expect_identical(info$protein_site, rep(NA_integer_, 2))
+  expect_equal(as.numeric(.test_expr_mat(x)), c(831800, 883.8))
+})
+
 test_that("GlyPep-Quant requires a recognized header and at least one sample", {
   fp <- withr::local_tempfile(fileext = ".csv")
   writeLines("Peptide,Glycan,A", fp)
-  expect_error(read_glypep_quant(fp), "Peptide, Glycan and Protein")
+  expect_error(
+    read_glyco_decipher_glypep_quant(fp),
+    "Peptide, Glycan and Protein"
+  )
   writeLines("Protein,Peptide,Glycan", fp)
-  expect_error(read_glypep_quant(fp), "sample abundance column")
+  expect_error(read_pglyco3_glypep_quant(fp), "sample abundance column")
 })

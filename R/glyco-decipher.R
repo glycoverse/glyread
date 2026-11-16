@@ -51,8 +51,7 @@ read_glyco_decipher <- function(
     quant_method,
     glycan_type,
     sample_name_converter,
-    orgdb,
-    col_types = readr::cols(Site = "c", Glycan = "c", .default = "d")
+    orgdb
   )
 }
 
@@ -63,7 +62,7 @@ read_glyco_decipher <- function(
   glycan_type,
   sample_name_converter,
   orgdb,
-  col_types
+  parse_peptide_proteins = NULL
 ) {
   fp <- .read_file_input(fp, ".csv")
   .validate_read_args(
@@ -79,8 +78,10 @@ read_glyco_decipher <- function(
   }
 
   cli::cli_progress_step("Reading data")
-  if (is.null(col_types)) {
-    col_types <- .glypep_quant_col_types(fp)
+  col_types <- if (is.null(parse_peptide_proteins)) {
+    readr::cols(Site = "c", Glycan = "c", .default = "d")
+  } else {
+    .glypep_quant_col_types(fp)
   }
   df <- readr::read_csv(fp, col_types = col_types, name_repair = "minimal")
   annotations <- names(col_types$cols)
@@ -113,7 +114,7 @@ read_glyco_decipher <- function(
   sample_info <- .process_sample_info(sample_info, samples)
 
   if ("Peptide" %in% annotations) {
-    var_info <- tibble::as_tibble(.resolve_glyco_decipher_sites(df$Protein))
+    var_info <- tibble::as_tibble(parse_peptide_proteins(df$Protein))
     var_info$reported_protein <- df$Protein
     var_info$reported_peptide <- df$Peptide
     var_info$peptide <- sub("[[:space:]].*$", "", df$Peptide)
