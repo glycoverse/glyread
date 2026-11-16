@@ -1,6 +1,6 @@
 # glyread (development version)
 
-* New `read_glyco_decipher_glypep_quant()` and `read_pglyco3_glypep_quant()` import site-specific glycan and glycopeptide abundances from GlyPep-Quant CSV files.
+* New `read_glyco_decipher_glypep_quant()` and `read_pglyco3_glypep_quant()` import site-specific glycan and glycopeptide abundances from GlyPep-Quant CSV files. (#35)
 * `read_glyco_decipher()` now keeps one row per reported feature in `site.csv`, so records with different modifications are kept intactly. (#34)
 * `read_pglyco3_pglycoquant()` now reads site-specific glycan abundances from `Quant.site.list`. (#33)
 * `read_byonic_byologic()` and `read_byonic_pglycoquant()` now exclude identifications whose protein field contains `>Reverse` before calculating abundances. (#32)
